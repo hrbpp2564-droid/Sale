@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BWP — เครื่องมืออัปเดตข้อมูลแดชบอร์ด</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .sub { color: var(--text-tertiary); font-size: 14px; margin-bottom: 22px; }
+  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; padding: 12px 16px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+  .status { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .card { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 18px; }
+  .card h2 { font-size: 16px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .tag { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border-default); }
+  th.num, td.num { text-align: right; }
+  td { padding: 5px 8px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+  td.lbl { color: var(--text-secondary); }
+  input { width: 100%; box-sizing: border-box; background: var(--surface-inset); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-numeric); font-size: 13px; padding: 7px 9px; text-align: right; }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  input.text { text-align: left; font-family: var(--font-sans); }
+  input[readonly] { opacity: .55; cursor: not-allowed; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: var(--radius-md); border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: background .12s; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.ghost { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-default); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow-lg); transition: all .25s; pointer-events: none; z-index: 99; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.ok { border-color: var(--positive); }
+  .toast.err { border-color: var(--negative); }
+  .hint { font-size: 12px; color: var(--text-tertiary); margin-top: 10px; line-height: 1.6; }
+  .month-grid { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 6px 10px; align-items: center; }
+  .month-grid .h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; padding-bottom: 4px; }
+  .month-grid .ml { color: var(--text-secondary); font-size: 13px; font-family: var(--font-numeric); }
+  a { color: var(--text-link); }
+</style>
+</head>
+<body class="vantage">
+<div class="wrap">
+  <h1>เครื่องมืออัปเดตข้อมูลแดชบอร์ด</h1>
+  <div class="sub">แก้ตัวเลข → กดบันทึก → เว็บจริงเปลี่ยนทันทีที่รีเฟรช (ไม่ต้อง deploy)</div>
+
+  <div class="bar">
+    <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังเชื่อมต่อ Supabase…</span></div>
+    <div style="flex:1"></div>
+    <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
+    <button class="btn primary" id="saveBtn" disabled>💾 บันทึกเข้า Supabase</button>
+  </div>
+
+  <div id="forms" style="display:none">
+    <div class="card">
+      <h2>KPI หลัก <span class="tag">— ตัวเลขการ์ดด้านบนสุด</span></h2>
+      <table>
+        <thead><tr><th>ป้ายกำกับ</th><th class="num">ค่า</th><th>หน่วย</th><th class="num">% เทียบเดือนก่อน</th><th class="num">% YoY</th></tr></thead>
+        <tbody id="kpiBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>ยอดขายรายเดือน ปี 2569 <span class="tag">— เติมเดือนใหม่ตรงช่องว่าง</span></h2>
+      <div class="month-grid" id="monthGrid">
+        <div class="h">เดือน</div><div class="h">มูลค่า (ล้านบาท)</div><div class="h">ปริมาณ (พัน Kg)</div>
+      </div>
+      <div class="hint">ช่องที่ยังว่าง = เดือนที่ยังไม่มีข้อมูล กรอกตัวเลขเพื่อเพิ่มเดือนใหม่ · KPI ด้านบนจะอัปเดตอัตโนมัติเมื่อบันทึก</div>
+    </div>
+  </div>
+
+  <div class="hint" id="needPolicy" style="display:none; color:var(--negative)">
+    ⚠️ บันทึกไม่สำเร็จ — ยังไม่ได้เปิดสิทธิ์แก้ไข กรุณารันไฟล์ <code>backend/supabase-enable-edit.sql</code> ใน Supabase SQL Editor ก่อน (รันครั้งเดียว) แล้วลองใหม่
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CFG = {
+  url: 'https://fwwgfcjirhpoosuhrxhc.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3d2dmY2ppcmhwb29zdWhyeGhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNTU3MDQsImV4cCI6MjA5NjczMTcwNH0.9tj1rR4i8A_te9YqSXQeDlopCwQjM2-BoYNlkAzigvM',
+  table: 'dashboard_data', id: 'bwp',
+};
+const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+let payload = null;
+
+const $ = (id) => document.getElementById(id);
+function toast(msg, kind) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (kind||'');
+  setTimeout(() => { t.className = 'toast ' + (kind||''); }, 3200);
+}
+function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
+
+async function load() {
+  setStatus('กำลังโหลดข้อมูล…', 'var(--warning)');
+  try {
+    const ep = CFG.url + '/rest/v1/' + CFG.table + '?id=eq.' + CFG.id + '&select=payload';
+    const r = await fetch(ep, { headers: { apikey: CFG.anonKey, Authorization: 'Bearer ' + CFG.anonKey } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+    if (!rows[0] || !rows[0].payload) throw new Error('ไม่พบข้อมูล');
+    payload = rows[0].payload;
+    render();
+    setStatus('เชื่อมต่อแล้ว · ' + (payload.company && payload.company.abbr || 'BWP'), 'var(--positive)');
+    $('forms').style.display = 'block';
+    $('saveBtn').disabled = false;
+  } catch (e) {
+    setStatus('เชื่อมต่อไม่สำเร็จ: ' + e.message, 'var(--negative)');
+    toast('โหลดข้อมูลไม่สำเร็จ — ' + e.message, 'err');
+  }
+}
+
+function render() {
+  // KPIs
+  const kb = $('kpiBody'); kb.innerHTML = '';
+  (payload.KPIS || []).forEach((k, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="lbl"><input class="text" data-kpi="'+i+'" data-f="label" value="'+(k.label||'')+'"></td>' +
+      '<td class="num"><input data-kpi="'+i+'" data-f="value" value="'+(k.value||'')+'"></td>' +
+      '<td><input class="text" data-kpi="'+i+'" data-f="unit" value="'+(k.unit||'')+'" style="width:80px"></td>' +
+      '<td class="num"><input data-kpi="'+i+'" data-f="delta" value="'+(k.delta!=null?k.delta:'')+'"></td>' +
+      '<td class="num"><input data-kpi="'+i+'" data-f="yoy" value="'+(k.yoy!=null?k.yoy:'')+'"></td>';
+    kb.appendChild(tr);
+  });
+  // Monthly 2569
+  const g = $('monthGrid');
+  g.querySelectorAll('.row').forEach(e => e.remove());
+  const val = (payload.valueByYear && payload.valueByYear['2569']) || [];
+  const vol = (payload.volumeByYear && payload.volumeByYear['2569']) || [];
+  TH.forEach((m, i) => {
+    const wrap = document.createElement('div'); wrap.className = 'row'; wrap.style.display = 'contents';
+    wrap.innerHTML =
+      '<div class="ml row">'+m+'</div>' +
+      '<div class="row"><input data-arr="value" data-m="'+i+'" value="'+(val[i]!=null?val[i]:'')+'" placeholder="—"></div>' +
+      '<div class="row"><input data-arr="volume" data-m="'+i+'" value="'+(vol[i]!=null?vol[i]:'')+'" placeholder="—"></div>';
+    g.appendChild(wrap);
+  });
+}
+
+function collect() {
+  // KPIs
+  document.querySelectorAll('[data-kpi]').forEach(inp => {
+    const k = payload.KPIS[+inp.dataset.kpi]; const f = inp.dataset.f; let v = inp.value.trim();
+    if (f === 'label' || f === 'value' || f === 'unit') k[f] = v;
+    else k[f] = v === '' ? 0 : parseFloat(v);
+  });
+  // Monthly arrays
+  payload.valueByYear = payload.valueByYear || {}; payload.volumeByYear = payload.volumeByYear || {};
+  const val = payload.valueByYear['2569'] = (payload.valueByYear['2569'] || []).slice();
+  const vol = payload.volumeByYear['2569'] = (payload.volumeByYear['2569'] || []).slice();
+  document.querySelectorAll('[data-arr]').forEach(inp => {
+    const i = +inp.dataset.m, v = inp.value.trim(), arr = inp.dataset.arr === 'value' ? val : vol;
+    arr[i] = v === '' ? null : parseFloat(v);
+  });
+}
+
+async function save() {
+  collect();
+  $('saveBtn').disabled = true; $('needPolicy').style.display = 'none';
+  setStatus('กำลังบันทึก…', 'var(--warning)');
+  try {
+    const ep = CFG.url + '/rest/v1/' + CFG.table + '?id=eq.' + CFG.id;
+    const r = await fetch(ep, {
+      method: 'PATCH',
+      headers: { apikey: CFG.anonKey, Authorization: 'Bearer ' + CFG.anonKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ payload: payload, updated_at: new Date().toISOString() }),
+    });
+    if (r.status === 401 || r.status === 403 || r.status === 404) { $('needPolicy').style.display = 'block'; throw new Error('ไม่มีสิทธิ์เขียน (HTTP '+r.status+')'); }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
+    toast('✓ บันทึกสำเร็จ! เปิดเว็บจริงแล้วรีเฟรชเพื่อดูผล', 'ok');
+  } catch (e) {
+    setStatus('บันทึกไม่สำเร็จ: ' + e.message, 'var(--negative)');
+    toast('บันทึกไม่สำเร็จ — ' + e.message, 'err');
+  } finally { $('saveBtn').disabled = false; }
+}
+
+$('reloadBtn').onclick = load;
+$('saveBtn').onclick = save;
+load();
+</script>
+</body>
+</html>

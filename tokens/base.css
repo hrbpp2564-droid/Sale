@@ -1,0 +1,65 @@
+/* ============================================================
+   VANTAGE — BASE / RESET
+   Minimal, applied when consumers opt in via the .vantage class
+   on a root element (so we never fight a host page's globals).
+   The app shell uses <body class="vantage" data-theme="dark|light">.
+   ============================================================ */
+
+.vantage,
+.vantage *,
+.vantage *::before,
+.vantage *::after {
+  box-sizing: border-box;
+}
+
+.vantage {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+}
+
+.vantage h1, .vantage h2, .vantage h3,
+.vantage h4, .vantage h5, .vantage h6,
+.vantage p, .vantage figure {
+  margin: 0;
+}
+
+.vantage button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.vantage a {
+  color: var(--text-link);
+  text-decoration: none;
+}
+.vantage a:hover { text-decoration: underline; }
+
+.vantage ::selection {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+/* Custom scrollbars in the app shell */
+.vantage ::-webkit-scrollbar { width: 10px; height: 10px; }
+.vantage ::-webkit-scrollbar-track { background: transparent; }
+.vantage ::-webkit-scrollbar-thumb {
+  background: var(--slate-600);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.vantage ::-webkit-scrollbar-thumb:hover { background: var(--slate-500); }
+
+/* Numeric helper available globally */
+.vantage .num,
+.vantage [data-num] {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: var(--tracking-tight);
+}

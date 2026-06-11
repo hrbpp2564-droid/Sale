@@ -1,0 +1,60 @@
+<!-- @dsCard group="Components" viewport="700x380" name="Charts — Line, Donut, Pareto" subtitle="LineChart (combo), DonutChart, ParetoChart, Sparkline" -->
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; background: var(--bg-app); }
+  .wrap { padding: 22px 24px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+  .panel { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px; }
+  .lbl { font-size: var(--text-2xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+  .span2 { grid-column: 1 / -1; }
+</style>
+</head>
+<body class="vantage">
+<div id="root" class="wrap"></div>
+<script type="text/babel">
+const { LineChart, DonutChart, ParetoChart } = window.VantageSalesIntelligenceDesignSystem_a75d0a;
+const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.'];
+function Demo() {
+  return (
+    <>
+      <div className="panel">
+        <div className="lbl">LineChart · Combo (value bars + volume line)</div>
+        <LineChart height={210} labels={months} yFormat={(v)=>v+'M'}
+          series={[
+            {name:'มูลค่า (ลบ.)', data:[62,68,71,69,80,84,79,88], color:'var(--viz-1)', type:'bar'},
+            {name:'ปริมาณ (Kg)', data:[40,44,46,45,52,55,51,58], color:'var(--viz-2)', type:'line', axis:'right'},
+          ]} />
+      </div>
+      <div className="panel">
+        <div className="lbl">DonutChart · Product Mix</div>
+        <DonutChart size={150} thickness={22} centerValue="847M" centerLabel="รวม" showLegend={true}
+          data={[
+            {label:'Polymer-A', value:32, color:'var(--viz-1)'},
+            {label:'Resin-B', value:24, color:'var(--viz-2)'},
+            {label:'Additive-C', value:18, color:'var(--viz-3)'},
+            {label:'อื่น ๆ', value:26, color:'var(--viz-4)'},
+          ]} />
+      </div>
+      <div className="panel span2">
+        <div className="lbl">ParetoChart · Customer Contribution</div>
+        <ParetoChart height={220} valueFormat={(v)=>'฿'+v+'M'}
+          data={[
+            {label:'Siam Poly', value:271},{label:'TPC Group', value:163},{label:'Bangkok Resin', value:121},
+            {label:'CK Plastics', value:84},{label:'Thai Compound', value:58},{label:'NK Industry', value:39},
+            {label:'Asia Pack', value:28},{label:'Others', value:62},
+          ]} />
+      </div>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Core — Buttons, Inputs, Toggles" subtitle="Button, IconButton, Select, SegmentedControl, Badge" -->
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; background: var(--bg-app); }
+  .wrap { padding: 22px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .lbl { font-size: var(--text-2xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); width: 100%; }
+</style>
+</head>
+<body class="vantage">
+<div id="root" class="wrap"></div>
+<script type="text/babel">
+const { Button, IconButton, Select, SegmentedControl, Badge } = window.VantageSalesIntelligenceDesignSystem_a75d0a;
+const Ico = (d) => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
+const dl = Ico(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>);
+function Demo() {
+  const [g, setG] = React.useState('month');
+  const [yr, setYr] = React.useState('2569');
+  return (
+    <>
+      <div className="row"><span className="lbl">Button</span>
+        <Button variant="primary" iconLeft={dl}>ส่งออก Excel</Button>
+        <Button variant="secondary">ยกเลิก</Button>
+        <Button variant="ghost">ล้างตัวกรอง</Button>
+        <Button variant="danger">ลบ</Button>
+        <Button variant="primary" disabled>ปิดใช้งาน</Button>
+      </div>
+      <div className="row"><span className="lbl">Size · IconButton</span>
+        <Button size="sm" variant="secondary">เล็ก</Button>
+        <Button size="md" variant="secondary">กลาง</Button>
+        <Button size="lg" variant="secondary">ใหญ่</Button>
+        <IconButton label="ดาวน์โหลด" variant="outline">{dl}</IconButton>
+        <IconButton label="ตัวกรอง" variant="solid" active>{Ico(<><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>)}</IconButton>
+      </div>
+      <div className="row"><span className="lbl">SegmentedControl · Select</span>
+        <SegmentedControl value={g} onChange={setG} options={[{value:'month',label:'รายเดือน'},{value:'quarter',label:'รายไตรมาส'},{value:'year',label:'รายปี'}]} />
+        <Select label="" width={130} value={yr} onChange={setYr} options={['2565','2566','2567','2568','2569']} />
+      </div>
+      <div className="row"><span className="lbl">Badge</span>
+        <Badge tone="accent" dot>ใช้งาน</Badge>
+        <Badge tone="positive">เติบโต</Badge>
+        <Badge tone="negative">ลดลง</Badge>
+        <Badge tone="warning">เสี่ยง</Badge>
+        <Badge tone="accent" variant="solid" size="sm">#1</Badge>
+        <Badge tone="neutral" variant="outline">ร่าง</Badge>
+      </div>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

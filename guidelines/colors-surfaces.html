@@ -1,0 +1,18 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Surface Elevation" subtitle="Dark-mode layering — app → base → card → raised → hover" -->
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head><meta charset="utf-8" /><link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); }
+  .wrap { padding: 20px 22px; display: flex; gap: 10px; align-items: stretch; }
+  .sw { flex: 1; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); padding: 14px 12px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 84px; }
+  .name { font-size: var(--text-xs); font-weight: 600; color: var(--text-primary); }
+  .val { font-family: var(--font-numeric); font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+</style></head>
+<body class="vantage"><div class="wrap">
+  <div class="sw" style="background:var(--bg-app)"><div class="name">bg-app</div><div class="val">#0b0e14</div></div>
+  <div class="sw" style="background:var(--bg-base)"><div class="name">bg-base</div><div class="val">#0d1117</div></div>
+  <div class="sw" style="background:var(--surface-1)"><div class="name">surface-1 · card</div><div class="val">#12161f</div></div>
+  <div class="sw" style="background:var(--surface-2)"><div class="name">surface-2 · raised</div><div class="val">#161b24</div></div>
+  <div class="sw" style="background:var(--surface-3)"><div class="name">surface-3 · hover</div><div class="val">#1b212c</div></div>
+</div></body></html>

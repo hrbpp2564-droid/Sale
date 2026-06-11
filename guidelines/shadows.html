@@ -1,0 +1,18 @@
+<!-- @dsCard group="Spacing" viewport="700x170" name="Elevation & Shadows" subtitle="Deep, low-spread shadows tuned for dark surfaces + accent glow" -->
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head><meta charset="utf-8" /><link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); }
+  .wrap { padding: 26px 24px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .item { text-align: center; }
+  .box { width: 88px; height: 56px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+  .name { font-family: var(--font-numeric); font-size: 11px; color: var(--text-secondary); margin-top: 12px; }
+</style></head>
+<body class="vantage"><div class="wrap">
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-sm)"></div><div class="name">sm</div></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-md)"></div><div class="name">md · hover</div></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-lg)"></div><div class="name">lg · popover</div></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-xl)"></div><div class="name">xl · dialog</div></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-accent-glow);border-color:transparent"></div><div class="name">accent-glow</div></div>
+</div></body></html>

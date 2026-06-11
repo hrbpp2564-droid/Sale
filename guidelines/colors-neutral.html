@@ -1,0 +1,32 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="Neutral Slate Ramp" subtitle="Cool slate ramp — surfaces, borders, and text on dark" -->
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head><meta charset="utf-8" /><link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); }
+  .wrap { padding: 18px 22px; }
+  .row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .sw { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-subtle); }
+  .chip { height: 52px; }
+  .meta { padding: 6px 8px; background: var(--surface-1); }
+  .name { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+  .val { font-family: var(--font-numeric); font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+</style></head>
+<body class="vantage"><div class="wrap"><div class="row">
+  <div class="sw"><div class="chip" style="background:var(--slate-950)"></div><div class="meta"><div class="name">950</div><div class="val">#090b10</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-900)"></div><div class="meta"><div class="name">900</div><div class="val">#0b0e14</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-800)"></div><div class="meta"><div class="name">800</div><div class="val">#12161f</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-700)"></div><div class="meta"><div class="name">700</div><div class="val">#1b212c</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-600)"></div><div class="meta"><div class="name">600</div><div class="val">#2c3442</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-400)"></div><div class="meta"><div class="name">400</div><div class="val">#5f6b7a</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-300)"></div><div class="meta"><div class="name">300</div><div class="val">#8b97a5</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-200)"></div><div class="meta"><div class="name">200</div><div class="val">#aab5c1</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-100)"></div><div class="meta"><div class="name">100</div><div class="val">#cdd5dd</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--slate-50)"></div><div class="meta"><div class="name">50 · text</div><div class="val">#e6edf3</div></div></div>
+</div>
+<div style="display:flex;gap:14px;margin-top:14px;font-size:12px;color:var(--text-secondary)">
+  <span><span style="color:var(--text-primary);font-weight:600">primary</span> e6edf3</span>
+  <span><span style="color:var(--text-secondary);font-weight:600">secondary</span> 8b97a5</span>
+  <span><span style="color:var(--text-tertiary);font-weight:600">tertiary</span> 5f6b7a</span>
+  <span><span style="color:var(--text-disabled);font-weight:600">disabled</span> 3a4452</span>
+</div></div></body></html>

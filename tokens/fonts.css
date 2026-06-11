@@ -1,0 +1,7 @@
+/* Vantage typeface — IBM Plex Sans Thai (UI) + IBM Plex Mono (numerics)
+   Loaded from Google Fonts. IBM Plex Sans Thai is the real, intended family —
+   it carries full Thai + Latin glyph coverage and tabular Latin numerals.
+   If you self-host, drop the .woff2 files in /assets/fonts and replace this @import
+   with local @font-face rules. */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600&display=swap');

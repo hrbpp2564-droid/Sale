@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>กดอนุญาต GitHub แล้วผมทำต่อให้</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 34px 24px 80px; }
+  h1 { font-size: 25px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-tertiary); font-size: 15px; margin-bottom: 14px; line-height:1.6; }
+  .why { background: var(--info-subtle); border: 1px solid var(--info); border-radius: var(--radius-lg); padding: 14px 18px; font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 30px; }
+  .why b { color: var(--text-primary); }
+  .step { display: flex; gap: 18px; margin-bottom: 26px; align-items: flex-start; }
+  .num { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 19px; font-family: var(--font-numeric); }
+  .body { flex: 1; min-width: 0; }
+  .title { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+  /* fake chat composer */
+  .composer { border: 1px solid var(--border-strong); border-radius: var(--radius-xl); background: var(--surface-1); padding: 14px 16px; box-shadow: var(--shadow-lg); }
+  .composer-text { color: var(--text-tertiary); font-size: 14px; margin-bottom: 14px; }
+  .composer-row { display: flex; align-items: center; gap: 10px; }
+  .plus { position: relative; }
+  .plus-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border-default); background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-secondary); font-weight: 300; }
+  .ring::after { content: ''; position: absolute; inset: -7px; border: 3px solid #f85149; border-radius: 14px; animation: pulse 1.3s ease-in-out infinite; pointer-events: none; }
+  @keyframes pulse { 0%,100%{opacity:.35;transform:scale(1);} 50%{opacity:1;transform:scale(1.07);} }
+  .spacer { flex: 1; }
+  .send { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; }
+  /* import menu popover */
+  .menu { margin-top: 14px; width: 270px; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); overflow: hidden; }
+  .mi { display: flex; align-items: center; gap: 11px; padding: 12px 15px; font-size: 14px; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); }
+  .mi:last-child { border-bottom: none; }
+  .mi.hot { background: var(--accent-subtle); color: var(--accent-hover); font-weight: 600; position: relative; }
+  .mi .ic { width: 18px; text-align: center; }
+  .point { display: inline-flex; align-items: center; gap: 7px; background: var(--negative-subtle); color: var(--negative); border-radius: var(--radius-full); padding: 5px 13px; font-size: 13px; font-weight: 600; margin-top: 12px; }
+  .done { display: flex; align-items: center; gap: 13px; background: var(--positive-subtle); border: 1px solid var(--positive); border-radius: var(--radius-lg); padding: 18px 20px; margin-top: 6px; }
+  .big { font-size: 18px; font-weight: 700; color: var(--accent); margin: 30px 0 4px; }
+</style>
+</head>
+<body class="vantage">
+<div class="wrap">
+  <h1>🔐 กดอนุญาต GitHub — แล้วผมอัปให้เองทั้งหมด</h1>
+  <p class="sub">หลังคุณกดอนุญาต 3 คลิกนี้ ผมจะ push ไฟล์ + เปิดเว็บ + ส่งลิงก์ถาวรให้ทันที</p>
+
+  <div class="why">
+    💡 <b>ทำไมผมอัปเองเลยไม่ได้?</b> เพราะ GitHub ล็อกไว้ว่า ใครจะแก้ repo ของคุณได้ <b>เจ้าของต้องกดอนุญาตก่อน</b> — เป็นระบบกันคนแปลกหน้าแอบเข้าบัญชี ผมข้ามแทนคุณไม่ได้ แต่คุณกดอนุญาตได้ใน 10 วินาที 👇
+  </div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="body">
+      <div class="title">มองที่ช่องพิมพ์แชตด้านล่าง → กดปุ่ม <b>＋</b></div>
+      <div class="composer">
+        <div class="composer-text">พิมพ์ข้อความ…</div>
+        <div class="composer-row">
+          <span class="plus ring"><span class="plus-btn">＋</span></span>
+          <span class="spacer"></span>
+          <span class="send">➤</span>
+        </div>
+      </div>
+      <span class="point">👉 กดปุ่ม ＋ (กรอบแดงกระพริบ) ที่ช่องพิมพ์ข้อความ</span>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="body">
+      <div class="title">เมนูเด้งขึ้น → เลือก <b>Connect GitHub</b></div>
+      <div class="menu">
+        <div class="mi"><span class="ic">📎</span> Upload a file</div>
+        <div class="mi"><span class="ic">🎨</span> Import from Figma</div>
+        <div class="mi hot ring"><span class="ic">🐙</span> Connect GitHub</div>
+        <div class="mi"><span class="ic">📁</span> Connect local folder</div>
+      </div>
+      <span class="point">👉 กด "Connect GitHub" (แถบสีน้ำเงิน)</span>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="body">
+      <div class="title">หน้าต่าง GitHub เด้งมา → กด <b>Authorize</b> (อนุญาต)</div>
+      <p class="sub" style="margin-bottom:10px">จะมีหน้าต่างของ GitHub โผล่มาถามว่าอนุญาตไหม — กดปุ่มเขียว <b>Authorize</b> ได้เลย (ปลอดภัย เป็นบัญชีคุณเอง)</p>
+      <span class="point">👉 เสร็จแล้ว <b>พิมพ์คำว่า "ต่อเลย"</b> กลับมาในแชต</span>
+    </div>
+  </div>
+
+  <div class="big">แล้วผมจะทำให้อัตโนมัติทั้งหมด ↓</div>
+  <div class="done">
+    <span style="font-size:24px">🚀</span>
+    <div style="font-size:14px;line-height:1.7;color:var(--text-secondary)">
+      ✅ push ไฟล์ <b style="color:var(--text-primary)">index.html</b> ขึ้น repo Sale<br/>
+      ✅ เปิด GitHub Pages ให้<br/>
+      ✅ ส่งลิงก์ถาวร <b style="color:var(--blue-300)">https://hrbwp02-beep.github.io/Sale/</b> ให้คุณ
+    </div>
+  </div>
+</div>
+</body>
+</html>

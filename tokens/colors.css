@@ -1,0 +1,159 @@
+/* ============================================================
+   VANTAGE — COLOR SYSTEM
+   Dark-first executive palette. Base ramps + semantic aliases.
+   Dark = :root (default). Light = [data-theme="light"].
+   ============================================================ */
+
+:root {
+  /* ---- Base neutral ramp (cool slate, dark) ---- */
+  --slate-950: #090b10;
+  --slate-900: #0b0e14;
+  --slate-850: #0d1117;
+  --slate-800: #12161f;
+  --slate-750: #161b24;
+  --slate-700: #1b212c;
+  --slate-650: #222937;
+  --slate-600: #2c3442;
+  --slate-500: #3a4452;
+  --slate-400: #5f6b7a;
+  --slate-300: #8b97a5;
+  --slate-200: #aab5c1;
+  --slate-100: #cdd5dd;
+  --slate-50:  #e6edf3;
+
+  /* ---- Brand accent: electric blue ---- */
+  --blue-700: #1858c7;
+  --blue-600: #1f6feb;
+  --blue-500: #388bfd;
+  --blue-400: #58a6ff;
+  --blue-300: #79c0ff;
+
+  /* ---- Semantic hues ---- */
+  --green-600: #238636;
+  --green-500: #2ea043;
+  --green-400: #3fb950;
+  --red-600:   #cf3a32;
+  --red-500:   #f85149;
+  --red-400:   #ff7b72;
+  --amber-600: #bb8009;
+  --amber-500: #d29922;
+  --amber-400: #e3b341;
+
+  /* ---- Categorical data-viz palette (8 hues, tuned for dark) ---- */
+  --viz-1: #1f6feb;  /* blue   — primary series (value/บาท) */
+  --viz-2: #3fb950;  /* green  — secondary series (volume/Kg) */
+  --viz-3: #e3b341;  /* amber  */
+  --viz-4: #a371f7;  /* purple */
+  --viz-5: #56d4dd;  /* cyan   */
+  --viz-6: #f778ba;  /* pink   */
+  --viz-7: #f0883e;  /* orange */
+  --viz-8: #6e7bf2;  /* indigo */
+
+  /* =========================================================
+     SEMANTIC ALIASES (dark)  — reference these in components
+     ========================================================= */
+
+  /* Surfaces */
+  --bg-app:        var(--slate-900);
+  --bg-base:       var(--slate-850);
+  --surface-1:     var(--slate-800);   /* default card */
+  --surface-2:     var(--slate-750);   /* raised / nested */
+  --surface-3:     var(--slate-700);   /* hover / active row */
+  --surface-inset: var(--slate-950);   /* wells, code, chart bg */
+  --surface-overlay: #11161fee;        /* dialogs/popovers */
+
+  /* Borders */
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong:  rgba(255,255,255,0.16);
+  --border-accent:  var(--blue-600);
+
+  /* Text */
+  --text-primary:   var(--slate-50);
+  --text-secondary: var(--slate-300);
+  --text-tertiary:  var(--slate-400);
+  --text-disabled:  var(--slate-500);
+  --text-inverse:   #0b0e14;
+  --text-on-accent: #ffffff;
+  --text-link:      var(--blue-400);
+
+  /* Accent */
+  --accent:         var(--blue-600);
+  --accent-hover:   var(--blue-500);
+  --accent-press:   var(--blue-700);
+  --accent-fg:      #ffffff;
+  --accent-subtle:  rgba(31,111,235,0.16);
+  --accent-ring:    rgba(56,139,253,0.45);
+
+  /* Status (positive growth / negative growth / caution) */
+  --positive:        var(--green-400);
+  --positive-fg:     #ffffff;
+  --positive-subtle: rgba(63,185,80,0.15);
+  --negative:        var(--red-500);
+  --negative-fg:     #ffffff;
+  --negative-subtle: rgba(248,81,73,0.15);
+  --warning:         var(--amber-500);
+  --warning-subtle:  rgba(210,153,34,0.16);
+  --info:            var(--blue-400);
+  --info-subtle:     rgba(88,166,255,0.14);
+
+  /* Chart scaffolding */
+  --chart-grid:   rgba(255,255,255,0.06);
+  --chart-axis:   var(--slate-400);
+  --chart-bg:     transparent;
+}
+
+/* =========================================================
+   LIGHT THEME
+   ========================================================= */
+[data-theme="light"] {
+  --bg-app:        #eef1f5;
+  --bg-base:       #f4f6f9;
+  --surface-1:     #ffffff;
+  --surface-2:     #ffffff;
+  --surface-3:     #f1f4f8;
+  --surface-inset: #f6f8fb;
+  --surface-overlay: #ffffffee;
+
+  --border-subtle:  rgba(16,22,30,0.06);
+  --border-default: rgba(16,22,30,0.12);
+  --border-strong:  rgba(16,22,30,0.20);
+  --border-accent:  var(--blue-600);
+
+  --text-primary:   #11161f;
+  --text-secondary: #4a5764;
+  --text-tertiary:  #6b7785;
+  --text-disabled:  #9aa6b2;
+  --text-inverse:   #ffffff;
+  --text-on-accent: #ffffff;
+  --text-link:      var(--blue-700);
+
+  --accent:         var(--blue-600);
+  --accent-hover:   var(--blue-700);
+  --accent-press:   #134aa3;
+  --accent-fg:      #ffffff;
+  --accent-subtle:  rgba(31,111,235,0.10);
+  --accent-ring:    rgba(31,111,235,0.35);
+
+  --positive:        var(--green-600);
+  --positive-subtle: rgba(35,134,54,0.12);
+  --negative:        var(--red-600);
+  --negative-subtle: rgba(207,58,50,0.10);
+  --warning:         var(--amber-600);
+  --warning-subtle:  rgba(187,128,9,0.14);
+  --info:            var(--blue-700);
+  --info-subtle:     rgba(31,111,235,0.10);
+
+  /* viz hues tuned a touch deeper for light bg */
+  --viz-1: #1f6feb;
+  --viz-2: #2ea043;
+  --viz-3: #bb8009;
+  --viz-4: #8957e5;
+  --viz-5: #1098ad;
+  --viz-6: #d6448f;
+  --viz-7: #d96c1c;
+  --viz-8: #4955d6;
+
+  --chart-grid:  rgba(16,22,30,0.08);
+  --chart-axis:  #6b7785;
+}

@@ -1,0 +1,40 @@
+name: Deploy BWP Dashboard to GitHub Pages
+
+# Auto-deploy: ทุกครั้งที่มีการแก้ไขไฟล์แล้ว push ขึ้น branch main
+# GitHub จะ build + เผยแพร่เว็บใหม่ให้อัตโนมัติภายใน ~1 นาที
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # ปุ่มกด deploy เองได้จากแท็บ Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ให้ deploy ทีละรอบ ไม่ชนกัน
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .          # เผยแพร่ทั้งโฟลเดอร์ (index.html อยู่ราก)
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
