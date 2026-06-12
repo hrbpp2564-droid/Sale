@@ -2519,7 +2519,9 @@ try { (() => {
       val
     })).sort((a, b) => b.val - a.val);
   }
-  function SalesScreen() {
+  function SalesScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [gran, setGran] = React.useState('month');
     const [type, setType] = React.useState('combo');
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
@@ -2630,9 +2632,10 @@ try { (() => {
         marginTop: 16
       },
       padding: "none"
-    }, /*#__PURE__*/React.createElement(MonthTable, null)));
+    }, /*#__PURE__*/React.createElement(MonthTable, {D})));
   }
-  function MonthTable() {
+  function MonthTable({D: _D}) {
+    D = _D || D;
     const {
       DataTable
     } = NS;
@@ -3983,6 +3986,7 @@ try { (() => {
   const {
     Grid
   } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
   function useMeasure() {
@@ -5883,7 +5887,9 @@ try { (() => {
       val
     })).sort((a, b) => b.val - a.val);
   }
-  function SalesScreen() {
+  function SalesScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [gran, setGran] = React.useState('month');
     const [type, setType] = React.useState('combo');
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
@@ -5994,9 +6000,10 @@ try { (() => {
         marginTop: 16
       },
       padding: "none"
-    }, /*#__PURE__*/React.createElement(MonthTable, null)));
+    }, /*#__PURE__*/React.createElement(MonthTable, {D})));
   }
-  function MonthTable() {
+  function MonthTable({D: _D}) {
+    D = _D || D;
     const {
       DataTable
     } = NS;
@@ -6051,6 +6058,7 @@ try { (() => {
       }]
     });
   }
+  window.viewFor = viewFor;
   window.OverviewScreen = OverviewScreen;
   window.SalesScreen = SalesScreen;
 })();
@@ -6078,6 +6086,7 @@ try { (() => {
   const {
     Grid
   } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
   const groupColors = {
@@ -6104,7 +6113,11 @@ try { (() => {
   }
 
   // ---------- Product Analysis ----------
-  function ProductScreen() {
+  function ProductScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
+    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+    const groupAgg = (prods) => { prods = prods || D.PRODUCTS; const map = {}; prods.forEach(p => { map[p.group] = (map[p.group] || 0) + p.val; }); return Object.entries(map).map(([group, val]) => ({group, val})).sort((a, b) => b.val - a.val); };
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
@@ -6550,7 +6563,10 @@ try { (() => {
       }
     }, (d.value / total * 100).toFixed(1), "%"));
   }
-  function MixScreen() {
+  function MixScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
+    const groupAgg = (prods) => { prods = prods || D.PRODUCTS; const map = {}; prods.forEach(p => { map[p.group] = (map[p.group] || 0) + p.val; }); return Object.entries(map).map(([group, val]) => ({group, val})).sort((a, b) => b.val - a.val); };
     const [view, setView] = React.useState('treemap');
     const sorted = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const segs = sorted.map((p, i) => ({
@@ -6633,7 +6649,9 @@ try { (() => {
   }
 
   // ---------- Price Analysis ----------
-  function PriceScreen() {
+  function PriceScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [gran, setGran] = React.useState('month');
     const data = gran === 'year' ? D.YEARS.map(y => Math.round(D.sum(D.valueByYear[y].slice(0, NACT)) * 1e6 / (D.sum(D.volumeByYear[y].slice(0, NACT)) * 1000))) : D.price69;
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
@@ -6825,9 +6843,12 @@ try { (() => {
   const {
     Grid
   } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
-  function CustomerScreen() {
+  function CustomerScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [sel, setSel] = React.useState(null);
     const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
@@ -7145,7 +7166,9 @@ try { (() => {
   }
 
   // ---------- Customer Contribution (Pareto) ----------
-  function ContributionScreen() {
+  function ContributionScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [scope, setScope] = React.useState('top10');
     const all = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const allReal = [...D.allCustomers].sort((a, b) => b.kg - a.kg);
@@ -7359,7 +7382,9 @@ try { (() => {
   }
 
   // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
-  function YearScreen() {
+  function YearScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
     const unit = metric === 'value' ? 'ลบ.' : 'พัน Kg';
@@ -7700,7 +7725,9 @@ try { (() => {
       }
     }), children);
   }
-  function ForecastScreen() {
+  function ForecastScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const F = D.forecast;
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);

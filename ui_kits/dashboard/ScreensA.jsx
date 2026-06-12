@@ -164,7 +164,9 @@
     return Object.entries(map).map(([group, val]) => ({ group, val })).sort((a, b) => b.val - a.val);
   }
 
-  function SalesScreen() {
+  function SalesScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [gran, setGran] = React.useState('month');
     const [type, setType] = React.useState('combo');
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
@@ -207,13 +209,14 @@
         </Card>
 
         <Card title="ตารางยอดขายรายเดือน" subtitle="มูลค่า · ปริมาณ · ราคาเฉลี่ย" style={{ marginTop: 16 }} padding="none">
-          <MonthTable />
+          <MonthTable D={D} />
         </Card>
       </div>
     );
   }
 
-  function MonthTable() {
+  function MonthTable({ D: _D }) {
+    D = _D || D;
     const { DataTable } = NS;
     const rows = D.MONTHS_ACT.map((m, i) => ({
       month: m,
@@ -234,6 +237,7 @@
     );
   }
 
+  window.viewFor = viewFor;
   window.OverviewScreen = OverviewScreen;
   window.SalesScreen = SalesScreen;
 })();

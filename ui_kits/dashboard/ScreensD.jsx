@@ -6,6 +6,7 @@
   const Icon = window.Icon;
   const { fmt } = window.VUtil;
   const { Grid } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
 
@@ -22,7 +23,9 @@
   }
 
   // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
-  function YearScreen() {
+  function YearScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
     const unit = metric === 'value' ? 'ลบ.' : 'พัน Kg';
@@ -163,7 +166,9 @@
     );
   }
 
-  function ForecastScreen() {
+  function ForecastScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const F = D.forecast;
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
