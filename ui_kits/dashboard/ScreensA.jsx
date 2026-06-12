@@ -215,8 +215,7 @@
     );
   }
 
-  function MonthTable({ D: _D }) {
-    D = _D || D;
+  function MonthTable({ D }) {
     const { DataTable } = NS;
     const rows = D.MONTHS_ACT.map((m, i) => ({
       month: m,
