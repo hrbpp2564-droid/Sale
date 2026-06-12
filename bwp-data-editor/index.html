@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BWP — เครื่องมืออัปเดตข้อมูลแดชบอร์ด</title>
-<link rel="stylesheet" href="../styles.css" />
+<title>BWP — บันทึกข้อมูลการขาย</title>
+<link rel="stylesheet" href="../styles.css?v=20260612i" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 80px; }
-  h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .sub { color: var(--text-tertiary); font-size: 14px; margin-bottom: 22px; }
-  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; padding: 12px 16px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 22px 100px; }
+  h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .sub { color: var(--text-tertiary); font-size: 14px; margin-bottom: 20px; }
+  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 16px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); position: sticky; top: 0; z-index: 20; }
   .status { font-size: 13px; display: flex; align-items: center; gap: 8px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .card { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 18px; }
+  .card { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 16px; }
   .card h2 { font-size: 16px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
   .card h2 .tag { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
   table { width: 100%; border-collapse: collapse; }
@@ -21,232 +21,261 @@
   th.num, td.num { text-align: right; }
   td { padding: 5px 8px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
   td.lbl { color: var(--text-secondary); }
-  input { width: 100%; box-sizing: border-box; background: var(--surface-inset); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-numeric); font-size: 13px; padding: 7px 9px; text-align: right; }
-  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
-  input.text { text-align: left; font-family: var(--font-sans); }
-  input[readonly] { opacity: .55; cursor: not-allowed; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: var(--radius-md); border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: background .12s; }
+  input, select { box-sizing: border-box; background: var(--surface-inset); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-numeric); font-size: 13px; padding: 7px 9px; text-align: right; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  input.text, select { text-align: left; font-family: var(--font-sans); }
+  .kg { width: 130px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+  .fld { display: flex; flex-direction: column; gap: 5px; }
+  .fld label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; }
+  .fld input { text-align: right; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: var(--radius-md); border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; }
   .btn.primary { background: var(--accent); color: #fff; }
-  .btn.primary:hover { background: var(--accent-hover); }
   .btn.ghost { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-default); }
+  .btn.sm { height: 30px; padding: 0 12px; font-size: 12.5px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow-lg); transition: all .25s; pointer-events: none; z-index: 99; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.ok { border-color: var(--positive); }
-  .toast.err { border-color: var(--negative); }
+  .toast.ok { border-color: var(--positive); } .toast.err { border-color: var(--negative); }
   .hint { font-size: 12px; color: var(--text-tertiary); margin-top: 10px; line-height: 1.6; }
-  .month-grid { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 6px 10px; align-items: center; }
-  .month-grid .h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; padding-bottom: 4px; }
-  .month-grid .ml { color: var(--text-secondary); font-size: 13px; font-family: var(--font-numeric); }
+  .kpibox { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 10px; }
+  .kpi { background: var(--surface-inset); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 14px; }
+  .kpi .l { font-size: 11px; color: var(--text-tertiary); } .kpi .v { font-size: 20px; font-weight: 700; font-family: var(--font-numeric); }
+  .search { width: 220px; text-align: left; font-family: var(--font-sans); }
+  .custrow td:first-child { width: 60%; }
   a { color: var(--text-link); }
+  /* login */
+  #login { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: #0b1220; }
+  #login form { width: 340px; max-width: 90vw; background: #141d2e; border: 1px solid #243049; border-radius: 16px; padding: 28px 26px; }
+  #login .t { font-size: 20px; font-weight: 700; color: #fff; }
+  #login .s { font-size: 13px; color: #7c8aa5; margin: 6px 0 20px; }
+  #login input { width: 100%; text-align: left; background: #0b1220; border: 1px solid #2a3650; border-radius: 10px; color: #fff; font-size: 15px; padding: 11px 13px; }
+  #login .err { color: #f87171; font-size: 12.5px; min-height: 18px; margin: 8px 2px 0; }
+  #login button { width: 100%; margin-top: 10px; background: #2563eb; border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 600; padding: 11px; cursor: pointer; }
 </style>
 </head>
 <body class="vantage">
-<div class="wrap">
-  <h1>เครื่องมืออัปเดตข้อมูลแดชบอร์ด</h1>
-  <div class="sub">แก้ตัวเลข → กดบันทึก → เว็บจริงเปลี่ยนทันทีที่รีเฟรช (ไม่ต้อง deploy) · <a href="/">← กลับไปหน้า Dashboard</a></div>
+
+<div id="login">
+  <form id="loginForm">
+    <div class="t">บันทึกข้อมูลการขาย</div>
+    <div class="s">BWP Vantage · สำหรับเจ้าหน้าที่</div>
+    <input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
+    <div class="err" id="loginErr"></div>
+    <button id="loginGo" type="submit">เข้าสู่ระบบ</button>
+  </form>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <h1>บันทึกข้อมูลการขาย</h1>
+  <div class="sub">กรอกยอดขายของเดือน → กดบันทึก → ระบบสรุปเป็นแดชบอร์ดให้อัตโนมัติ · <a href="/">← ไปหน้า Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
 
   <div class="bar">
-    <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังเชื่อมต่อ Supabase…</span></div>
+    <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังโหลด…</span></div>
+    <label style="font-size:13px;color:var(--text-secondary)">เดือนที่กรอก:</label>
+    <select id="monthSel"></select>
     <div style="flex:1"></div>
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
-    <button class="btn primary" id="saveBtn" disabled>💾 บันทึกเข้า Supabase</button>
+    <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
 
   <div id="forms" style="display:none">
     <div class="card">
-      <h2>KPI หลัก <span class="tag">— ตัวเลขการ์ดด้านบนสุด</span></h2>
-      <table>
-        <thead><tr><th>ป้ายกำกับ</th><th class="num">ค่า</th><th>หน่วย</th><th class="num">% เทียบเดือนก่อน</th><th class="num">% YoY</th></tr></thead>
-        <tbody id="kpiBody"></tbody>
-      </table>
+      <h2>ยอดรวมของเดือน <span class="tag" id="mLbl"></span></h2>
+      <div class="grid2">
+        <div class="fld"><label>มูลค่าขายรวม (ล้านบาท)</label><input id="mValue" placeholder="—"></div>
+        <div class="fld"><label>ปริมาณขายรวม (พัน Kg)</label><input id="mVolume" placeholder="—"></div>
+      </div>
+      <div class="hint">เช่น มูลค่า 59.4 = 59.4 ล้านบาท · ปริมาณ 646 = 646,000 Kg</div>
     </div>
 
     <div class="card">
-      <h2>ยอดขายรายเดือน ปี 2569 <span class="tag">— เติมเดือนใหม่ตรงช่องว่าง</span></h2>
-      <div class="month-grid" id="monthGrid">
-        <div class="h">เดือน</div><div class="h">มูลค่า (ล้านบาท)</div><div class="h">ปริมาณ (พัน Kg)</div>
-      </div>
-      <div class="hint">ช่องที่ยังว่าง = เดือนที่ยังไม่มีข้อมูล กรอกตัวเลขเพื่อเพิ่มเดือนใหม่ · KPI ด้านบนจะอัปเดตอัตโนมัติเมื่อบันทึก</div>
+      <h2>ยอดรายสินค้า (Kg) <span class="tag">— ของเดือนที่เลือก</span></h2>
+      <table><thead><tr><th>สินค้า</th><th>กลุ่ม</th><th class="num">ปริมาณ (Kg)</th></tr></thead><tbody id="prodBody"></tbody></table>
+      <div style="margin-top:10px"><button class="btn ghost sm" id="addProd" type="button">+ เพิ่มสินค้า</button></div>
     </div>
-  </div>
 
-  <div class="hint" id="needPolicy" style="display:none; color:var(--negative)">
-    ⚠️ บันทึกไม่สำเร็จ — ยังไม่ได้เปิดสิทธิ์แก้ไข กรุณารันไฟล์ <code>backend/supabase-enable-edit.sql</code> ใน Supabase SQL Editor ก่อน (รันครั้งเดียว) แล้วลองใหม่
+    <div class="card">
+      <h2>ยอดรายลูกค้า (Kg) <span class="tag">— ของเดือนที่เลือก</span>
+        <span style="flex:1"></span>
+        <input class="search" id="custSearch" placeholder="ค้นหาลูกค้า…">
+      </h2>
+      <table><thead><tr><th>ลูกค้า</th><th class="num">ปริมาณ (Kg)</th></tr></thead><tbody id="custBody"></tbody></table>
+      <div style="margin-top:10px"><button class="btn ghost sm" id="addCust" type="button">+ เพิ่มลูกค้า</button></div>
+    </div>
+
+    <div class="card">
+      <h2>สรุปที่คำนวณได้ <span class="tag">— ตัวอย่างก่อนบันทึก</span></h2>
+      <div class="kpibox" id="kpiPreview"></div>
+      <div class="hint">ตัวเลขเหล่านี้คำนวณจากข้อมูลทุกเดือนที่กรอกไว้ และจะอัปเดตทันทีเมื่อบันทึก</div>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260612i"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260612i"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260612i"></script>
 <script>
-const CFG = {
-  url: 'https://botyvrujnvttfcyyvxuw.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvdHl2cnVqbnZ0dGZjeXl2eHV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTE4NzksImV4cCI6MjA5Njc4Nzg3OX0.I2eVfezC2QqmDxEZqvSjH3Gzh42ogkwFYjuJSZf423M',
-  table: 'dashboard_data', id: 'bwp',
-};
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-let payload = null;
-
+const GROUPS = ['ฟิล์มใส','พิมพ์สี','PCR (รีไซเคิล)','สูตรพิเศษ'];
 const $ = (id) => document.getElementById(id);
-function toast(msg, kind) {
-  const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (kind||'');
-  setTimeout(() => { t.className = 'toast ' + (kind||''); }, 3200);
-}
+let PASS = null, raw = null, curMonth = 0;
+
+function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (kind||''); setTimeout(() => { t.className = 'toast ' + (kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
+function n(x){ const v = parseFloat(x); return isFinite(v) ? v : 0; }
 
-// แยกแยะชนิดของข้อผิดพลาดให้ผู้ใช้เข้าใจ + รู้วิธีแก้
-function explainError(e, httpStatus) {
-  if (httpStatus === 401 || httpStatus === 403)
-    return { msg: 'ไม่มีสิทธิ์ (HTTP ' + httpStatus + ') — anon key ผิด หรือยังไม่เปิด RLS policy', tip: 'policy' };
-  if (httpStatus === 404)
-    return { msg: 'ไม่พบตาราง/แถวข้อมูล (HTTP 404)', tip: 'policy' };
-  if (httpStatus && httpStatus >= 400)
-    return { msg: 'เซิร์ฟเวอร์ตอบกลับ HTTP ' + httpStatus, tip: null };
-  // TypeError: Failed to fetch → เน็ต/CORS/URL ผิด/โปรเจกต์ pause
-  if (e && /Failed to fetch|NetworkError|load failed/i.test(e.message))
-    return { msg: 'ติดต่อ Supabase ไม่ได้ (เน็ตขัดข้อง, URL ผิด, หรือโปรเจกต์ถูกพัก)', tip: 'net' };
-  return { msg: e ? e.message : 'ไม่ทราบสาเหตุ', tip: null };
+// ---------- login ----------
+function doLogin(pass, fromStore) {
+  $('loginGo').disabled = true; $('loginGo').textContent = 'กำลังตรวจสอบ…'; $('loginErr').textContent = '';
+  window.BWP_DB.getDashboard(pass).then((payload) => {
+    PASS = pass; try { sessionStorage.setItem('bwp_pass', pass); } catch(e){}
+    $('login').style.display = 'none'; $('app').style.display = 'block';
+    boot(payload);
+  }).catch((e) => {
+    if (fromStore) { try { sessionStorage.removeItem('bwp_pass'); } catch(_){} }
+    $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
+    $('loginErr').textContent = (e && e.status === 400) || /unauthorized/i.test(e&&e.message||'') ? 'รหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ';
+    $('loginPass').select();
+  });
 }
-function showTip(kind) {
-  $('needPolicy').style.display = kind ? 'block' : 'none';
-  if (kind === 'net') $('needPolicy').innerHTML = '⚠️ ติดต่อ Supabase ไม่ได้ — ตรวจ: (1) อินเทอร์เน็ต (2) โปรเจกต์ Supabase ยัง <b>Active</b> อยู่ (ไม่ถูก pause) (3) URL <code>' + CFG.url + '</code> ถูกต้อง · ลอง <b>กดโหลดใหม่</b>';
-  else if (kind === 'policy') $('needPolicy').innerHTML = '⚠️ ยังไม่ได้เปิดสิทธิ์แก้ไข — รันไฟล์ <code>backend/supabase-enable-edit.sql</code> ใน Supabase SQL Editor (รันครั้งเดียว) แล้วลองใหม่';
-}
+$('loginForm').addEventListener('submit', (ev) => { ev.preventDefault(); const p = $('loginPass').value.trim(); if (p) doLogin(p, false); });
 
-async function load() {
-  setStatus('กำลังโหลดข้อมูล…', 'var(--warning)');
-  $('needPolicy').style.display = 'none';
-  let httpStatus = null;
-  try {
-    const ep = CFG.url + '/rest/v1/' + CFG.table + '?id=eq.' + CFG.id + '&select=payload';
-    const r = await fetch(ep, { headers: { apikey: CFG.anonKey, Authorization: 'Bearer ' + CFG.anonKey } });
-    httpStatus = r.status;
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const rows = await r.json();
-    if (!rows[0] || !rows[0].payload) throw new Error('ไม่พบข้อมูล');
-    payload = rows[0].payload;
-    render();
-    setStatus('เชื่อมต่อแล้ว · ' + (payload.company && payload.company.abbr || 'BWP'), 'var(--positive)');
-    $('forms').style.display = 'block';
-    $('saveBtn').disabled = false;
-  } catch (e) {
-    const info = explainError(e, httpStatus);
-    setStatus('เชื่อมต่อไม่สำเร็จ: ' + info.msg, 'var(--negative)');
-    toast('โหลดข้อมูลไม่สำเร็จ — ' + info.msg, 'err');
-    showTip(info.tip);
-    console.error('[BWP editor] load failed:', { httpStatus, error: e });
+// ---------- derive raw from payload (self-heal if _raw missing) ----------
+function deriveRaw(payload) {
+  if (payload && payload._raw && payload._raw.monthly) {
+    const r = payload._raw;
+    return {
+      monthly: { value: pad12(r.monthly.value), volume: pad12(r.monthly.volume) },
+      products: (r.products||[]).map(p => ({ name: p.name, group: p.group||'ฟิล์มใส', monthlyKg: pad12(p.monthlyKg) })),
+      customers: (r.customers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthlyKg) }))
+    };
   }
+  // back-calc from derived payload
+  const val = pad12((payload.valueByYear && payload.valueByYear['2569']) || []);
+  const vol = pad12((payload.volumeByYear && payload.volumeByYear['2569']) || []);
+  const products = (payload.PRODUCTS||[]).map(p => ({
+    name: p.name, group: p.group||'ฟิล์มใส',
+    monthlyKg: pad12((p.monthly||[]).map((v,i)=> (p.priceMonthly&&p.priceMonthly[i]) ? Math.round(v*1e6/p.priceMonthly[i]) : 0))
+  }));
+  const customers = (payload.allCustomers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthly||[]) }));
+  return { monthly: { value: val, volume: vol }, products, customers };
+}
+function pad12(a){ a = (a||[]).slice(0,12).map(x => x===null||x==='' ? null : x); while (a.length<12) a.push(null); return a; }
+
+// ---------- boot ----------
+function boot(payload) {
+  raw = deriveRaw(payload);
+  // default month = first empty month (next to enter), else last month
+  let def = 0; for (let i=0;i<12;i++){ if (raw.monthly.value[i]!=null && n(raw.monthly.value[i])>0) def = i; }
+  // if current def month has data, point to next empty one for convenience
+  let nextEmpty = -1; for (let i=0;i<12;i++){ if (raw.monthly.value[i]==null || n(raw.monthly.value[i])===0){ nextEmpty=i; break; } }
+  curMonth = nextEmpty >= 0 ? nextEmpty : def;
+  buildMonthSelect();
+  renderMonth();
+  $('forms').style.display = 'block';
+  $('saveBtn').disabled = false;
+  setStatus('เข้าสู่ระบบแล้ว · พร้อมบันทึก', 'var(--positive)');
 }
 
-function render() {
-  // KPIs
-  const kb = $('kpiBody'); kb.innerHTML = '';
-  (payload.KPIS || []).forEach((k, i) => {
+function buildMonthSelect() {
+  const sel = $('monthSel'); sel.innerHTML = '';
+  TH.forEach((m,i) => { const has = raw.monthly.value[i]!=null && n(raw.monthly.value[i])>0; const o = document.createElement('option'); o.value=i; o.textContent = m + (has ? ' ✓' : ''); sel.appendChild(o); });
+  sel.value = curMonth;
+}
+
+// ---------- render one month ----------
+function renderMonth() {
+  $('mLbl').textContent = '— ' + TH[curMonth] + ' 2569';
+  $('mValue').value = valOr(raw.monthly.value[curMonth]);
+  $('mVolume').value = valOr(raw.monthly.volume[curMonth]);
+  // products
+  const pb = $('prodBody'); pb.innerHTML = '';
+  raw.products.forEach((p, idx) => {
     const tr = document.createElement('tr');
+    const opts = GROUPS.map(g => '<option'+(g===p.group?' selected':'')+'>'+g+'</option>').join('');
     tr.innerHTML =
-      '<td class="lbl"><input class="text" data-kpi="'+i+'" data-f="label" value="'+(k.label||'')+'"></td>' +
-      '<td class="num"><input data-kpi="'+i+'" data-f="value" value="'+(k.value||'')+'"></td>' +
-      '<td><input class="text" data-kpi="'+i+'" data-f="unit" value="'+(k.unit||'')+'" style="width:80px"></td>' +
-      '<td class="num"><input data-kpi="'+i+'" data-f="delta" value="'+(k.delta!=null?k.delta:'')+'"></td>' +
-      '<td class="num"><input data-kpi="'+i+'" data-f="yoy" value="'+(k.yoy!=null?k.yoy:'')+'"></td>';
-    kb.appendChild(tr);
+      '<td><input class="text" style="width:100%" data-pname="'+idx+'" value="'+esc(p.name)+'"></td>' +
+      '<td><select data-pgroup="'+idx+'">'+opts+'</select></td>' +
+      '<td class="num"><input class="kg" data-pkg="'+idx+'" value="'+valOr(p.monthlyKg[curMonth])+'" placeholder="0"></td>';
+    pb.appendChild(tr);
   });
-  // Monthly 2569
-  const g = $('monthGrid');
-  g.querySelectorAll('.row').forEach(e => e.remove());
-  const val = (payload.valueByYear && payload.valueByYear['2569']) || [];
-  const vol = (payload.volumeByYear && payload.volumeByYear['2569']) || [];
-  TH.forEach((m, i) => {
-    const wrap = document.createElement('div'); wrap.className = 'row'; wrap.style.display = 'contents';
-    wrap.innerHTML =
-      '<div class="ml row">'+m+'</div>' +
-      '<div class="row"><input data-arr="value" data-m="'+i+'" value="'+(val[i]!=null?val[i]:'')+'" placeholder="—"></div>' +
-      '<div class="row"><input data-arr="volume" data-m="'+i+'" value="'+(vol[i]!=null?vol[i]:'')+'" placeholder="—"></div>';
-    g.appendChild(wrap);
+  // customers
+  renderCustomers('');
+  renderPreview();
+}
+function renderCustomers(filter) {
+  const cb = $('custBody'); cb.innerHTML = '';
+  raw.customers.forEach((c, idx) => {
+    if (filter && c.name.toLowerCase().indexOf(filter.toLowerCase()) < 0) return;
+    const tr = document.createElement('tr'); tr.className = 'custrow';
+    tr.innerHTML =
+      '<td><input class="text" style="width:100%" data-cname="'+idx+'" value="'+esc(c.name)+'"></td>' +
+      '<td class="num"><input class="kg" data-ckg="'+idx+'" value="'+valOr(c.monthlyKg[curMonth])+'" placeholder="0"></td>';
+    cb.appendChild(tr);
+  });
+}
+function valOr(x){ return (x===null||x===undefined||x==='') ? '' : x; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ---------- collect current month inputs back into raw ----------
+function collectMonth() {
+  raw.monthly.value[curMonth]  = $('mValue').value.trim()===''  ? null : n($('mValue').value);
+  raw.monthly.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
+  document.querySelectorAll('[data-pname]').forEach(inp => { raw.products[+inp.dataset.pname].name = inp.value.trim(); });
+  document.querySelectorAll('[data-pgroup]').forEach(sel => { raw.products[+sel.dataset.pgroup].group = sel.value; });
+  document.querySelectorAll('[data-pkg]').forEach(inp => { raw.products[+inp.dataset.pkg].monthlyKg[curMonth] = inp.value.trim()===''?0:n(inp.value); });
+  document.querySelectorAll('[data-cname]').forEach(inp => { raw.customers[+inp.dataset.cname].name = inp.value.trim(); });
+  document.querySelectorAll('[data-ckg]').forEach(inp => { raw.customers[+inp.dataset.ckg].monthlyKg[curMonth] = inp.value.trim()===''?0:n(inp.value); });
+}
+
+function renderPreview() {
+  collectMonth();
+  const out = window.BWP_compute(raw);
+  const box = $('kpiPreview'); box.innerHTML = '';
+  out.KPIS.forEach(k => {
+    const d = document.createElement('div'); d.className='kpi';
+    d.innerHTML = '<div class="l">'+k.label+'</div><div class="v">'+k.value+' <span style="font-size:12px;color:var(--text-tertiary)">'+k.unit+'</span></div>';
+    box.appendChild(d);
   });
 }
 
-function collect() {
-  // KPIs
-  document.querySelectorAll('[data-kpi]').forEach(inp => {
-    const k = payload.KPIS[+inp.dataset.kpi]; const f = inp.dataset.f; let v = inp.value.trim();
-    if (f === 'label' || f === 'value' || f === 'unit') k[f] = v;
-    else k[f] = v === '' ? 0 : parseFloat(v);
-  });
-  // Monthly arrays
-  payload.valueByYear = payload.valueByYear || {}; payload.volumeByYear = payload.volumeByYear || {};
-  const val = payload.valueByYear['2569'] = (payload.valueByYear['2569'] || []).slice();
-  const vol = payload.volumeByYear['2569'] = (payload.volumeByYear['2569'] || []).slice();
-  document.querySelectorAll('[data-arr]').forEach(inp => {
-    const i = +inp.dataset.m, v = inp.value.trim(), arr = inp.dataset.arr === 'value' ? val : vol;
-    arr[i] = v === '' ? null : parseFloat(v);
-  });
-}
+// ---------- events ----------
+$('monthSel').addEventListener('change', (e) => { collectMonth(); curMonth = +e.target.value; renderMonth(); });
+$('custSearch').addEventListener('input', (e) => { renderCustomers(e.target.value); });
+$('addProd').addEventListener('click', () => { collectMonth(); raw.products.push({ name:'สินค้าใหม่', group:'ฟิล์มใส', monthlyKg: pad12([]) }); renderMonth(); });
+$('addCust').addEventListener('click', () => { collectMonth(); raw.customers.push({ name:'ลูกค้าใหม่', monthlyKg: pad12([]) }); renderMonth(); $('custBody').lastChild.querySelector('input').focus(); });
+['mValue','mVolume'].forEach(id => $(id).addEventListener('input', renderPreview));
+$('prodBody').addEventListener('input', renderPreview);
+$('custBody').addEventListener('input', (e) => { if (e.target.classList.contains('kg')) renderPreview(); });
+$('logout').addEventListener('click', (e) => { e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload(); });
 
-// คำนวณ KPI / totals / ราคา ให้ "เชื่อมกัน" กับยอดขายรายเดือนที่กรอก
-// (มูลค่ารวม, ปริมาณ, ราคาเฉลี่ย, %MoM, %YoY, sparkline, จำนวนเดือน) ทุกอย่าง derive จากยอดเดือน 2569 เทียบ 2568
-function round(x, d) { const p = Math.pow(10, d); return Math.round(x * p) / p; }
-function recompute() {
-  const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
-  const v69 = (payload.valueByYear && payload.valueByYear['2569']) || [];
-  const k69 = (payload.volumeByYear && payload.volumeByYear['2569']) || [];
-  const v68 = (payload.valueByYear && payload.valueByYear['2568']) || [];
-  const k68 = (payload.volumeByYear && payload.volumeByYear['2568']) || [];
-  // จำนวนเดือนที่มีข้อมูลจริง = เดือนสุดท้ายที่มีค่า (ไม่ใช่ null)
-  let n = 0; for (let i = 0; i < 12; i++) if (v69[i] != null) n = i + 1;
-  payload.NACT = n;
-  payload.MONTHS_ACT = TH.slice(0, n);
-  const aV = v69.slice(0, n), aK = k69.slice(0, n);
-  const aV68 = v68.slice(0, n), aK68 = k68.slice(0, n);
-  const sV = sum(aV), sK = sum(aK), sV68 = sum(aV68), sK68 = sum(aK68);
-  const price = sK ? sV * 1000 / sK : 0;               // ฿/Kg = ล้านบาท*1e6 / (พันKg*1e3)
-  const price68 = sK68 ? sV68 * 1000 / sK68 : 0;
-  const priceM = aV.map((x, i) => aK[i] ? round(x * 1000 / aK[i], 1) : 0);
-  const mom = (a) => (a.length >= 2 && a[a.length - 2]) ? round((a[a.length - 1] - a[a.length - 2]) / a[a.length - 2] * 100, 1) : 0;
-  const yoy = (cur, prev) => prev ? round((cur - prev) / prev * 100, 1) : 0;
-  const setKpi = (id, f) => { const k = (payload.KPIS || []).find((x) => x.id === id); if (k) Object.assign(k, f); };
-  setKpi('value', { value: sV.toFixed(1), delta: mom(aV), yoy: yoy(sV, sV68), spark: aV });
-  setKpi('volume', { value: (sK / 1000).toFixed(2), delta: mom(aK), yoy: yoy(sK, sK68), spark: aK });
-  setKpi('price', { value: price.toFixed(1), delta: mom(priceM), yoy: yoy(price, price68), spark: priceM });
-  payload.price69 = priceM;
-  payload.price68 = aV68.map((x, i) => aK68[i] ? round(x * 1000 / aK68[i], 1) : 0);
-  payload.totals = payload.totals || {};
-  Object.assign(payload.totals, {
-    value: Math.round(sV * 1e6), volume: Math.round(sK * 1e3), avgPrice: round(price, 1),
-    yoyVal: yoy(sV, sV68), yoyKg: yoy(sK, sK68), momVal: mom(aV), momKg: mom(aK),
-  });
-}
+$('reloadBtn').addEventListener('click', () => {
+  setStatus('กำลังโหลด…','var(--warning)');
+  window.BWP_DB.getDashboard(PASS).then(boot).catch(e => { setStatus('โหลดไม่สำเร็จ','var(--negative)'); toast('โหลดไม่สำเร็จ','err'); });
+});
 
-async function save() {
-  collect();
-  recompute();
-  render(); // สะท้อนค่า KPI ที่คำนวณใหม่กลับเข้าฟอร์มให้ผู้ใช้เห็นก่อนบันทึก
-  $('saveBtn').disabled = true; $('needPolicy').style.display = 'none';
-  setStatus('กำลังบันทึก…', 'var(--warning)');
-  let httpStatus = null;
-  try {
-    const ep = CFG.url + '/rest/v1/' + CFG.table + '?id=eq.' + CFG.id;
-    const r = await fetch(ep, {
-      method: 'PATCH',
-      headers: { apikey: CFG.anonKey, Authorization: 'Bearer ' + CFG.anonKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ payload: payload, updated_at: new Date().toISOString() }),
-    });
-    httpStatus = r.status;
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+$('saveBtn').addEventListener('click', () => {
+  collectMonth();
+  // clean up empty new rows
+  raw.products = raw.products.filter(p => p.name && p.name.trim() && p.name !== 'สินค้าใหม่' || (p.monthlyKg||[]).some(x=>n(x)>0));
+  raw.customers = raw.customers.filter(c => (c.name && c.name.trim() && c.name !== 'ลูกค้าใหม่') || (c.monthlyKg||[]).some(x=>n(x)>0));
+  const payload = window.BWP_compute(raw);
+  $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
+  window.BWP_DB.saveDashboard(PASS, payload).then(() => {
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
-    toast('✓ บันทึกสำเร็จ! เปิดเว็บจริงแล้วรีเฟรชเพื่อดูผล', 'ok');
-  } catch (e) {
-    const info = explainError(e, httpStatus);
-    setStatus('บันทึกไม่สำเร็จ: ' + info.msg, 'var(--negative)');
-    toast('บันทึกไม่สำเร็จ — ' + info.msg, 'err');
-    showTip(info.tip);
-    console.error('[BWP editor] save failed:', { httpStatus, error: e });
-  } finally { $('saveBtn').disabled = false; }
-}
+    toast('✓ บันทึกสำเร็จ! เปิดหน้า Dashboard แล้วรีเฟรชเพื่อดูผล', 'ok');
+    buildMonthSelect(); renderMonth();
+  }).catch((e) => {
+    setStatus('บันทึกไม่สำเร็จ','var(--negative)');
+    toast((e && e.status===400) ? 'รหัสผ่านหมดอายุ ลองออกแล้วเข้าใหม่' : 'บันทึกไม่สำเร็จ — '+(e&&e.message||''), 'err');
+  }).finally(() => { $('saveBtn').disabled = false; });
+});
 
-$('reloadBtn').onclick = load;
-$('saveBtn').onclick = save;
-load();
+// auto-login if session has a password
+(function(){ let saved=null; try{saved=sessionStorage.getItem('bwp_pass');}catch(e){} if(saved) doLogin(saved, true); else $('loginPass').focus(); })();
 </script>
 </body>
 </html>

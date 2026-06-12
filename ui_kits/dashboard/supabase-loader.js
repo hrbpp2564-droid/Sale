@@ -1,46 +1,73 @@
-/* BWP Vantage — Supabase live-data loader.
-   Fetches the dashboard snapshot from Supabase and refreshes window.VDATA in place
-   (screens hold the same object reference, so a DB update flows through on re-render).
-   Falls back silently to the bundled data.js if the key is unset or the request fails. */
+/* BWP Vantage — dashboard login gate + live-data loader.
+   The app stays blocked (App.ready() requires window.BWP_AUTHED) until a correct
+   shared password is entered. On success we fetch the real payload via the
+   gatekeeper RPC, merge it into window.VDATA, flip BWP_AUTHED, and mount. */
 (function () {
-  var cfg = window.BWP_SUPABASE;
-  window.__BWP_SOURCE = 'bundled';
-  if (!cfg || !cfg.url || !cfg.anonKey || cfg.anonKey.indexOf('PASTE') === 0) {
-    return; // no key yet → stay on bundled data.js
+  window.__BWP_SOURCE = 'gated';
+  var KEY = 'bwp_pass';
+
+  function applyPayload(payload) {
+    if (!payload || typeof payload !== 'object') return false;
+    var cur = window.VDATA || {};
+    Object.assign(cur, payload);
+    if (typeof cur.sum !== 'function') cur.sum = function (a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); };
+    window.VDATA = cur;
+    window.BWP_AUTHED = true;
+    window.__BWP_SOURCE = 'supabase';
+    if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
+    return true;
   }
 
-  var endpoint = cfg.url.replace(/\/$/, '') +
-    '/rest/v1/' + (cfg.table || 'dashboard_data') +
-    '?id=eq.' + encodeURIComponent(cfg.id || 'bwp') + '&select=payload';
+  function gate() {
+    var ov = document.createElement('div');
+    ov.id = 'bwp-login';
+    ov.setAttribute('style', [
+      'position:fixed', 'inset:0', 'z-index:99999', 'display:flex',
+      'align-items:center', 'justify-content:center',
+      'background:#0b1220', 'font-family:system-ui,-apple-system,Segoe UI,sans-serif'
+    ].join(';'));
+    ov.innerHTML =
+      '<form id="bwp-login-form" style="width:340px;max-width:90vw;background:#141d2e;border:1px solid #243049;border-radius:16px;padding:28px 26px;box-shadow:0 20px 60px rgba(0,0,0,.5)">' +
+      '<div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:.02em">BWP Vantage</div>' +
+      '<div style="font-size:13px;color:#7c8aa5;margin:6px 0 20px">Sales Intelligence · กรุณาเข้าสู่ระบบ</div>' +
+      '<input id="bwp-pass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" ' +
+      'style="width:100%;box-sizing:border-box;background:#0b1220;border:1px solid #2a3650;border-radius:10px;color:#fff;font-size:15px;padding:11px 13px;outline:none" />' +
+      '<div id="bwp-err" style="color:#f87171;font-size:12.5px;min-height:18px;margin:8px 2px 0"></div>' +
+      '<button id="bwp-go" type="submit" style="width:100%;margin-top:10px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;padding:11px;cursor:pointer">เข้าสู่ระบบ</button>' +
+      '</form>';
+    document.body.appendChild(ov);
 
-  var ctrl = new AbortController();
-  var timer = setTimeout(function () { ctrl.abort(); }, 4000);
+    var form = ov.querySelector('#bwp-login-form');
+    var input = ov.querySelector('#bwp-pass');
+    var err = ov.querySelector('#bwp-err');
+    var btn = ov.querySelector('#bwp-go');
+    input.focus();
 
-  fetch(endpoint, {
-    headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey },
-    signal: ctrl.signal,
-  })
-    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
-    .then(function (rows) {
-      clearTimeout(timer);
-      // Guard: a copy of this loader is embedded in _ds_bundle.js too. Apply once
-      // so we don't remount twice (the double-apply caused UI flicker).
-      if (window.__BWP_SB_APPLIED) return;
-      window.__BWP_SB_APPLIED = true;
-      var payload = rows && rows[0] && rows[0].payload;
-      if (!payload || typeof payload !== 'object') return;
-      var cur = window.VDATA || {};
-      // Overlay in place (no destructive delete-all first) so screens never see an
-      // empty VDATA mid-render — that transient blank is what made the screen flicker.
-      Object.assign(cur, payload);
-      if (typeof cur.sum !== 'function') cur.sum = function (a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); };
-      window.VDATA = cur;
-      window.__BWP_SOURCE = 'supabase';
-      if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
-      console.info('[BWP] live data loaded from Supabase');
-    })
-    .catch(function (e) {
-      clearTimeout(timer);
-      console.warn('[BWP] Supabase fetch failed — using bundled data. ', e);
-    });
+    function tryPass(pass, fromStore) {
+      btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ…'; err.textContent = '';
+      window.BWP_DB.getDashboard(pass).then(function (payload) {
+        try { sessionStorage.setItem(KEY, pass); } catch (e) {}
+        applyPayload(payload);
+        ov.parentNode && ov.parentNode.removeChild(ov);
+      }).catch(function (e) {
+        if (fromStore) { try { sessionStorage.removeItem(KEY); } catch (_) {} }
+        btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+        err.textContent = (e && e.status === 400) || /unauthorized/i.test(e && e.message || '')
+          ? 'รหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง';
+        input.select();
+      });
+    }
+
+    form.addEventListener('submit', function (ev) { ev.preventDefault(); var p = input.value.trim(); if (p) tryPass(p, false); });
+
+    // auto-login if a password is already in this browser session
+    var saved = null; try { saved = sessionStorage.getItem(KEY); } catch (e) {}
+    if (saved) tryPass(saved, true);
+  }
+
+  function start() { if (window.BWP_DB) gate(); else setTimeout(start, 30); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+
+  // expose logout for completeness
+  window.BWP_LOGOUT = function () { try { sessionStorage.removeItem('bwp_pass'); } catch (e) {} location.reload(); };
 })();
