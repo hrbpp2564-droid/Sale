@@ -8602,8 +8602,14 @@ try { (() => {
     };
     window.VDATA = cur;
     window.__BWP_SOURCE = 'supabase';
-    if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
     console.info('[BWP] live data loaded from Supabase');
+    if (!sessionStorage.getItem('bwp_sb_loaded')) {
+      sessionStorage.setItem('bwp_sb_loaded', '1');
+      location.reload();
+      return;
+    }
+    sessionStorage.removeItem('bwp_sb_loaded');
+    if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
   }).catch(function (e) {
     clearTimeout(timer);
     console.warn('[BWP] Supabase fetch failed — using bundled data. ', e);
