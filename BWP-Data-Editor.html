@@ -183,8 +183,44 @@ function collect() {
   });
 }
 
+// คำนวณ KPI / totals / ราคา ให้ "เชื่อมกัน" กับยอดขายรายเดือนที่กรอก
+// (มูลค่ารวม, ปริมาณ, ราคาเฉลี่ย, %MoM, %YoY, sparkline, จำนวนเดือน) ทุกอย่าง derive จากยอดเดือน 2569 เทียบ 2568
+function round(x, d) { const p = Math.pow(10, d); return Math.round(x * p) / p; }
+function recompute() {
+  const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
+  const v69 = (payload.valueByYear && payload.valueByYear['2569']) || [];
+  const k69 = (payload.volumeByYear && payload.volumeByYear['2569']) || [];
+  const v68 = (payload.valueByYear && payload.valueByYear['2568']) || [];
+  const k68 = (payload.volumeByYear && payload.volumeByYear['2568']) || [];
+  // จำนวนเดือนที่มีข้อมูลจริง = เดือนสุดท้ายที่มีค่า (ไม่ใช่ null)
+  let n = 0; for (let i = 0; i < 12; i++) if (v69[i] != null) n = i + 1;
+  payload.NACT = n;
+  payload.MONTHS_ACT = TH.slice(0, n);
+  const aV = v69.slice(0, n), aK = k69.slice(0, n);
+  const aV68 = v68.slice(0, n), aK68 = k68.slice(0, n);
+  const sV = sum(aV), sK = sum(aK), sV68 = sum(aV68), sK68 = sum(aK68);
+  const price = sK ? sV * 1000 / sK : 0;               // ฿/Kg = ล้านบาท*1e6 / (พันKg*1e3)
+  const price68 = sK68 ? sV68 * 1000 / sK68 : 0;
+  const priceM = aV.map((x, i) => aK[i] ? round(x * 1000 / aK[i], 1) : 0);
+  const mom = (a) => (a.length >= 2 && a[a.length - 2]) ? round((a[a.length - 1] - a[a.length - 2]) / a[a.length - 2] * 100, 1) : 0;
+  const yoy = (cur, prev) => prev ? round((cur - prev) / prev * 100, 1) : 0;
+  const setKpi = (id, f) => { const k = (payload.KPIS || []).find((x) => x.id === id); if (k) Object.assign(k, f); };
+  setKpi('value', { value: sV.toFixed(1), delta: mom(aV), yoy: yoy(sV, sV68), spark: aV });
+  setKpi('volume', { value: (sK / 1000).toFixed(2), delta: mom(aK), yoy: yoy(sK, sK68), spark: aK });
+  setKpi('price', { value: price.toFixed(1), delta: mom(priceM), yoy: yoy(price, price68), spark: priceM });
+  payload.price69 = priceM;
+  payload.price68 = aV68.map((x, i) => aK68[i] ? round(x * 1000 / aK68[i], 1) : 0);
+  payload.totals = payload.totals || {};
+  Object.assign(payload.totals, {
+    value: Math.round(sV * 1e6), volume: Math.round(sK * 1e3), avgPrice: round(price, 1),
+    yoyVal: yoy(sV, sV68), yoyKg: yoy(sK, sK68), momVal: mom(aV), momKg: mom(aK),
+  });
+}
+
 async function save() {
   collect();
+  recompute();
+  render(); // สะท้อนค่า KPI ที่คำนวณใหม่กลับเข้าฟอร์มให้ผู้ใช้เห็นก่อนบันทึก
   $('saveBtn').disabled = true; $('needPolicy').style.display = 'none';
   setStatus('กำลังบันทึก…', 'var(--warning)');
   let httpStatus = null;
