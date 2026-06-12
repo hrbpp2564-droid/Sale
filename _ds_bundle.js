@@ -4803,7 +4803,7 @@ try { (() => {
         name: "edit",
         size: 15
       }),
-      onClick: () => window.location.href = '/Sale/bwp-data-editor/'
+      onClick: () => window.location.href = '/bwp-data-editor/'
     }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), /*#__PURE__*/React.createElement(Button, {
       variant: "secondary",
       size: "md",
@@ -5399,7 +5399,7 @@ try { (() => {
         name: "edit",
         size: 15
       }),
-      onClick: () => window.location.href = '/Sale/bwp-data-editor/'
+      onClick: () => window.location.href = '/bwp-data-editor/'
     }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), /*#__PURE__*/React.createElement(Button, {
       variant: "secondary",
       size: "md",
