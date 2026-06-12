@@ -5,6 +5,7 @@
   const Icon = window.Icon;
   const { fmt } = window.VUtil;
   const { Grid } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
   const groupColors = { 'ฟิล์มใส': 'var(--viz-1)', 'พิมพ์สี': 'var(--viz-3)', 'PCR (รีไซเคิล)': 'var(--viz-2)', 'สูตรพิเศษ': 'var(--viz-4)' };
@@ -20,7 +21,11 @@
   }
 
   // ---------- Product Analysis ----------
-  function ProductScreen() {
+  function ProductScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
+    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+    const groupAgg = (prods) => { prods = prods || D.PRODUCTS; const map = {}; prods.forEach(p => { map[p.group] = (map[p.group] || 0) + p.val; }); return Object.entries(map).map(([group, val]) => ({group, val})).sort((a, b) => b.val - a.val); };
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
@@ -169,7 +174,10 @@
     );
   }
 
-  function MixScreen() {
+  function MixScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
+    const groupAgg = (prods) => { prods = prods || D.PRODUCTS; const map = {}; prods.forEach(p => { map[p.group] = (map[p.group] || 0) + p.val; }); return Object.entries(map).map(([group, val]) => ({group, val})).sort((a, b) => b.val - a.val); };
     const [view, setView] = React.useState('treemap');
     const sorted = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const segs = sorted.map((p, i) => ({ label: p.name, value: p.val, color: `var(--viz-${(i % 8) + 1})` }));
@@ -202,7 +210,9 @@
   }
 
   // ---------- Price Analysis ----------
-  function PriceScreen() {
+  function PriceScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [gran, setGran] = React.useState('month');
     const data = gran === 'year' ? D.YEARS.map((y) => Math.round(D.sum(D.valueByYear[y].slice(0, NACT)) * 1e6 / (D.sum(D.volumeByYear[y].slice(0, NACT)) * 1000))) : D.price69;
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;

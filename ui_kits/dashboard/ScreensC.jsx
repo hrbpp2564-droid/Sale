@@ -6,10 +6,13 @@
   const Icon = window.Icon;
   const { fmt } = window.VUtil;
   const { Grid } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
 
-  function CustomerScreen() {
+  function CustomerScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [sel, setSel] = React.useState(null);
     const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
@@ -125,7 +128,9 @@
   }
 
   // ---------- Customer Contribution (Pareto) ----------
-  function ContributionScreen() {
+  function ContributionScreen({ filters }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const [scope, setScope] = React.useState('top10');
     const all = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const allReal = [...D.allCustomers].sort((a, b) => b.kg - a.kg);
