@@ -20,17 +20,5 @@
 </head>
 <body class="vantage" data-theme="dark">
 <div id="root"></div>
-<script>
-// Debug: show missing globals or bundle errors after 1s
-setTimeout(function(){
-  var ns = window.VantageSalesIntelligenceDesignSystem_a75d0a;
-  var errs = ns && ns.__errors || [];
-  var req = ['VDATA','Icon','Sidebar','TopBar','FilterBar','OverviewScreen','SalesScreen','ProductScreen','MixScreen','PriceScreen','CustomerScreen','ContributionScreen','YearScreen','ForecastScreen'];
-  var miss = req.filter(function(g){ return !window[g]; });
-  if(miss.length || errs.length) {
-    document.getElementById('root').innerHTML = '<pre style="color:#f66;background:#111;padding:24px;font-size:13px;white-space:pre-wrap">Missing: '+miss.join(', ')+'\n\nBundle errors:\n'+JSON.stringify(errs,null,2)+'</pre>';
-  }
-}, 1500);
-</script>
 </body>
 </html>
