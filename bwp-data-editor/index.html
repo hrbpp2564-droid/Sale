@@ -94,11 +94,33 @@ function toast(msg, kind) {
 }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
 
+// แยกแยะชนิดของข้อผิดพลาดให้ผู้ใช้เข้าใจ + รู้วิธีแก้
+function explainError(e, httpStatus) {
+  if (httpStatus === 401 || httpStatus === 403)
+    return { msg: 'ไม่มีสิทธิ์ (HTTP ' + httpStatus + ') — anon key ผิด หรือยังไม่เปิด RLS policy', tip: 'policy' };
+  if (httpStatus === 404)
+    return { msg: 'ไม่พบตาราง/แถวข้อมูล (HTTP 404)', tip: 'policy' };
+  if (httpStatus && httpStatus >= 400)
+    return { msg: 'เซิร์ฟเวอร์ตอบกลับ HTTP ' + httpStatus, tip: null };
+  // TypeError: Failed to fetch → เน็ต/CORS/URL ผิด/โปรเจกต์ pause
+  if (e && /Failed to fetch|NetworkError|load failed/i.test(e.message))
+    return { msg: 'ติดต่อ Supabase ไม่ได้ (เน็ตขัดข้อง, URL ผิด, หรือโปรเจกต์ถูกพัก)', tip: 'net' };
+  return { msg: e ? e.message : 'ไม่ทราบสาเหตุ', tip: null };
+}
+function showTip(kind) {
+  $('needPolicy').style.display = kind ? 'block' : 'none';
+  if (kind === 'net') $('needPolicy').innerHTML = '⚠️ ติดต่อ Supabase ไม่ได้ — ตรวจ: (1) อินเทอร์เน็ต (2) โปรเจกต์ Supabase ยัง <b>Active</b> อยู่ (ไม่ถูก pause) (3) URL <code>' + CFG.url + '</code> ถูกต้อง · ลอง <b>กดโหลดใหม่</b>';
+  else if (kind === 'policy') $('needPolicy').innerHTML = '⚠️ ยังไม่ได้เปิดสิทธิ์แก้ไข — รันไฟล์ <code>backend/supabase-enable-edit.sql</code> ใน Supabase SQL Editor (รันครั้งเดียว) แล้วลองใหม่';
+}
+
 async function load() {
   setStatus('กำลังโหลดข้อมูล…', 'var(--warning)');
+  $('needPolicy').style.display = 'none';
+  let httpStatus = null;
   try {
     const ep = CFG.url + '/rest/v1/' + CFG.table + '?id=eq.' + CFG.id + '&select=payload';
     const r = await fetch(ep, { headers: { apikey: CFG.anonKey, Authorization: 'Bearer ' + CFG.anonKey } });
+    httpStatus = r.status;
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
     if (!rows[0] || !rows[0].payload) throw new Error('ไม่พบข้อมูล');
@@ -108,8 +130,11 @@ async function load() {
     $('forms').style.display = 'block';
     $('saveBtn').disabled = false;
   } catch (e) {
-    setStatus('เชื่อมต่อไม่สำเร็จ: ' + e.message, 'var(--negative)');
-    toast('โหลดข้อมูลไม่สำเร็จ — ' + e.message, 'err');
+    const info = explainError(e, httpStatus);
+    setStatus('เชื่อมต่อไม่สำเร็จ: ' + info.msg, 'var(--negative)');
+    toast('โหลดข้อมูลไม่สำเร็จ — ' + info.msg, 'err');
+    showTip(info.tip);
+    console.error('[BWP editor] load failed:', { httpStatus, error: e });
   }
 }
 
@@ -162,6 +187,7 @@ async function save() {
   collect();
   $('saveBtn').disabled = true; $('needPolicy').style.display = 'none';
   setStatus('กำลังบันทึก…', 'var(--warning)');
+  let httpStatus = null;
   try {
     const ep = CFG.url + '/rest/v1/' + CFG.table + '?id=eq.' + CFG.id;
     const r = await fetch(ep, {
@@ -169,13 +195,16 @@ async function save() {
       headers: { apikey: CFG.anonKey, Authorization: 'Bearer ' + CFG.anonKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ payload: payload, updated_at: new Date().toISOString() }),
     });
-    if (r.status === 401 || r.status === 403 || r.status === 404) { $('needPolicy').style.display = 'block'; throw new Error('ไม่มีสิทธิ์เขียน (HTTP '+r.status+')'); }
+    httpStatus = r.status;
     if (!r.ok) throw new Error('HTTP ' + r.status);
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
     toast('✓ บันทึกสำเร็จ! เปิดเว็บจริงแล้วรีเฟรชเพื่อดูผล', 'ok');
   } catch (e) {
-    setStatus('บันทึกไม่สำเร็จ: ' + e.message, 'var(--negative)');
-    toast('บันทึกไม่สำเร็จ — ' + e.message, 'err');
+    const info = explainError(e, httpStatus);
+    setStatus('บันทึกไม่สำเร็จ: ' + info.msg, 'var(--negative)');
+    toast('บันทึกไม่สำเร็จ — ' + info.msg, 'err');
+    showTip(info.tip);
+    console.error('[BWP editor] save failed:', { httpStatus, error: e });
   } finally { $('saveBtn').disabled = false; }
 }
 
