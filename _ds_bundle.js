@@ -2634,8 +2634,7 @@ try { (() => {
       padding: "none"
     }, /*#__PURE__*/React.createElement(MonthTable, {D})));
   }
-  function MonthTable({D: _D}) {
-    D = _D || D;
+  function MonthTable({D}) {
     const {
       DataTable
     } = NS;
@@ -6002,8 +6001,7 @@ try { (() => {
       padding: "none"
     }, /*#__PURE__*/React.createElement(MonthTable, {D})));
   }
-  function MonthTable({D: _D}) {
-    D = _D || D;
+  function MonthTable({D}) {
     const {
       DataTable
     } = NS;
