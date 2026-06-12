@@ -65,7 +65,18 @@
     if (saved) tryPass(saved, true);
   }
 
-  function start() { if (window.BWP_DB) gate(); else setTimeout(start, 30); }
+  function fatal(msg) {
+    var d = document.createElement('div');
+    d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#0b1220;color:#cbd5e1;font-family:system-ui,sans-serif;text-align:center;padding:24px');
+    d.innerHTML = '<div><div style="font-size:16px;font-weight:600;color:#fff">โหลดไม่สำเร็จ</div><div style="font-size:13px;margin-top:8px;color:#94a3b8">' + msg + '</div><button onclick="location.reload()" style="margin-top:16px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:10px 18px;cursor:pointer">ลองใหม่</button></div>';
+    document.body.appendChild(d);
+  }
+  var tries = 0;
+  function start() {
+    if (window.BWP_DB) { gate(); return; }
+    if (++tries > 120) { fatal('สคริปต์บางตัวโหลดไม่ครบ — กดลองใหม่ หรือ Ctrl+Shift+R เพื่อล้างแคช'); return; }
+    setTimeout(start, 30);
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
   // expose logout for completeness
