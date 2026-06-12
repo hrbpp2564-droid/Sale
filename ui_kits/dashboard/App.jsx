@@ -45,7 +45,7 @@
           <FilterBar filters={filters} setFilters={setFilters} />
           <main ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '22px', scrollBehavior: 'smooth' }}>
             <div style={{ maxWidth: 'var(--content-max)', margin: '0 auto' }}>
-              {screen.withProps ? <ScreenComp onDrill={nav} /> : <ScreenComp />}
+              <ScreenComp onDrill={nav} filters={filters} />
               <div style={{ height: 24 }} />
               <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 2px', borderTop: '1px solid var(--border-subtle)', fontSize: 'var(--text-xs)', color: 'var(--text-disabled)' }}>
                 <span>BWP · Best World Interplas — ข้อมูลจริง ม.ค.–พ.ค. 2569 (เทียบ 2568)</span>
