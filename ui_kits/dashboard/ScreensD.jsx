@@ -21,51 +21,83 @@
     return [ref, w];
   }
 
-  // ---------- Year Comparison ----------
+  // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
   function YearScreen() {
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
     const unit = metric === 'value' ? 'ลบ.' : 'พัน Kg';
+    const years = D.YEARS.filter((y) => Array.isArray(src[y])); // only years with data
+    const latest = years[years.length - 1];
+    const prev = years[years.length - 2];
 
-    // 5-month comparable
-    const t68 = D.sum(src[2568].slice(0, NACT));
-    const t69 = D.sum(src[2569].slice(0, NACT));
-    const yoy = +((t69 / t68 - 1) * 100).toFixed(1);
-    const t68Full = D.sum(src[2568]);
+    // count of actual (non-null) months for a year
+    const monthsOf = (y) => src[y].filter((v) => v != null).length;
+    // comparable window = min actual months across all years (so YoY is apples-to-apples)
+    const cmp = Math.min(...years.map(monthsOf));
+    const sumN = (y, n) => D.sum(src[y].slice(0, n).map((v) => v || 0));
+    const sumFull = (y) => D.sum(src[y].map((v) => v || 0));
 
-    const rows = D.MONTHS_ACT.map((m, i) => ({
-      month: m, y68: src[2568][i], y69: src[2569][i],
-      yoy: +((src[2569][i] / src[2568][i] - 1) * 100).toFixed(1),
+    const tLatest = sumN(latest, cmp);
+    const tPrev = prev ? sumN(prev, cmp) : 0;
+    const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(1) : 0;
+
+    // palette: older years muted, latest highlighted
+    const yearColor = (i) => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${((years.length - 1 - i) % 6) + 2})`;
+    const series = years.map((y, i) => ({
+      name: 'ปี ' + y, data: src[y].slice(0, cmp), color: yearColor(i),
+      type: i === years.length - 1 ? 'area' : 'line',
     }));
+
+    // monthly comparison table — one column per year + YoY (latest vs prev)
+    const rows = D.MONTHS_ACT.slice(0, cmp).map((m, i) => {
+      const row = { month: m };
+      years.forEach((y) => { row['y' + y] = src[y][i]; });
+      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(1) : 0;
+      return row;
+    });
+
+    // annual summary — per year totals (comparable window + full year), with step YoY
+    const annual = years.map((y, i) => {
+      const cmpT = sumN(y, cmp), full = sumFull(y), nM = monthsOf(y);
+      const py = years[i - 1];
+      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(1) : null;
+      return { year: y, cmpT, full, nM, stepYoY };
+    });
 
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label={`รวม 5 เดือน 2569`} value={fmt.dec1(t69)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
-          <KpiCard label="รวม 5 เดือน 2568" value={fmt.dec1(t68)} unit={unit} />
+          <KpiCard label={`รวม ${cmp} เดือน ${latest}`} value={fmt.dec1(tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
+          {prev && <KpiCard label={`รวม ${cmp} เดือน ${prev}`} value={fmt.dec1(tPrev)} unit={unit} />}
           <KpiCard label="YoY Growth" value={fmt.pct(yoy).replace('%', '')} unit="%" delta={yoy} icon={<Icon name="activity" size={15} />} />
-          <KpiCard label="ทั้งปี 2568 (อ้างอิง)" value={fmt.dec1(t68Full)} unit={unit} icon={<Icon name="calendar" size={15} />} />
+          <KpiCard label={`จำนวนปีที่เทียบ`} value={String(years.length)} unit="ปี" icon={<Icon name="calendar" size={15} />} />
         </Grid>
 
-        <Card title="เปรียบเทียบยอดขาย 2568 vs 2569" subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน ม.ค.–พ.ค.`}
+        <Card title={`เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`} subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`}
           actions={<SegmentedControl size="sm" value={metric} onChange={setMetric} options={[{value:'value',label:'มูลค่า'},{value:'volume',label:'ปริมาณ'}]} />}>
-          <LineChart height={300} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
-            series={[
-              { name: 'ปี 2568', data: src[2568].slice(0, NACT), color: 'var(--slate-400)', type: 'line' },
-              { name: 'ปี 2569', data: src[2569].slice(0, NACT), color: 'var(--viz-1)', type: 'area' },
-            ]} />
+          <LineChart height={300} labels={D.MONTHS_ACT.slice(0, cmp)} yFormat={(v) => fmt.int(v)} showDots series={series} />
         </Card>
 
-        <Card title="ตารางเปรียบเทียบรายเดือน" subtitle="เดือน × ปี · พร้อม % Growth (YoY)" style={{ marginTop: 16 }} padding="none">
-          <DataTable rows={rows} sortable={false} rowKey={(r) => r.month}
-            columns={[
-              { key: 'month', header: 'เดือน', render: (r) => <span style={{ fontWeight: 500 }}>{r.month}</span> },
-              { key: 'y68', header: 'ปี 2568', numeric: true, render: (r) => fmt.dec1(r.y68) },
-              { key: 'y69', header: 'ปี 2569', numeric: true, render: (r) => fmt.dec1(r.y69) },
-              { key: 'diff', header: 'ส่วนต่าง', numeric: true, sortable: false, render: (r) => fmt.dec1(r.y69 - r.y68) },
-              { key: 'yoy', header: '% Growth (YoY)', numeric: true, render: (r) => <DeltaBadge value={r.yoy} size="sm" /> },
-            ]} />
-        </Card>
+        <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
+          <Card title="สรุปรายปี" subtitle={`รวม ${cmp} เดือนเทียบกัน + ทั้งปี (เท่าที่มีข้อมูล)`} padding="none">
+            <DataTable rows={annual} sortable={false} rowKey={(r) => r.year}
+              columns={[
+                { key: 'year', header: 'ปี', render: (r) => <span style={{ fontWeight: 500 }}>{r.year}</span> },
+                { key: 'cmpT', header: `รวม ${cmp} เดือน`, numeric: true, render: (r) => fmt.dec1(r.cmpT) },
+                { key: 'full', header: 'ทั้งปี', numeric: true, render: (r) => <span>{fmt.dec1(r.full)}<span style={{ color: 'var(--text-disabled)', fontSize: 'var(--text-2xs)' }}> ({r.nM}ด.)</span></span> },
+                { key: 'step', header: '% YoY', numeric: true, sortable: false, render: (r) => r.stepYoY == null ? <span style={{ color: 'var(--text-disabled)' }}>—</span> : <DeltaBadge value={r.stepYoY} size="sm" /> },
+              ]} />
+          </Card>
+
+          <Card title="ตารางเปรียบเทียบรายเดือน" subtitle={`เดือน × ปี · YoY (${latest} vs ${prev || '—'})`} padding="none">
+            <DataTable rows={rows} sortable={false} rowKey={(r) => r.month}
+              columns={[
+                { key: 'month', header: 'เดือน', render: (r) => <span style={{ fontWeight: 500 }}>{r.month}</span> },
+                ...years.map((y) => ({ key: 'y' + y, header: String(y), numeric: true, render: (r) => fmt.dec1(r['y' + y]) })),
+                { key: 'yoy', header: '% YoY', numeric: true, render: (r) => <DeltaBadge value={r.yoy} size="sm" /> },
+              ]} />
+          </Card>
+        </Grid>
       </div>
     );
   }

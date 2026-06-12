@@ -108,6 +108,7 @@
               fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', outline: 'none',
             }} onFocus={(e)=>e.target.style.borderColor='var(--border-accent)'} onBlur={(e)=>e.target.style.borderColor='var(--border-default)'} />
           </div>
+          <Button variant="secondary" size="md" iconLeft={<Icon name="edit" size={15} />} onClick={() => window.location.href = '/Sale/bwp-data-editor/'}>แก้ไขข้อมูล</Button>
           <Button variant="secondary" size="md" iconLeft={<Icon name="download" size={15} />}>ส่งออก</Button>
           <IconButton label="การแจ้งเตือน" variant="ghost"><Icon name="bell" size={17} /></IconButton>
           <IconButton label={theme === 'dark' ? 'โหมดสว่าง' : 'โหมดมืด'} variant="ghost" onClick={onTheme}>

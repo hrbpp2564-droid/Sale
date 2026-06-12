@@ -9,6 +9,9 @@
   const NACT = D.NACT;
   const groupColors = { 'ฟิล์มใส': 'var(--viz-1)', 'พิมพ์สี': 'var(--viz-3)', 'PCR (รีไซเคิล)': 'var(--viz-2)', 'สูตรพิเศษ': 'var(--viz-4)' };
   const prodGrowth = (p) => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+  // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
+  const prodKg = (p) => p.monthly.map((v, i) => (p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0));
+  const prodKgK = (p) => prodKg(p).map((k) => +(k / 1000).toFixed(1)); // พัน Kg
 
   function groupAgg() {
     const map = {};
@@ -53,6 +56,17 @@
           </Card>
         </Grid>
 
+        <Card title="ปริมาณขายรายเดือนแยกตามสินค้า (Kg)" subtitle="พัน Kg · Top 6 สินค้า + ยอดรวมทุกสินค้า · ม.ค.–พ.ค. 2569"
+          actions={<Badge tone="neutral" size="sm">หน่วย: พัน Kg</Badge>} style={{ marginBottom: 16 }}>
+          <LineChart height={280} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
+            series={[
+              { name: 'ยอดรวมทุกสินค้า', data: D.volumeByYear[2569].slice(0, NACT), color: 'var(--viz-2)', type: 'area' },
+              ...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
+                name: p.name, data: prodKgK(p), color: `var(--viz-${(i % 8) + 1})`, type: 'line',
+              })),
+            ]} />
+        </Card>
+
         <Card title="สินค้าทั้งหมด (Top 12 ตามมูลค่า)" subtitle="คลิกแถวเพื่อ Drill Down" padding="none">
           <DataTable rows={sorted} onRowClick={setSel} rowKey={(r) => r.id}
             columns={[
@@ -94,10 +108,18 @@
           <KpiCard label="สัดส่วนพอร์ต" value={p.share} unit="%" />
         </Grid>
 
+        <Card title="มูลค่า + ปริมาณ รายเดือน · 2569" subtitle="มูลค่า (ลบ.) แกนซ้าย · ปริมาณ (Kg) แกนขวา · ม.ค.–พ.ค." style={{ marginBottom: 16 }}>
+          <LineChart height={240} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
+            series={[
+              { name: 'มูลค่า (ลบ.)', data: p.monthly, color: 'var(--viz-1)', type: 'bar' },
+              { name: 'ปริมาณ (Kg)', data: prodKg(p), color: 'var(--viz-2)', type: 'line', axis: 'right' },
+            ]} />
+        </Card>
+
         <Grid cols={2} gap={16} style={{ marginBottom: 16 }}>
-          <Card title="แนวโน้มมูลค่ารายเดือน · 2569" subtitle="มูลค่า (ลบ.) · ม.ค.–พ.ค.">
-            <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.dec1(v)}
-              series={[{ name: p.name, data: p.monthly, color: 'var(--viz-1)', type: 'area' }]} />
+          <Card title="แนวโน้มปริมาณรายเดือน · 2569" subtitle="ปริมาณ (Kg) · ม.ค.–พ.ค.">
+            <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
+              series={[{ name: p.name, data: prodKg(p), color: 'var(--viz-2)', type: 'area' }]} />
           </Card>
           <Card title="ราคาเฉลี่ยรายเดือน" subtitle="฿/Kg">
             <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}

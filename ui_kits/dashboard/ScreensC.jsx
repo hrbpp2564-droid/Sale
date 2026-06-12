@@ -11,9 +11,15 @@
 
   function CustomerScreen() {
     const [sel, setSel] = React.useState(null);
+    const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
+
+    // Top 10 ranked by the selected month's volume (Kg)
+    const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
+    const maxMon = byMonth[0] ? (byMonth[0].monthly[mon] || 1) : 1;
+    const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
 
     if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} />;
 
@@ -42,6 +48,19 @@
               ]} />
           </Card>
         </Grid>
+
+        <Card title="Top 10 ลูกค้า — จัดอันดับรายเดือน" subtitle={`ปริมาณ (Kg) เฉพาะเดือน ${D.MONTHS_ACT[mon]} · อันดับเปลี่ยนตามเดือน`}
+          actions={<SegmentedControl size="sm" value={String(mon)} onChange={(v) => setMon(+v)}
+            options={D.MONTHS_ACT.map((m, i) => ({ value: String(i), label: m }))} />}
+          bodyStyle={{ padding: 'var(--space-2)' }} style={{ marginBottom: 16 }}>
+          {byMonth.map((c, i) => (
+            <RankBar key={c.id} rank={i + 1} label={c.name}
+              sublabel={monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '% ของเดือน' : '—'}
+              value={fmt.int(c.monthly[mon] || 0) + ' Kg'} ratio={(c.monthly[mon] || 0) / maxMon}
+              delta={mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(1) : null}
+              color="var(--viz-5)" onClick={() => setSel(c)} />
+          ))}
+        </Card>
 
         <Card title="ลูกค้า Top 10" subtitle="คลิกแถวเพื่อดูรายละเอียด" padding="none">
           <DataTable rows={sorted.slice(0, 10)} onRowClick={setSel} rowKey={(r) => r.id}
