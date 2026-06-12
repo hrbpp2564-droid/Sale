@@ -32,8 +32,16 @@
       if (typeof cur.sum !== 'function') cur.sum = function (a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); };
       window.VDATA = cur;
       window.__BWP_SOURCE = 'supabase';
-      if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
       console.info('[BWP] live data loaded from Supabase');
+      // Reload once so React mounts fresh with Supabase data already in VDATA.
+      // sessionStorage guard prevents infinite loop.
+      if (!sessionStorage.getItem('bwp_sb_loaded')) {
+        sessionStorage.setItem('bwp_sb_loaded', '1');
+        location.reload();
+        return;
+      }
+      sessionStorage.removeItem('bwp_sb_loaded');
+      if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
     })
     .catch(function (e) {
       clearTimeout(timer);

@@ -2022,9 +2022,10 @@ try { (() => {
         maxWidth: 'var(--content-max)',
         margin: '0 auto'
       }
-    }, screen.withProps ? /*#__PURE__*/React.createElement(ScreenComp, {
-      onDrill: nav
-    }) : /*#__PURE__*/React.createElement(ScreenComp, null), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(ScreenComp, {
+      onDrill: nav,
+      filters: filters
+    }), /*#__PURE__*/React.createElement("div", {
       style: {
         height: 24
       }
@@ -2203,6 +2204,65 @@ try { (() => {
   } = window;
   const D = window.VDATA;
   const NACT = D.NACT;
+  // Derive a filtered VDATA-shaped view from the top filter bar selections, so screens
+  // change with the year/month/customer/product filters. Keeps the same shape (years
+  // keyed 2569/2568, MONTHS_ACT, NACT, KPIS, totals, PRODUCTS, CUSTOMERS) so screen
+  // bodies need no edits beyond shadowing `D`/`NACT` with the view.
+  function viewFor(f) {
+    f = f || {};
+    const rnd = (x, d) => { const p = Math.pow(10, d); return Math.round(x * p) / p; };
+    const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
+    const curY = String(f.year || '2569');
+    const cmpY = curY === '2569' ? '2568' : '2568';
+    const vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
+    const kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
+    const vCmp = D.valueByYear[cmpY] || [];
+    const kCmp = D.volumeByYear[cmpY] || [];
+    let n = 0; for (let i = 0; i < 12; i++) if (vCur[i] != null) n = i + 1;
+    const single = f.month != null && f.month !== 'all' && f.month !== '';
+    const mi = single ? +f.month : -1;
+    const idxs = single ? [mi] : Array.from({ length: n }, (_, i) => i);
+    const pick = (arr) => idxs.map((i) => arr[i]);
+    const sumVal = sum(pick(vCur)), sumVol = sum(pick(kCur));
+    const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
+    const price = sumVol ? sumVal * 1000 / sumVol : 0;
+    const priceC = sumVolC ? sumValC * 1000 / sumVolC : 0;
+    const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
+    const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
+    const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
+    const pg = f.productGroup, cg = f.customerGroup;
+    // products: filter by group, and per-month value when a single month is selected
+    let prods = D.PRODUCTS;
+    if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
+    if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
+    const totP = sum(prods.map((p) => p.val));
+    prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
+    // customers: filter by selected customer, and per-month kg for a single month
+    let custs = D.CUSTOMERS;
+    if (cg && cg !== 'all') custs = custs.filter((c) => c.id === cg);
+    if (single) custs = custs.map((c) => Object.assign({}, c, { kg: c.monthly[mi] || 0 }));
+    const totC = sum(custs.map((c) => c.kg));
+    if (single) custs = custs.map((c) => Object.assign({}, c, { share: totC ? rnd(c.kg / totC * 100, 1) : 0 }));
+    const patch = {
+      value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
+      volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
+      price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
+    };
+    const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
+    const labels = idxs.map((i) => D.TH_MONTHS[i]);
+    const priceArr = idxs.map((i) => kCur[i] ? rnd(vCur[i] * 1000 / kCur[i], 1) : 0);
+    return Object.assign({}, D, {
+      NACT: idxs.length,
+      MONTHS_ACT: labels,
+      valueByYear: Object.assign({}, D.valueByYear, { 2569: pick(vCur), 2568: pick(vCmp) }),
+      volumeByYear: Object.assign({}, D.volumeByYear, { 2569: pick(kCur), 2568: pick(kCmp) }),
+      price69: priceArr,
+      KPIS: KPIS,
+      PRODUCTS: prods,
+      CUSTOMERS: custs,
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1) }),
+    });
+  }
   const KPI_DRILL = {
     volume: 'sales',
     value: 'sales',
@@ -2250,8 +2310,10 @@ try { (() => {
     time: '5 เดือน'
   }];
   function KpiRow({
-    onDrill
+    onDrill,
+    filters
   }) {
+    const D = viewFor(filters);
     return /*#__PURE__*/React.createElement(Grid, {
       min: 150,
       gap: 12,
@@ -2284,8 +2346,11 @@ try { (() => {
     })));
   }
   function OverviewScreen({
-    onDrill
+    onDrill,
+    filters
   }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const labels = D.MONTHS_ACT;
     const val69 = D.valueByYear[2569].slice(0, NACT);
     const val68 = D.valueByYear[2568].slice(0, NACT);
@@ -2293,7 +2358,8 @@ try { (() => {
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(KpiRow, {
-      onDrill: onDrill
+      onDrill: onDrill,
+      filters: filters
     }), /*#__PURE__*/React.createElement(Grid, {
       cols: 3,
       gap: 16,
@@ -2435,16 +2501,17 @@ try { (() => {
       centerValue: fmt.m(D.totals.value / 1e6),
       centerLabel: "\u0E23\u0E27\u0E21 (\u0E25\u0E1A.)",
       showLegend: true,
-      data: groupAgg().map(g => ({
+      data: groupAgg(D.PRODUCTS).map(g => ({
         label: g.group,
         value: g.val,
         color: groupColors[g.group] || 'var(--slate-500)'
       }))
     }))));
   }
-  function groupAgg() {
+  function groupAgg(prods) {
+    prods = prods || D.PRODUCTS;
     const map = {};
-    D.PRODUCTS.forEach(p => {
+    prods.forEach(p => {
       map[p.group] = (map[p.group] || 0) + p.val;
     });
     return Object.entries(map).map(([group, val]) => ({
@@ -2662,9 +2729,10 @@ try { (() => {
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
   const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(1)); // พัน Kg
 
-  function groupAgg() {
+  function groupAgg(prods) {
+    prods = prods || D.PRODUCTS;
     const map = {};
-    D.PRODUCTS.forEach(p => {
+    prods.forEach(p => {
       map[p.group] = (map[p.group] || 0) + p.val;
     });
     return Object.entries(map).map(([group, val]) => ({
@@ -5500,6 +5568,65 @@ try { (() => {
   } = window;
   const D = window.VDATA;
   const NACT = D.NACT;
+  // Derive a filtered VDATA-shaped view from the top filter bar selections, so screens
+  // change with the year/month/customer/product filters. Keeps the same shape (years
+  // keyed 2569/2568, MONTHS_ACT, NACT, KPIS, totals, PRODUCTS, CUSTOMERS) so screen
+  // bodies need no edits beyond shadowing `D`/`NACT` with the view.
+  function viewFor(f) {
+    f = f || {};
+    const rnd = (x, d) => { const p = Math.pow(10, d); return Math.round(x * p) / p; };
+    const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
+    const curY = String(f.year || '2569');
+    const cmpY = curY === '2569' ? '2568' : '2568';
+    const vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
+    const kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
+    const vCmp = D.valueByYear[cmpY] || [];
+    const kCmp = D.volumeByYear[cmpY] || [];
+    let n = 0; for (let i = 0; i < 12; i++) if (vCur[i] != null) n = i + 1;
+    const single = f.month != null && f.month !== 'all' && f.month !== '';
+    const mi = single ? +f.month : -1;
+    const idxs = single ? [mi] : Array.from({ length: n }, (_, i) => i);
+    const pick = (arr) => idxs.map((i) => arr[i]);
+    const sumVal = sum(pick(vCur)), sumVol = sum(pick(kCur));
+    const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
+    const price = sumVol ? sumVal * 1000 / sumVol : 0;
+    const priceC = sumVolC ? sumValC * 1000 / sumVolC : 0;
+    const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
+    const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
+    const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
+    const pg = f.productGroup, cg = f.customerGroup;
+    // products: filter by group, and per-month value when a single month is selected
+    let prods = D.PRODUCTS;
+    if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
+    if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
+    const totP = sum(prods.map((p) => p.val));
+    prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
+    // customers: filter by selected customer, and per-month kg for a single month
+    let custs = D.CUSTOMERS;
+    if (cg && cg !== 'all') custs = custs.filter((c) => c.id === cg);
+    if (single) custs = custs.map((c) => Object.assign({}, c, { kg: c.monthly[mi] || 0 }));
+    const totC = sum(custs.map((c) => c.kg));
+    if (single) custs = custs.map((c) => Object.assign({}, c, { share: totC ? rnd(c.kg / totC * 100, 1) : 0 }));
+    const patch = {
+      value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
+      volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
+      price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
+    };
+    const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
+    const labels = idxs.map((i) => D.TH_MONTHS[i]);
+    const priceArr = idxs.map((i) => kCur[i] ? rnd(vCur[i] * 1000 / kCur[i], 1) : 0);
+    return Object.assign({}, D, {
+      NACT: idxs.length,
+      MONTHS_ACT: labels,
+      valueByYear: Object.assign({}, D.valueByYear, { 2569: pick(vCur), 2568: pick(vCmp) }),
+      volumeByYear: Object.assign({}, D.volumeByYear, { 2569: pick(kCur), 2568: pick(kCmp) }),
+      price69: priceArr,
+      KPIS: KPIS,
+      PRODUCTS: prods,
+      CUSTOMERS: custs,
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1) }),
+    });
+  }
   const KPI_DRILL = {
     volume: 'sales',
     value: 'sales',
@@ -5547,8 +5674,10 @@ try { (() => {
     time: '5 เดือน'
   }];
   function KpiRow({
-    onDrill
+    onDrill,
+    filters
   }) {
+    const D = viewFor(filters);
     return /*#__PURE__*/React.createElement(Grid, {
       min: 150,
       gap: 12,
@@ -5581,8 +5710,11 @@ try { (() => {
     })));
   }
   function OverviewScreen({
-    onDrill
+    onDrill,
+    filters
   }) {
+    const D = viewFor(filters);
+    const NACT = D.NACT;
     const labels = D.MONTHS_ACT;
     const val69 = D.valueByYear[2569].slice(0, NACT);
     const val68 = D.valueByYear[2568].slice(0, NACT);
@@ -5590,7 +5722,8 @@ try { (() => {
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(KpiRow, {
-      onDrill: onDrill
+      onDrill: onDrill,
+      filters: filters
     }), /*#__PURE__*/React.createElement(Grid, {
       cols: 3,
       gap: 16,
@@ -5732,16 +5865,17 @@ try { (() => {
       centerValue: fmt.m(D.totals.value / 1e6),
       centerLabel: "\u0E23\u0E27\u0E21 (\u0E25\u0E1A.)",
       showLegend: true,
-      data: groupAgg().map(g => ({
+      data: groupAgg(D.PRODUCTS).map(g => ({
         label: g.group,
         value: g.val,
         color: groupColors[g.group] || 'var(--slate-500)'
       }))
     }))));
   }
-  function groupAgg() {
+  function groupAgg(prods) {
+    prods = prods || D.PRODUCTS;
     const map = {};
-    D.PRODUCTS.forEach(p => {
+    prods.forEach(p => {
       map[p.group] = (map[p.group] || 0) + p.val;
     });
     return Object.entries(map).map(([group, val]) => ({
@@ -5957,9 +6091,10 @@ try { (() => {
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
   const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(1)); // พัน Kg
 
-  function groupAgg() {
+  function groupAgg(prods) {
+    prods = prods || D.PRODUCTS;
     const map = {};
-    D.PRODUCTS.forEach(p => {
+    prods.forEach(p => {
       map[p.group] = (map[p.group] || 0) + p.val;
     });
     return Object.entries(map).map(([group, val]) => ({
@@ -7811,9 +7946,10 @@ try { (() => {
         maxWidth: 'var(--content-max)',
         margin: '0 auto'
       }
-    }, screen.withProps ? /*#__PURE__*/React.createElement(ScreenComp, {
-      onDrill: nav
-    }) : /*#__PURE__*/React.createElement(ScreenComp, null), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(ScreenComp, {
+      onDrill: nav,
+      filters: filters
+    }), /*#__PURE__*/React.createElement("div", {
       style: {
         height: 24
       }
@@ -8602,8 +8738,14 @@ try { (() => {
     };
     window.VDATA = cur;
     window.__BWP_SOURCE = 'supabase';
-    if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
     console.info('[BWP] live data loaded from Supabase');
+    if (!sessionStorage.getItem('bwp_sb_loaded')) {
+      sessionStorage.setItem('bwp_sb_loaded', '1');
+      location.reload();
+      return;
+    }
+    sessionStorage.removeItem('bwp_sb_loaded');
+    if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
   }).catch(function (e) {
     clearTimeout(timer);
     console.warn('[BWP] Supabase fetch failed — using bundled data. ', e);
