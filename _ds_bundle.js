@@ -8723,13 +8723,14 @@ try { (() => {
     return r.ok ? r.json() : Promise.reject(r.status);
   }).then(function (rows) {
     clearTimeout(timer);
+    // Apply once (external supabase-loader.js carries the same logic) — the
+    // double-apply + destructive refresh caused the screen to flicker.
+    if (window.__BWP_SB_APPLIED) return;
+    window.__BWP_SB_APPLIED = true;
     var payload = rows && rows[0] && rows[0].payload;
     if (!payload || typeof payload !== 'object') return;
     var cur = window.VDATA || {};
-    // refresh in place so existing screen references see the new data
-    Object.keys(cur).forEach(function (k) {
-      if (k !== 'sum') delete cur[k];
-    });
+    // Overlay in place (no delete-all first) so screens never read an empty VDATA mid-render.
     Object.assign(cur, payload);
     if (typeof cur.sum !== 'function') cur.sum = function (a) {
       return a.reduce(function (s, x) {
@@ -8738,14 +8739,8 @@ try { (() => {
     };
     window.VDATA = cur;
     window.__BWP_SOURCE = 'supabase';
-    console.info('[BWP] live data loaded from Supabase');
-    if (!sessionStorage.getItem('bwp_sb_loaded')) {
-      sessionStorage.setItem('bwp_sb_loaded', '1');
-      location.reload();
-      return;
-    }
-    sessionStorage.removeItem('bwp_sb_loaded');
     if (typeof window.__BWP_REMOUNT === 'function') window.__BWP_REMOUNT();
+    console.info('[BWP] live data loaded from Supabase');
   }).catch(function (e) {
     clearTimeout(timer);
     console.warn('[BWP] Supabase fetch failed — using bundled data. ', e);
