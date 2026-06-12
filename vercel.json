@@ -1,5 +1,4 @@
 {
-  "rewrites": [
-    { "source": "/Sale/:path*", "destination": "/:path*" }
-  ]
+  "cleanUrls": true,
+  "trailingSlash": false
 }
