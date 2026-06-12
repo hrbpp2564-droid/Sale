@@ -13,6 +13,7 @@
   // change with the year/month/customer/product filters. Same shape as VDATA so screen
   // bodies just shadow `D`/`NACT` with the view.
   function viewFor(f) {
+    const D = window.VDATA;
     f = f || {};
     const rnd = (x, d) => { const p = Math.pow(10, d); return Math.round(x * p) / p; };
     const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
@@ -70,14 +71,6 @@
   const prodGrowth = (p) => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
   const groupColors = { 'ฟิล์มใส': 'var(--viz-1)', 'พิมพ์สี': 'var(--viz-3)', 'PCR (รีไซเคิล)': 'var(--viz-2)', 'สูตรพิเศษ': 'var(--viz-4)' };
 
-  // Real-data insights
-  const INSIGHTS = [
-    { tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือน พ.ค. เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ยพุ่งเป็น ${D.price69[NACT-1]} ฿/Kg (จาก ${D.price69[0]} ฿/Kg เมื่อ ม.ค.) เป็นแรงหนุนหลัก`, time: 'ล่าสุด' },
-    { tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3 + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3}% ของปริมาณ — ความเสี่ยงกระจุกตัว`, time: 'เฝ้าระวัง' },
-    { tone: 'positive', icon: 'arrow-up', title: `ลูกค้าโตเด่น: ${D.CUSTOMERS.slice().sort((a,b)=>b.mom-a.mom)[0].name.split(' ')[0]}`, metric: fmt.pct(D.CUSTOMERS.slice().sort((a,b)=>b.mom-a.mom)[0].mom), detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้' },
-    { tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: fmt.pct(((D.price69[NACT-1]/D.price69[0])-1)*100), detail: `เฉลี่ย 5 เดือน ${D.totals.avgPrice} ฿/Kg — สะท้อนการปรับ mix ไปสินค้ามูลค่าสูง`, time: '5 เดือน' },
-  ];
-
   function KpiRow({ onDrill, filters }) {
     const D = viewFor(filters);
     return (
@@ -102,6 +95,13 @@
     const vol69 = D.volumeByYear[2569].slice(0, NACT);
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
+    const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
+    const INSIGHTS = NACT === 0 ? [] : [
+      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1]||'-'} ฿/Kg (จาก ${D.price69[0]||'-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
+      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3 + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3}% ของปริมาณ`, time: 'เฝ้าระวัง'},
+      {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
+      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice} ฿/Kg`, time: `${NACT} เดือน`},
+    ];
 
     return (
       <div>
