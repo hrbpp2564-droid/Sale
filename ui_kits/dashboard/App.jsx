@@ -20,7 +20,7 @@
     const [active, setActive] = React.useState(() => localStorage.getItem('vantage.screen') || 'overview');
     const [theme, setTheme] = React.useState(() => localStorage.getItem('vantage.theme') || 'dark');
     const [collapsed, setCollapsed] = React.useState(false);
-    const [filters, setFilters] = React.useState({ year: '2569', month: 'all', customerGroup: 'all', productGroup: 'all', granularity: 'month' });
+    const [filters, setFilters] = React.useState({ year: '2569', month: 'all', customerGroup: 'all', productGroup: 'all', product: 'all', granularity: 'month' });
     const scrollRef = React.useRef(null);
 
     React.useEffect(() => {
