@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
-<link rel="stylesheet" href="../styles.css?v=20260612m" />
+<link rel="stylesheet" href="../styles.css?v=20260612n" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -72,7 +72,9 @@
 
   <div class="bar">
     <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังโหลด…</span></div>
-    <label style="font-size:13px;color:var(--text-secondary)">เดือนที่กรอก:</label>
+    <label style="font-size:13px;color:var(--text-secondary)">ปี:</label>
+    <select id="yearSel"></select>
+    <label style="font-size:13px;color:var(--text-secondary)">เดือน:</label>
     <select id="monthSel"></select>
     <div style="flex:1"></div>
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
@@ -86,9 +88,10 @@
         <div class="fld"><label>มูลค่าขายรวม (ล้านบาท)</label><input id="mValue" placeholder="—"></div>
         <div class="fld"><label>ปริมาณขายรวม (พัน Kg)</label><input id="mVolume" placeholder="—"></div>
       </div>
-      <div class="hint">เช่น มูลค่า 59.4 = 59.4 ล้านบาท · ปริมาณ 646 = 646,000 Kg</div>
+      <div class="hint" id="totHint">เช่น มูลค่า 59.4 = 59.4 ล้านบาท · ปริมาณ 646 = 646,000 Kg</div>
     </div>
 
+    <div id="detailCards">
     <div class="card">
       <h2>ยอดรายสินค้า (Kg) <span class="tag">— ของเดือนที่เลือก</span></h2>
       <table><thead><tr><th>สินค้า</th><th>กลุ่ม</th><th class="num">ปริมาณ (Kg)</th></tr></thead><tbody id="prodBody"></tbody></table>
@@ -109,14 +112,15 @@
       <div class="kpibox" id="kpiPreview"></div>
       <div class="hint">ตัวเลขเหล่านี้คำนวณจากข้อมูลทุกเดือนที่กรอกไว้ และจะอัปเดตทันทีเมื่อบันทึก</div>
     </div>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260612m"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260612m"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260612m"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260612n"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260612n"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260612n"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const GROUPS = ['ฟิล์มใส','พิมพ์สี','PCR (รีไซเคิล)','สูตรพิเศษ'];
@@ -128,8 +132,15 @@ const PRODUCTS_STD = [
   { name: 'ฟิล์มยืด',     group: 'PCR (รีไซเคิล)' },
   { name: 'ถุงหลอด',      group: 'สูตรพิเศษ' },
 ];
+const CUR_YEAR = 2569;                    // ปีปัจจุบัน (กรอกครบทั้งสินค้า/ลูกค้า)
+const HIST_YEARS = [2565, 2566, 2567, 2568]; // ปีย้อนหลัง (กรอกเฉพาะยอดรวมรายเดือน)
+const ALL_YEARS = HIST_YEARS.concat([CUR_YEAR]);
 const $ = (id) => document.getElementById(id);
-let PASS = null, raw = null, curMonth = 0;
+let PASS = null, raw = null, curMonth = 0, curYear = CUR_YEAR;
+
+const isCur = () => curYear === CUR_YEAR;
+// ยอดรวมรายเดือนของปีที่กำลังกรอก (ปีปัจจุบัน=raw.monthly, ปีย้อนหลัง=raw.history[ปี])
+function curArr() { return isCur() ? raw.monthly : raw.history[String(curYear)]; }
 
 function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (kind||''); setTimeout(() => { t.className = 'toast ' + (kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
@@ -153,23 +164,38 @@ $('loginForm').addEventListener('submit', (ev) => { ev.preventDefault(); const p
 
 // ---------- derive raw from payload (self-heal if _raw missing) ----------
 function deriveRaw(payload) {
+  let r;
   if (payload && payload._raw && payload._raw.monthly) {
-    const r = payload._raw;
-    return {
-      monthly: { value: pad12(r.monthly.value), volume: pad12(r.monthly.volume) },
-      products: (r.products||[]).map(p => ({ name: p.name, group: p.group||'ฟิล์มใส', monthlyKg: pad12(p.monthlyKg) })),
-      customers: (r.customers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthlyKg) }))
+    const s = payload._raw;
+    r = {
+      monthly: { value: pad12(s.monthly.value), volume: pad12(s.monthly.volume) },
+      products: (s.products||[]).map(p => ({ name: p.name, group: p.group||'ฟิล์มใส', monthlyKg: pad12(p.monthlyKg) })),
+      customers: (s.customers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthlyKg) })),
+      history: {}
     };
+    const h = s.history || {};
+    Object.keys(h).forEach(y => { r.history[y] = { value: pad12(h[y] && h[y].value), volume: pad12(h[y] && h[y].volume) }; });
+  } else {
+    // back-calc from derived payload
+    const val = pad12((payload.valueByYear && payload.valueByYear['2569']) || []);
+    const vol = pad12((payload.volumeByYear && payload.volumeByYear['2569']) || []);
+    const products = (payload.PRODUCTS||[]).map(p => ({
+      name: p.name, group: p.group||'ฟิล์มใส',
+      monthlyKg: pad12((p.monthly||[]).map((v,i)=> (p.priceMonthly&&p.priceMonthly[i]) ? Math.round(v*1e6/p.priceMonthly[i]) : 0))
+    }));
+    const customers = (payload.allCustomers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthly||[]) }));
+    r = { monthly: { value: val, volume: vol }, products, customers, history: {} };
   }
-  // back-calc from derived payload
-  const val = pad12((payload.valueByYear && payload.valueByYear['2569']) || []);
-  const vol = pad12((payload.volumeByYear && payload.volumeByYear['2569']) || []);
-  const products = (payload.PRODUCTS||[]).map(p => ({
-    name: p.name, group: p.group||'ฟิล์มใส',
-    monthlyKg: pad12((p.monthly||[]).map((v,i)=> (p.priceMonthly&&p.priceMonthly[i]) ? Math.round(v*1e6/p.priceMonthly[i]) : 0))
-  }));
-  const customers = (payload.allCustomers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthly||[]) }));
-  return { monthly: { value: val, volume: vol }, products, customers };
+  // seed every history year so it is always editable; prefer _raw.history, else valueByYear
+  HIST_YEARS.forEach(y => {
+    const key = String(y);
+    if (!r.history[key]) {
+      const v = (payload.valueByYear && payload.valueByYear[key]) || [];
+      const k = (payload.volumeByYear && payload.volumeByYear[key]) || [];
+      r.history[key] = { value: pad12(v), volume: pad12(k) };
+    }
+  });
+  return r;
 }
 function pad12(a){ a = (a||[]).slice(0,12).map(x => x===null||x==='' ? null : x); while (a.length<12) a.push(null); return a; }
 
@@ -186,11 +212,13 @@ function ensureStdProducts() {
 function boot(payload) {
   raw = deriveRaw(payload);
   ensureStdProducts();
+  curYear = CUR_YEAR;
+  const arr = curArr().value;
   // default month = first empty month (next to enter), else last month
-  let def = 0; for (let i=0;i<12;i++){ if (raw.monthly.value[i]!=null && n(raw.monthly.value[i])>0) def = i; }
-  // if current def month has data, point to next empty one for convenience
-  let nextEmpty = -1; for (let i=0;i<12;i++){ if (raw.monthly.value[i]==null || n(raw.monthly.value[i])===0){ nextEmpty=i; break; } }
+  let def = 0; for (let i=0;i<12;i++){ if (arr[i]!=null && n(arr[i])>0) def = i; }
+  let nextEmpty = -1; for (let i=0;i<12;i++){ if (arr[i]==null || n(arr[i])===0){ nextEmpty=i; break; } }
   curMonth = nextEmpty >= 0 ? nextEmpty : def;
+  buildYearSelect();
   buildMonthSelect();
   renderMonth();
   $('forms').style.display = 'block';
@@ -198,17 +226,37 @@ function boot(payload) {
   setStatus('เข้าสู่ระบบแล้ว · พร้อมบันทึก', 'var(--positive)');
 }
 
+function buildYearSelect() {
+  const sel = $('yearSel'); sel.innerHTML = '';
+  ALL_YEARS.forEach(y => {
+    const a = (y === CUR_YEAR ? raw.monthly : raw.history[String(y)]).value;
+    const has = a.some(v => v != null && n(v) > 0);
+    const o = document.createElement('option'); o.value = y;
+    o.textContent = y + (y === CUR_YEAR ? ' (ปีปัจจุบัน)' : '') + (has ? ' ✓' : '');
+    sel.appendChild(o);
+  });
+  sel.value = curYear;
+}
+
 function buildMonthSelect() {
   const sel = $('monthSel'); sel.innerHTML = '';
-  TH.forEach((m,i) => { const has = raw.monthly.value[i]!=null && n(raw.monthly.value[i])>0; const o = document.createElement('option'); o.value=i; o.textContent = m + (has ? ' ✓' : ''); sel.appendChild(o); });
+  const arr = curArr().value;
+  TH.forEach((m,i) => { const has = arr[i]!=null && n(arr[i])>0; const o = document.createElement('option'); o.value=i; o.textContent = m + (has ? ' ✓' : ''); sel.appendChild(o); });
   sel.value = curMonth;
 }
 
 // ---------- render one month ----------
 function renderMonth() {
-  $('mLbl').textContent = '— ' + TH[curMonth] + ' 2569';
-  $('mValue').value = valOr(raw.monthly.value[curMonth]);
-  $('mVolume').value = valOr(raw.monthly.volume[curMonth]);
+  const cur = isCur();
+  $('detailCards').style.display = cur ? 'block' : 'none';
+  $('totHint').textContent = cur
+    ? 'เช่น มูลค่า 59.4 = 59.4 ล้านบาท · ปริมาณ 646 = 646,000 Kg'
+    : 'ปีย้อนหลัง: กรอกเฉพาะยอดรวมรายเดือน (มูลค่า/ปริมาณ) เพื่อใช้เปรียบเทียบหลายปี';
+  $('mLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
+  const arr = curArr();
+  $('mValue').value = valOr(arr.value[curMonth]);
+  $('mVolume').value = valOr(arr.volume[curMonth]);
+  if (!cur) { renderPreview(); return; }
   // products
   const pb = $('prodBody'); pb.innerHTML = '';
   raw.products.forEach((p, idx) => {
@@ -240,8 +288,10 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;
 
 // ---------- collect current month inputs back into raw ----------
 function collectMonth() {
-  raw.monthly.value[curMonth]  = $('mValue').value.trim()===''  ? null : n($('mValue').value);
-  raw.monthly.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
+  const arr = curArr();
+  arr.value[curMonth]  = $('mValue').value.trim()===''  ? null : n($('mValue').value);
+  arr.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
+  if (!isCur()) return; // ปีย้อนหลังกรอกเฉพาะยอดรวม ไม่มีตารางสินค้า/ลูกค้า
   document.querySelectorAll('[data-pname]').forEach(inp => { raw.products[+inp.dataset.pname].name = inp.value.trim(); });
   document.querySelectorAll('[data-pgroup]').forEach(sel => { raw.products[+sel.dataset.pgroup].group = sel.value; });
   document.querySelectorAll('[data-pkg]').forEach(inp => { raw.products[+inp.dataset.pkg].monthlyKg[curMonth] = inp.value.trim()===''?0:n(inp.value); });
@@ -261,6 +311,7 @@ function renderPreview() {
 }
 
 // ---------- events ----------
+$('yearSel').addEventListener('change', (e) => { collectMonth(); curYear = +e.target.value; buildMonthSelect(); renderMonth(); });
 $('monthSel').addEventListener('change', (e) => { collectMonth(); curMonth = +e.target.value; renderMonth(); });
 $('custSearch').addEventListener('input', (e) => { renderCustomers(e.target.value); });
 $('addProd').addEventListener('click', () => { collectMonth(); raw.products.push({ name:'สินค้าใหม่', group:'ฟิล์มใส', monthlyKg: pad12([]) }); renderMonth(); });
@@ -285,7 +336,7 @@ $('saveBtn').addEventListener('click', () => {
   window.BWP_DB.saveDashboard(PASS, payload).then(() => {
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
     toast('✓ บันทึกสำเร็จ! เปิดหน้า Dashboard แล้วรีเฟรชเพื่อดูผล', 'ok');
-    buildMonthSelect(); renderMonth();
+    buildYearSelect(); buildMonthSelect(); renderMonth();
   }).catch((e) => {
     setStatus('บันทึกไม่สำเร็จ','var(--negative)');
     toast((e && e.status===400) ? 'รหัสผ่านหมดอายุ ลองออกแล้วเข้าใหม่' : 'บันทึกไม่สำเร็จ — '+(e&&e.message||''), 'err');

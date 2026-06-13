@@ -5,9 +5,10 @@
 
    RAW INPUT SHAPE (what an officer types):
    {
-     monthly:  { value: [12 · ลบ.], volume: [12 · พัน Kg] },   // null = month not entered yet
+     monthly:  { value: [12 · ลบ.], volume: [12 · พัน Kg] },   // ปีปัจจุบัน (2569) · null = ยังไม่กรอก
      products: [ { name, group, monthlyKg: [12 · Kg] }, ... ],
-     customers:[ { name,        monthlyKg: [12 · Kg] }, ... ]
+     customers:[ { name,        monthlyKg: [12 · Kg] }, ... ],
+     history:  { "2565": { value:[12], volume:[12] }, ... }    // ข้อมูลย้อนหลังรายปี (ไม่บังคับ)
    }
    Output: a VDATA-shaped object (same keys the screens already read). */
 (function (root) {
@@ -141,15 +142,32 @@
     var yearEndVal = Math.round(sum(projVal));
     var yearEndKg = r2((totalVolKKg + avgMonthKg * (12 - NACT)) / 1000);
 
-    var valueByYear = {}; valueByYear['2568'] = BASE.value68.slice(); valueByYear['2569'] = padTo12(val69);
-    var volumeByYear = {}; volumeByYear['2568'] = BASE.volume68.slice(); volumeByYear['2569'] = padTo12(vol69);
+    // ---- multi-year series (history years 2565–2568 are optional & editable) ----
+    var hist = raw.history || {};
+    var valueByYear = {}, volumeByYear = {};
+    valueByYear['2568'] = padTo12((hist['2568'] && hist['2568'].value) || BASE.value68);
+    volumeByYear['2568'] = padTo12((hist['2568'] && hist['2568'].volume) || BASE.volume68);
+    valueByYear['2569'] = padTo12(val69);
+    volumeByYear['2569'] = padTo12(vol69);
+    Object.keys(hist).forEach(function (y) {
+      if (y === '2568' || y === '2569') return;
+      valueByYear[y] = padTo12((hist[y] && hist[y].value) || []);
+      volumeByYear[y] = padTo12((hist[y] && hist[y].volume) || []);
+    });
+    // YEARS = every year with ≥1 actual value, plus 2568/2569 always
+    var yset = {};
+    Object.keys(valueByYear).forEach(function (y) {
+      var has = (valueByYear[y] || []).some(function (v) { return v != null && num(v) > 0; });
+      if (has || y === '2568' || y === '2569') yset[y] = true;
+    });
+    var YEARS = Object.keys(yset).map(Number).sort(function (a, b) { return a - b; });
 
     var out = {
       company: BASE.company,
       TH_MONTHS: BASE.TH_MONTHS,
       MONTHS_ACT: MONTHS_ACT,
       NACT: NACT,
-      YEARS: BASE.YEARS,
+      YEARS: YEARS,
       valueByYear: valueByYear,
       volumeByYear: volumeByYear,
       price68: BASE.price68,
@@ -167,7 +185,7 @@
         top3: top3, top5: top5
       },
       forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: 82 },
-      _raw: { monthly: { value: val69, volume: vol69 }, products: rprods, customers: rcust }
+      _raw: { monthly: { value: val69, volume: vol69 }, products: rprods, customers: rcust, history: hist }
     };
     return out;
   }
