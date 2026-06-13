@@ -77,6 +77,9 @@
     <label style="font-size:13px;color:var(--text-secondary)">เดือน:</label>
     <select id="monthSel"></select>
     <div style="flex:1"></div>
+    <a class="btn ghost" id="tmplBtn" href="BWP-template.xlsx" download>⬇ เทมเพลต Excel</a>
+    <button class="btn ghost" id="uploadBtn" type="button">⬆ อัปโหลด Excel</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
     <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
@@ -118,6 +121,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../ui_kits/dashboard/supabase-config.js?v=20260612n"></script>
 <script src="../ui_kits/dashboard/db.js?v=20260612n"></script>
 <script src="../ui_kits/dashboard/compute.js?v=20260612n"></script>
@@ -320,6 +324,71 @@ $('addCust').addEventListener('click', () => { collectMonth(); raw.customers.pus
 $('prodBody').addEventListener('input', renderPreview);
 $('custBody').addEventListener('input', (e) => { if (e.target.classList.contains('kg')) renderPreview(); });
 $('logout').addEventListener('click', (e) => { e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload(); });
+
+// ---------- import from Excel ----------
+const SHEET_TOTALS = 'ยอดรวมรายเดือน', SHEET_PROD = 'สินค้า 2569 (Kg)', SHEET_CUST = 'ลูกค้า 2569 (Kg)';
+function monthIndex(label) {
+  if (label == null) return -1;
+  const s = String(label).trim();
+  const i = TH.indexOf(s); if (i >= 0) return i;
+  const num = parseInt(s, 10); // also accept 1-12
+  return (num >= 1 && num <= 12) ? num - 1 : -1;
+}
+function importWorkbook(wb) {
+  // build a fresh raw, preserving nothing (Excel is the source of truth on import)
+  const fresh = { monthly: { value: pad12([]), volume: pad12([]) }, products: [], customers: [], history: {} };
+  HIST_YEARS.forEach(y => fresh.history[String(y)] = { value: pad12([]), volume: pad12([]) });
+
+  // sheet 1 — totals per year/month
+  const t = wb.Sheets[SHEET_TOTALS];
+  if (!t) throw new Error('ไม่พบชีต "' + SHEET_TOTALS + '"');
+  XLSX.utils.sheet_to_json(t, { header: 1 }).slice(1).forEach(row => {
+    if (!row || row.length === 0) return;
+    const year = parseInt(row[0], 10); const mi = monthIndex(row[1]);
+    if (!year || mi < 0) return;
+    const val = row[2] === '' || row[2] == null ? null : n(row[2]);
+    const vol = row[3] === '' || row[3] == null ? null : n(row[3]);
+    const tgt = year === CUR_YEAR ? fresh.monthly : fresh.history[String(year)];
+    if (!tgt) return; // ปีนอกช่วงที่รองรับ
+    tgt.value[mi] = val; tgt.volume[mi] = vol;
+  });
+
+  // sheet 2 — products (Kg per month, year 2569)
+  const p = wb.Sheets[SHEET_PROD];
+  if (p) XLSX.utils.sheet_to_json(p, { header: 1 }).slice(1).forEach(row => {
+    if (!row || !String(row[0] || '').trim()) return;
+    const mk = pad12([]); for (let m = 0; m < 12; m++) mk[m] = n(row[2 + m]);
+    fresh.products.push({ name: String(row[0]).trim(), group: String(row[1] || 'ฟิล์มใส').trim(), monthlyKg: mk });
+  });
+
+  // sheet 3 — customers (Kg per month, year 2569)
+  const c = wb.Sheets[SHEET_CUST];
+  if (c) XLSX.utils.sheet_to_json(c, { header: 1 }).slice(1).forEach(row => {
+    if (!row || !String(row[0] || '').trim()) return;
+    const mk = pad12([]); for (let m = 0; m < 12; m++) mk[m] = n(row[1 + m]);
+    fresh.customers.push({ name: String(row[0]).trim(), monthlyKg: mk });
+  });
+
+  raw = fresh;
+  ensureStdProducts();
+  curYear = CUR_YEAR; curMonth = 0;
+  buildYearSelect(); buildMonthSelect(); renderMonth();
+  const np = raw.products.filter(x => (x.monthlyKg||[]).some(v=>n(v)>0)).length;
+  const nc = raw.customers.length;
+  toast('✓ นำเข้าจาก Excel แล้ว · สินค้า '+np+' · ลูกค้า '+nc+' — ตรวจสอบแล้วกด "บันทึก"', 'ok');
+}
+$('uploadBtn').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  if (typeof XLSX === 'undefined') { toast('ตัวอ่าน Excel ยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try { importWorkbook(XLSX.read(new Uint8Array(ev.target.result), { type: 'array' })); }
+    catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
+    $('fileInput').value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
 
 $('reloadBtn').addEventListener('click', () => {
   setStatus('กำลังโหลด…','var(--warning)');
