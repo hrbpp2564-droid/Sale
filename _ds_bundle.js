@@ -1961,6 +1961,7 @@ try { (() => {
       month: 'all',
       customerGroup: 'all',
       productGroup: 'all',
+      product: 'all',
       granularity: 'month'
     });
     const scrollRef = React.useRef(null);
@@ -2236,10 +2237,23 @@ try { (() => {
     const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
     const curY = String(f.year || '2569');
     const cmpY = curY === '2569' ? '2568' : '2568';
-    const vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
-    const kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
-    const vCmp = D.valueByYear[cmpY] || [];
-    const kCmp = D.volumeByYear[cmpY] || [];
+    let vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
+    let kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
+    let vCmp = D.valueByYear[cmpY] || [];
+    let kCmp = D.volumeByYear[cmpY] || [];
+    // product filter: narrow the headline value/volume series to a single product
+    const prodId = f.product;
+    if (prodId && prodId !== 'all') {
+      const P = (D.PRODUCTS || []).find((p) => p.id === prodId);
+      if (P) {
+        vCur = (P.monthly || []).map((v) => (v == null ? null : v));          // value (ลบ.) per month
+        kCur = (P.monthly || []).map((v, i) => {                              // volume (พัน Kg) per month
+          const pr = (P.priceMonthly || [])[i];
+          return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0);
+        });
+        vCmp = []; kCmp = []; // no per-product prior-year data → no YoY baseline
+      }
+    }
     let n = 0; for (let i = 0; i < 12; i++) if (vCur[i] != null) n = i + 1;
     const single = f.month != null && f.month !== 'all' && f.month !== '';
     const mi = single ? +f.month : -1;
@@ -2256,6 +2270,7 @@ try { (() => {
     // products: filter by group, and per-month value when a single month is selected
     let prods = D.PRODUCTS;
     if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
+    if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
@@ -4922,6 +4937,17 @@ try { (() => {
         value: 'all',
         label: 'ทุกกลุ่มสินค้า'
       }, 'ฟิล์มใส', 'พิมพ์สี', 'PCR (รีไซเคิล)', 'สูตรพิเศษ']
+    }), /*#__PURE__*/React.createElement(Select, {
+      width: 150,
+      value: filters.product || 'all',
+      onChange: set('product'),
+      options: [{
+        value: 'all',
+        label: 'ทุกสินค้า'
+      }, ...(D.PRODUCTS || []).map(p => ({
+        value: p.id,
+        label: p.name.length > 14 ? p.name.slice(0, 14) + '…' : p.name
+      }))]
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1
@@ -5518,6 +5544,17 @@ try { (() => {
         value: 'all',
         label: 'ทุกกลุ่มสินค้า'
       }, 'ฟิล์มใส', 'พิมพ์สี', 'PCR (รีไซเคิล)', 'สูตรพิเศษ']
+    }), /*#__PURE__*/React.createElement(Select, {
+      width: 150,
+      value: filters.product || 'all',
+      onChange: set('product'),
+      options: [{
+        value: 'all',
+        label: 'ทุกสินค้า'
+      }, ...(D.PRODUCTS || []).map(p => ({
+        value: p.id,
+        label: p.name.length > 14 ? p.name.slice(0, 14) + '…' : p.name
+      }))]
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1
@@ -5582,10 +5619,23 @@ try { (() => {
     const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
     const curY = String(f.year || '2569');
     const cmpY = curY === '2569' ? '2568' : '2568';
-    const vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
-    const kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
-    const vCmp = D.valueByYear[cmpY] || [];
-    const kCmp = D.volumeByYear[cmpY] || [];
+    let vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
+    let kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
+    let vCmp = D.valueByYear[cmpY] || [];
+    let kCmp = D.volumeByYear[cmpY] || [];
+    // product filter: narrow the headline value/volume series to a single product
+    const prodId = f.product;
+    if (prodId && prodId !== 'all') {
+      const P = (D.PRODUCTS || []).find((p) => p.id === prodId);
+      if (P) {
+        vCur = (P.monthly || []).map((v) => (v == null ? null : v));          // value (ลบ.) per month
+        kCur = (P.monthly || []).map((v, i) => {                              // volume (พัน Kg) per month
+          const pr = (P.priceMonthly || [])[i];
+          return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0);
+        });
+        vCmp = []; kCmp = []; // no per-product prior-year data → no YoY baseline
+      }
+    }
     let n = 0; for (let i = 0; i < 12; i++) if (vCur[i] != null) n = i + 1;
     const single = f.month != null && f.month !== 'all' && f.month !== '';
     const mi = single ? +f.month : -1;
@@ -5602,6 +5652,7 @@ try { (() => {
     // products: filter by group, and per-month value when a single month is selected
     let prods = D.PRODUCTS;
     if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
+    if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
@@ -7891,6 +7942,7 @@ try { (() => {
       month: 'all',
       customerGroup: 'all',
       productGroup: 'all',
+      product: 'all',
       granularity: 'month'
     });
     const scrollRef = React.useRef(null);
