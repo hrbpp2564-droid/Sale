@@ -120,6 +120,14 @@
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const GROUPS = ['ฟิล์มใส','พิมพ์สี','PCR (รีไซเคิล)','สูตรพิเศษ'];
+// 5 รายการสินค้ามาตรฐาน — จะแสดงให้กรอกเสมอแม้ยังไม่มีข้อมูล
+const PRODUCTS_STD = [
+  { name: 'ม้วนใส',      group: 'ฟิล์มใส' },
+  { name: 'ม้วนพิมพ์',    group: 'พิมพ์สี' },
+  { name: 'ถุงคลุม/ชีท',  group: 'ฟิล์มใส' },
+  { name: 'ฟิล์มยืด',     group: 'PCR (รีไซเคิล)' },
+  { name: 'ถุงหลอด',      group: 'สูตรพิเศษ' },
+];
 const $ = (id) => document.getElementById(id);
 let PASS = null, raw = null, curMonth = 0;
 
@@ -165,9 +173,19 @@ function deriveRaw(payload) {
 }
 function pad12(a){ a = (a||[]).slice(0,12).map(x => x===null||x==='' ? null : x); while (a.length<12) a.push(null); return a; }
 
+// ---------- ensure the 5 standard products always have a row ----------
+function ensureStdProducts() {
+  PRODUCTS_STD.forEach(std => {
+    const found = raw.products.find(p => (p.name||'').trim() === std.name);
+    if (found) { if (!found.group) found.group = std.group; }
+    else raw.products.push({ name: std.name, group: std.group, monthlyKg: pad12([]) });
+  });
+}
+
 // ---------- boot ----------
 function boot(payload) {
   raw = deriveRaw(payload);
+  ensureStdProducts();
   // default month = first empty month (next to enter), else last month
   let def = 0; for (let i=0;i<12;i++){ if (raw.monthly.value[i]!=null && n(raw.monthly.value[i])>0) def = i; }
   // if current def month has data, point to next empty one for convenience
