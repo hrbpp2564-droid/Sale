@@ -2043,6 +2043,27 @@ try { (() => {
   }
   window.VantageApp = App;
 
+  // Error boundary: a single screen crash shows a readable message + lets the user
+  // switch screens, instead of leaving the whole app a black screen.
+  if (!window.__BWP_ErrorBoundary) {
+    class BWPErrorBoundary extends React.Component {
+      constructor(p) { super(p); this.state = { err: null }; }
+      static getDerivedStateFromError(err) { return { err: err }; }
+      componentDidCatch(err, info) { try { console.error('BWP screen error:', err, info); } catch (e) {} }
+      render() {
+        if (!this.state.err) return this.props.children;
+        var reset = () => { try { localStorage.setItem('vantage.screen', 'overview'); } catch (e) {} this.setState({ err: null }); location.reload(); };
+        return React.createElement('div', { style: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b1220', color: '#cbd5e1', fontFamily: 'system-ui,sans-serif', padding: 24 } },
+          React.createElement('div', { style: { maxWidth: 520, textAlign: 'center' } },
+            React.createElement('div', { style: { fontSize: 18, fontWeight: 700, color: '#fff' } }, 'หน้านี้แสดงผลไม่สำเร็จ'),
+            React.createElement('div', { style: { fontSize: 13, margin: '10px 0 4px', color: '#94a3b8' } }, 'เกิดข้อผิดพลาดในการแสดงผลหน้าจอ — ลองกลับไปหน้าภาพรวม'),
+            React.createElement('pre', { style: { fontSize: 11, color: '#f87171', whiteSpace: 'pre-wrap', textAlign: 'left', background: '#141d2e', borderRadius: 8, padding: 12, marginTop: 12, overflow: 'auto', maxHeight: 160 } }, String(this.state.err && (this.state.err.stack || this.state.err.message) || this.state.err)),
+            React.createElement('button', { onClick: reset, style: { marginTop: 16, background: '#2563eb', border: 'none', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 600, padding: '10px 18px', cursor: 'pointer' } }, 'กลับหน้าภาพรวม')));
+      }
+    }
+    window.__BWP_ErrorBoundary = BWPErrorBoundary;
+  }
+
   // Mount once, only after every dependency global is ready (load-order safe).
   function ready() {
     return window.BWP_AUTHED && window.VDATA && window.VantageSalesIntelligenceDesignSystem_a75d0a && window.Icon && window.Sidebar && window.TopBar && window.FilterBar && window.OverviewScreen && window.SalesScreen && window.ProductScreen && window.CustomerScreen && window.ContributionScreen && window.MixScreen && window.PriceScreen && window.YearScreen && window.ForecastScreen;
@@ -2056,7 +2077,7 @@ try { (() => {
       return setTimeout(mount, 25);
     }
     if (!el.__vroot) el.__vroot = ReactDOM.createRoot(el);
-    el.__vroot.render(/*#__PURE__*/React.createElement(App, null));
+    el.__vroot.render(/*#__PURE__*/React.createElement(window.__BWP_ErrorBoundary, null, /*#__PURE__*/React.createElement(App, null)));
   }
   window.__BWP_REMOUNT = mount; // Supabase loader calls this after refreshing window.VDATA
   mount();
@@ -7321,6 +7342,7 @@ try { (() => {
   const {
     Grid
   } = window;
+  const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
   function useMeasure() {
@@ -7951,6 +7973,27 @@ try { (() => {
   }
   window.VantageApp = App;
 
+  // Error boundary: a single screen crash shows a readable message + lets the user
+  // switch screens, instead of leaving the whole app a black screen.
+  if (!window.__BWP_ErrorBoundary) {
+    class BWPErrorBoundary extends React.Component {
+      constructor(p) { super(p); this.state = { err: null }; }
+      static getDerivedStateFromError(err) { return { err: err }; }
+      componentDidCatch(err, info) { try { console.error('BWP screen error:', err, info); } catch (e) {} }
+      render() {
+        if (!this.state.err) return this.props.children;
+        var reset = () => { try { localStorage.setItem('vantage.screen', 'overview'); } catch (e) {} this.setState({ err: null }); location.reload(); };
+        return React.createElement('div', { style: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b1220', color: '#cbd5e1', fontFamily: 'system-ui,sans-serif', padding: 24 } },
+          React.createElement('div', { style: { maxWidth: 520, textAlign: 'center' } },
+            React.createElement('div', { style: { fontSize: 18, fontWeight: 700, color: '#fff' } }, 'หน้านี้แสดงผลไม่สำเร็จ'),
+            React.createElement('div', { style: { fontSize: 13, margin: '10px 0 4px', color: '#94a3b8' } }, 'เกิดข้อผิดพลาดในการแสดงผลหน้าจอ — ลองกลับไปหน้าภาพรวม'),
+            React.createElement('pre', { style: { fontSize: 11, color: '#f87171', whiteSpace: 'pre-wrap', textAlign: 'left', background: '#141d2e', borderRadius: 8, padding: 12, marginTop: 12, overflow: 'auto', maxHeight: 160 } }, String(this.state.err && (this.state.err.stack || this.state.err.message) || this.state.err)),
+            React.createElement('button', { onClick: reset, style: { marginTop: 16, background: '#2563eb', border: 'none', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 600, padding: '10px 18px', cursor: 'pointer' } }, 'กลับหน้าภาพรวม')));
+      }
+    }
+    window.__BWP_ErrorBoundary = BWPErrorBoundary;
+  }
+
   // Mount once, only after every dependency global is ready (load-order safe).
   function ready() {
     return window.BWP_AUTHED && window.VDATA && window.VantageSalesIntelligenceDesignSystem_a75d0a && window.Icon && window.Sidebar && window.TopBar && window.FilterBar && window.OverviewScreen && window.SalesScreen && window.ProductScreen && window.CustomerScreen && window.ContributionScreen && window.MixScreen && window.PriceScreen && window.YearScreen && window.ForecastScreen;
@@ -7964,7 +8007,7 @@ try { (() => {
       return setTimeout(mount, 25);
     }
     if (!el.__vroot) el.__vroot = ReactDOM.createRoot(el);
-    el.__vroot.render(/*#__PURE__*/React.createElement(App, null));
+    el.__vroot.render(/*#__PURE__*/React.createElement(window.__BWP_ErrorBoundary, null, /*#__PURE__*/React.createElement(App, null)));
   }
   window.__BWP_REMOUNT = mount; // Supabase loader calls this after refreshing window.VDATA
   mount();
