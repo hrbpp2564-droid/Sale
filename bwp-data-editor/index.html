@@ -210,7 +210,7 @@ const $ = id => document.getElementById(id);
 let PASS = null, raw = null, curMonth = 0, curYear = CUR_YEAR;
 
 const isCur = () => curYear === CUR_YEAR;
-function curArr() { return isCur() ? raw.monthly : raw.history[String(curYear)]; }
+function curArr() { return isCur() ? raw.monthly : (raw.history[String(curYear)] || { value: Array(12).fill(null), volume: Array(12).fill(null) }); }
 
 function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show '+(kind||''); setTimeout(() => { t.className='toast '+(kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
@@ -345,7 +345,7 @@ function boot(payload) {
 function buildYearSelect() {
   const sel = $('yearSel'); sel.innerHTML = '';
   ALL_YEARS.forEach(y => {
-    const a = y === CUR_YEAR ? toComputeRaw().monthly.value : raw.history[String(y)].value;
+    const a = y === CUR_YEAR ? toComputeRaw().monthly.value : (raw.history[String(y)] || {}).value;
     const has = (a||[]).some(v => v != null && n(v) > 0);
     const o = document.createElement('option'); o.value = y;
     o.textContent = y + (y === CUR_YEAR ? ' (ปัจจุบัน)' : '') + (has ? ' ✓' : '');

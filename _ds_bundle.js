@@ -3501,9 +3501,9 @@ try { (() => {
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
     // All customers with purchases in selected month
-    const allByMonth = [...D.CUSTOMERS].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
+    const allByMonth = [...(D.allCustomers||D.CUSTOMERS)].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
-    const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
+    const monTotal = (D.allCustomers||D.CUSTOMERS).reduce((s, c) => s + (c.monthly[mon] || 0), 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null)
@@ -3670,7 +3670,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(DataTable, {
       rows: allByMonth,
       onRowClick: setSel,
-      rowKey: r => r.id,
+      rowKey: r => r.name,
       columns: [{
         key: '_r',
         header: '#',
@@ -3706,7 +3706,7 @@ try { (() => {
     customer: c,
     onBack
   }) {
-    const rank = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).indexOf(c) + 1;
+    const rank = [...(D.allCustomers||D.CUSTOMERS)].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
     const avgPrice = D.totals.avgPrice;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -6926,9 +6926,9 @@ try { (() => {
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
     // All customers with purchases in selected month
-    const allByMonth = [...D.CUSTOMERS].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
+    const allByMonth = [...(D.allCustomers||D.CUSTOMERS)].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
-    const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
+    const monTotal = (D.allCustomers||D.CUSTOMERS).reduce((s, c) => s + (c.monthly[mon] || 0), 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null)
@@ -7095,7 +7095,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(DataTable, {
       rows: allByMonth,
       onRowClick: setSel,
-      rowKey: r => r.id,
+      rowKey: r => r.name,
       columns: [{
         key: '_r',
         header: '#',
@@ -7131,7 +7131,7 @@ try { (() => {
     customer: c,
     onBack
   }) {
-    const rank = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).indexOf(c) + 1;
+    const rank = [...(D.allCustomers||D.CUSTOMERS)].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
     const avgPrice = D.totals.avgPrice;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
