@@ -901,6 +901,9 @@ function Card({
     lg: 'var(--space-6)'
   };
   const pad = pads[padding] ?? pads.md;
+  // Header should never sit flush against the card edge, even when the body
+  // uses padding="none" (e.g. tables that supply their own cell padding).
+  const headerPadX = (padding === 'none' ? pads.md : (typeof pad === 'number' ? pad + 'px' : pad));
   const [hover, setHover] = React.useState(false);
   return /*#__PURE__*/React.createElement("section", _extends({
     onMouseEnter: () => interactive && setHover(true),
@@ -924,7 +927,7 @@ function Card({
       alignItems: 'flex-start',
       justifyContent: 'space-between',
       gap: 'var(--space-4)',
-      padding: `var(--space-4) ${typeof pad === 'number' ? pad + 'px' : pad}`,
+      padding: `var(--space-4) ${headerPadX}`,
       paddingBottom: 'var(--space-3)',
       borderBottom: '1px solid var(--border-subtle)'
     }
