@@ -5029,18 +5029,7 @@ try { (() => {
       tone: "accent",
       variant: "soft",
       dot: true
-    }, "\u0E1B\u0E35 ", filters.year, " \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E21.\u0E04.\u2013\u0E1E.\u0E04.)"), /*#__PURE__*/React.createElement(SegmentedControl, {
-      size: "sm",
-      value: filters.granularity,
-      onChange: set('granularity'),
-      options: [{
-        value: 'month',
-        label: 'รายเดือน'
-      }, {
-        value: 'year',
-        label: 'รายปี'
-      }]
-    }));
+    }, "\u0E1B\u0E35 ", filters.year, " \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E21.\u0E04.\u2013\u0E1E.\u0E04.)"));
   }
   window.Sidebar = Sidebar;
   window.TopBar = TopBar;
@@ -5632,18 +5621,7 @@ try { (() => {
       tone: "accent",
       variant: "soft",
       dot: true
-    }, "\u0E1B\u0E35 ", filters.year, " \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E21.\u0E04.\u2013\u0E1E.\u0E04.)"), /*#__PURE__*/React.createElement(SegmentedControl, {
-      size: "sm",
-      value: filters.granularity,
-      onChange: set('granularity'),
-      options: [{
-        value: 'month',
-        label: 'รายเดือน'
-      }, {
-        value: 'year',
-        label: 'รายปี'
-      }]
-    }));
+    }, "\u0E1B\u0E35 ", filters.year, " \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E21.\u0E04.\u2013\u0E1E.\u0E04.)"));
   }
   window.Sidebar = Sidebar;
   window.TopBar = TopBar;
