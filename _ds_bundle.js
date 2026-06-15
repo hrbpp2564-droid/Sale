@@ -3684,7 +3684,7 @@ try { (() => {
         header: 'พ.ค. (Kg)',
         numeric: true,
         sortable: false,
-        render: r => fmt.int(Math.round((r.monthly[NACT - 1] || 0) * 1000))
+        render: r => fmt.int(Math.round(r.monthly[NACT - 1] || 0))
       }, {
         key: 'mom',
         header: '% Growth (MoM)',
@@ -3718,7 +3718,7 @@ try { (() => {
         key: 'monKg',
         header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
         numeric: true,
-        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
+        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round(r.monthly[mon] || 0))
       }, {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
@@ -7117,7 +7117,7 @@ try { (() => {
         header: 'พ.ค. (Kg)',
         numeric: true,
         sortable: false,
-        render: r => fmt.int(Math.round((r.monthly[NACT - 1] || 0) * 1000))
+        render: r => fmt.int(Math.round(r.monthly[NACT - 1] || 0))
       }, {
         key: 'mom',
         header: '% Growth (MoM)',
@@ -7151,7 +7151,7 @@ try { (() => {
         key: 'monKg',
         header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
         numeric: true,
-        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
+        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round(r.monthly[mon] || 0))
       }, {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
