@@ -2276,7 +2276,6 @@ try { (() => {
     const cg = f.customerGroup;
     // products: filter by group, and per-month value when a single month is selected
     let prods = D.PRODUCTS;
-    if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
     const totP = sum(prods.map((p) => p.val));
@@ -5634,7 +5633,6 @@ try { (() => {
     const cg = f.customerGroup;
     // products: filter by group, and per-month value when a single month is selected
     let prods = D.PRODUCTS;
-    if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
     const totP = sum(prods.map((p) => p.val));
