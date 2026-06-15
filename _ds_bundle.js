@@ -3497,8 +3497,8 @@ try { (() => {
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
 
-    // Top 10 ranked by the selected month's volume (Kg)
-    const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
+    // All customers with purchases in selected month, sorted by volume
+    const byMonth = [...D.CUSTOMERS].filter(c => (c.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
@@ -3584,8 +3584,8 @@ try { (() => {
         color: 'var(--slate-500)'
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
-      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E08\u0E31\u0E14\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      subtitle: `ปริมาณ (Kg) เฉพาะเดือน ${D.MONTHS_ACT[mon]} · อันดับเปลี่ยนตามเดือน`,
+      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 \u2014 \u0E40\u0E23\u0E35\u0E22\u0E07\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
+      subtitle: `ปริมาณ (Kg) เดือน ${D.MONTHS_ACT[mon]} · ${byMonth.length} รายที่มีการซื้อ`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: String(mon),
@@ -3606,7 +3606,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '% ของเดือน' : '—',
-      value: fmt.int(c.monthly[mon] || 0) + ' Kg',
+      value: fmt.int(Math.round((c.monthly[mon] || 0) * 1000)) + ' Kg',
       ratio: (c.monthly[mon] || 0) / maxMon,
       delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(1) : null,
       color: "var(--viz-5)",
@@ -3616,7 +3616,7 @@ try { (() => {
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E14\u0E39\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted.slice(0, 10),
+      rows: sorted,
       onRowClick: setSel,
       rowKey: r => r.id,
       columns: [{
@@ -3649,7 +3649,7 @@ try { (() => {
         header: 'พ.ค. (Kg)',
         numeric: true,
         sortable: false,
-        render: r => fmt.int(r.monthly[NACT - 1])
+        render: r => fmt.int(Math.round((r.monthly[NACT - 1] || 0) * 1000))
       }, {
         key: 'mom',
         header: '% Growth (MoM)',
@@ -6865,8 +6865,8 @@ try { (() => {
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
 
-    // Top 10 ranked by the selected month's volume (Kg)
-    const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
+    // All customers with purchases in selected month, sorted by volume
+    const byMonth = [...D.CUSTOMERS].filter(c => (c.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
@@ -6952,8 +6952,8 @@ try { (() => {
         color: 'var(--slate-500)'
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
-      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E08\u0E31\u0E14\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      subtitle: `ปริมาณ (Kg) เฉพาะเดือน ${D.MONTHS_ACT[mon]} · อันดับเปลี่ยนตามเดือน`,
+      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 \u2014 \u0E40\u0E23\u0E35\u0E22\u0E07\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
+      subtitle: `ปริมาณ (Kg) เดือน ${D.MONTHS_ACT[mon]} · ${byMonth.length} รายที่มีการซื้อ`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: String(mon),
@@ -6974,7 +6974,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '% ของเดือน' : '—',
-      value: fmt.int(c.monthly[mon] || 0) + ' Kg',
+      value: fmt.int(Math.round((c.monthly[mon] || 0) * 1000)) + ' Kg',
       ratio: (c.monthly[mon] || 0) / maxMon,
       delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(1) : null,
       color: "var(--viz-5)",
@@ -6984,7 +6984,7 @@ try { (() => {
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E14\u0E39\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted.slice(0, 10),
+      rows: sorted,
       onRowClick: setSel,
       rowKey: r => r.id,
       columns: [{
@@ -7017,7 +7017,7 @@ try { (() => {
         header: 'พ.ค. (Kg)',
         numeric: true,
         sortable: false,
-        render: r => fmt.int(r.monthly[NACT - 1])
+        render: r => fmt.int(Math.round((r.monthly[NACT - 1] || 0) * 1000))
       }, {
         key: 'mom',
         header: '% Growth (MoM)',
