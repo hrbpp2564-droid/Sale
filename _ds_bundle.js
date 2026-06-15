@@ -2769,7 +2769,7 @@ try { (() => {
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
-    const max = sorted[0][metric];
+    const max = sorted.length ? sorted[0][metric] : 1;
     const topG = groupAgg()[0];
     if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
       product: sel,
@@ -2855,7 +2855,7 @@ try { (() => {
       }))
     }))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
-      subtitle: "\u0E1E\u0E31\u0E19 Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
+      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "neutral",
         size: "sm"
@@ -3111,6 +3111,7 @@ try { (() => {
     const total = data.reduce((s, d) => s + d.value, 0);
     const sorted = [...data].sort((a, b) => b.value - a.value);
     const [hover, setHover] = React.useState(null);
+    if (!sorted.length) return null;
     return /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -3272,7 +3273,7 @@ try { (() => {
       label: p.name,
       sublabel: p.group,
       value: p.share + '%',
-      ratio: p.val / sorted[0].val,
+      ratio: sorted.length ? p.val / sorted[0].val : 0,
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`
     }))), /*#__PURE__*/React.createElement(Card, {
@@ -6186,7 +6187,7 @@ try { (() => {
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
-    const max = sorted[0][metric];
+    const max = sorted.length ? sorted[0][metric] : 1;
     const topG = groupAgg()[0];
     if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
       product: sel,
@@ -6272,7 +6273,7 @@ try { (() => {
       }))
     }))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
-      subtitle: "\u0E1E\u0E31\u0E19 Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
+      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "neutral",
         size: "sm"
@@ -6528,6 +6529,7 @@ try { (() => {
     const total = data.reduce((s, d) => s + d.value, 0);
     const sorted = [...data].sort((a, b) => b.value - a.value);
     const [hover, setHover] = React.useState(null);
+    if (!sorted.length) return null;
     return /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -6693,7 +6695,7 @@ try { (() => {
       label: p.name,
       sublabel: p.group,
       value: p.share + '%',
-      ratio: p.val / sorted[0].val,
+      ratio: sorted.length ? p.val / sorted[0].val : 0,
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`
     }))), /*#__PURE__*/React.createElement(Card, {
