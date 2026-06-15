@@ -1961,7 +1961,6 @@ try { (() => {
       year: '2569',
       month: 'all',
       customerGroup: 'all',
-      productGroup: 'all',
       product: 'all',
       granularity: 'month'
     });
@@ -2274,7 +2273,7 @@ try { (() => {
     const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
     const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
-    const pg = f.productGroup, cg = f.customerGroup;
+    const cg = f.customerGroup;
     // products: filter by group, and per-month value when a single month is selected
     let prods = D.PRODUCTS;
     if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
@@ -4934,14 +4933,6 @@ try { (() => {
         label: c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name
       }))]
     }), /*#__PURE__*/React.createElement(Select, {
-      width: 160,
-      value: filters.productGroup,
-      onChange: set('productGroup'),
-      options: [{
-        value: 'all',
-        label: 'ทุกกลุ่มสินค้า'
-      }, 'ฟิล์มใส', 'พิมพ์สี', 'PCR (รีไซเคิล)', 'สูตรพิเศษ']
-    }), /*#__PURE__*/React.createElement(Select, {
       width: 150,
       value: filters.product || 'all',
       onChange: set('product'),
@@ -5537,14 +5528,6 @@ try { (() => {
         label: c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name
       }))]
     }), /*#__PURE__*/React.createElement(Select, {
-      width: 160,
-      value: filters.productGroup,
-      onChange: set('productGroup'),
-      options: [{
-        value: 'all',
-        label: 'ทุกกลุ่มสินค้า'
-      }, 'ฟิล์มใส', 'พิมพ์สี', 'PCR (รีไซเคิล)', 'สูตรพิเศษ']
-    }), /*#__PURE__*/React.createElement(Select, {
       width: 150,
       value: filters.product || 'all',
       onChange: set('product'),
@@ -5648,7 +5631,7 @@ try { (() => {
     const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
     const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
-    const pg = f.productGroup, cg = f.customerGroup;
+    const cg = f.customerGroup;
     // products: filter by group, and per-month value when a single month is selected
     let prods = D.PRODUCTS;
     if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
@@ -7942,7 +7925,6 @@ try { (() => {
       year: '2569',
       month: 'all',
       customerGroup: 'all',
-      productGroup: 'all',
       product: 'all',
       granularity: 'month'
     });
