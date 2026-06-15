@@ -6,7 +6,7 @@
    RAW INPUT SHAPE (what an officer types):
    {
      monthly:  { value: [12 · ลบ.], volume: [12 · พัน Kg] },   // ปีปัจจุบัน (2569) · null = ยังไม่กรอก
-     products: [ { name, group, monthlyKg: [12 · Kg] }, ... ],
+     products: [ { name, monthlyKg: [12 · Kg] }, ... ],
      customers:[ { name,        monthlyKg: [12 · Kg] }, ... ],
      history:  { "2565": { value:[12], volume:[12] }, ... }    // ข้อมูลย้อนหลังรายปี (ไม่บังคับ)
    }
@@ -19,8 +19,7 @@
     YEARS: [2568, 2569],
     value68: [34.7, 36.8, 45.3, 38.1, 40.5, 35.3, 36.5, 31.9, 33.8, 29.9, 30.4, 35.7],
     volume68: [490, 538.5, 656.1, 571.8, 609.1, 518.1, 598.5, 537.8, 569.5, 516.6, 508.4, 595.3],
-    price68: [70.8, 68.3, 69, 66.6, 66.5],
-    groupColors: { 'ฟิล์มใส': 'var(--viz-1)', 'พิมพ์สี': 'var(--viz-3)', 'PCR (รีไซเคิล)': 'var(--viz-2)', 'สูตรพิเศษ': 'var(--viz-4)' }
+    price68: [70.8, 68.3, 69, 66.6, 66.5]
   };
 
   function num(x) { var n = parseFloat(x); return isFinite(n) ? n : 0; }
@@ -67,7 +66,7 @@
     var rprods = (raw.products || []).map(function (p) {
       var mk = (p.monthlyKg || []).slice(0, 12).map(num);
       while (mk.length < 12) mk.push(0);
-      return { name: p.name, group: p.group || 'ฟิล์มใส', monthlyKg: mk };
+      return { name: p.name, monthlyKg: mk };
     });
     // monthly sum of product kg (for proportional value allocation)
     var SK = [];
@@ -85,7 +84,7 @@
       var kgTot = sum(p.monthlyKg.slice(0, NACT));
       var valTot = sum(monthlyVal);
       return {
-        id: 'p' + (idx + 1), name: p.name, group: p.group,
+        id: 'p' + (idx + 1), name: p.name,
         val: r1(valTot), kg: Math.round(kgTot),
         avgPrice: kgTot > 0 ? r1(valTot * 1e6 / kgTot) : 0,
         share: r1(kgTot / totalProdKg * 100),

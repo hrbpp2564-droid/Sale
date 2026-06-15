@@ -2342,12 +2342,6 @@ try { (() => {
     orders: 'sales'
   };
   const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
-  const groupColors = {
-    'ฟิล์มใส': 'var(--viz-1)',
-    'พิมพ์สี': 'var(--viz-3)',
-    'PCR (รีไซเคิล)': 'var(--viz-2)',
-    'สูตรพิเศษ': 'var(--viz-4)'
-  };
 
   function KpiRow({
     onDrill,
@@ -2503,9 +2497,7 @@ try { (() => {
     }, prodByVal.slice(0, 5).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: fmt.dec1(p.val) + ' ลบ.',
+      label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
       ratio: p.val / prodByVal[0].val,
       share: p.share + '%',
       delta: prodGrowth(p),
@@ -2528,44 +2520,7 @@ try { (() => {
       delta: c.mom,
       color: "var(--viz-4)",
       onClick: () => onDrill('customer')
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "Product Mix",
-      subtitle: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E15\u0E32\u0E21\u0E01\u0E25\u0E38\u0E48\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      actions: /*#__PURE__*/React.createElement("button", {
-        onClick: () => onDrill('mix'),
-        style: {
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-tertiary)',
-          cursor: 'pointer'
-        }
-      }, /*#__PURE__*/React.createElement(Icon, {
-        name: "external-link",
-        size: 14
-      }))
-    }, /*#__PURE__*/React.createElement(DonutChart, {
-      size: 140,
-      thickness: 20,
-      centerValue: fmt.m(D.totals.value / 1e6),
-      centerLabel: "\u0E23\u0E27\u0E21 (\u0E25\u0E1A.)",
-      showLegend: true,
-      data: groupAgg(D.PRODUCTS).map(g => ({
-        label: g.group,
-        value: g.val,
-        color: groupColors[g.group] || 'var(--slate-500)'
-      }))
-    }))));
-  }
-  function groupAgg(prods) {
-    prods = prods || D.PRODUCTS;
-    const map = {};
-    prods.forEach(p => {
-      map[p.group] = (map[p.group] || 0) + p.val;
-    });
-    return Object.entries(map).map(([group, val]) => ({
-      group,
-      val
-    })).sort((a, b) => b.val - a.val);
+    })))));
   }
   function SalesScreen({ filters }) {
     const D = viewFor(filters);
@@ -2768,28 +2723,11 @@ try { (() => {
   } = window;
   const D = window.VDATA;
   const NACT = D.NACT;
-  const groupColors = {
-    'ฟิล์มใส': 'var(--viz-1)',
-    'พิมพ์สี': 'var(--viz-3)',
-    'PCR (รีไซเคิล)': 'var(--viz-2)',
-    'สูตรพิเศษ': 'var(--viz-4)'
-  };
   const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
   // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
   const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(1)); // พัน Kg
 
-  function groupAgg(prods) {
-    prods = prods || D.PRODUCTS;
-    const map = {};
-    prods.forEach(p => {
-      map[p.group] = (map[p.group] || 0) + p.val;
-    });
-    return Object.entries(map).map(([group, val]) => ({
-      group,
-      val
-    })).sort((a, b) => b.val - a.val);
-  }
 
   // ---------- Product Analysis ----------
   function ProductScreen() {
@@ -2797,7 +2735,6 @@ try { (() => {
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
     const max = sorted.length ? sorted[0][metric] : 1;
-    const topG = groupAgg()[0];
     if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
       product: sel,
       onBack: () => setSel(null)
@@ -2826,14 +2763,6 @@ try { (() => {
       value: D.totals.avgPrice,
       unit: "\u0E3F/Kg",
       delta: 3.6
-    }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E01\u0E25\u0E38\u0E48\u0E21\u0E02\u0E32\u0E22\u0E14\u0E35\u0E2A\u0E38\u0E14",
-      value: topG.group,
-      unit: fmt.dec1(topG.val) + ' ลบ.',
-      icon: /*#__PURE__*/React.createElement(Icon, {
-        name: "layers",
-        size: 15
-      })
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
       gap: 16,
@@ -2860,27 +2789,13 @@ try { (() => {
     }, sorted.slice(0, 10).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
+      label: p.name,      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
       ratio: p[metric] / max,
       share: p.share + '%',
       delta: prodGrowth(p),
-      color: groupColors[p.group] || 'var(--viz-1)',
+      color: `var(--viz-${i % 8 + 1})`,
       onClick: () => setSel(p)
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22\u0E15\u0E32\u0E21\u0E01\u0E25\u0E38\u0E48\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32"
-    }, /*#__PURE__*/React.createElement(DonutChart, {
-      size: 180,
-      thickness: 26,
-      centerValue: fmt.m(D.totals.value / 1e6),
-      centerLabel: "\u0E23\u0E27\u0E21 (\u0E25\u0E1A.)",
-      data: groupAgg().map(g => ({
-        label: g.group,
-        value: g.val,
-        color: groupColors[g.group] || 'var(--slate-500)'
-      }))
-    }))), /*#__PURE__*/React.createElement(Card, {
+    })))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
       subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
       actions: /*#__PURE__*/React.createElement(Badge, {
@@ -2929,14 +2844,6 @@ try { (() => {
             fontWeight: 500
           }
         }, r.name)
-      }, {
-        key: 'group',
-        header: 'กลุ่ม',
-        muted: true,
-        render: r => /*#__PURE__*/React.createElement(Badge, {
-          tone: "neutral",
-          size: "sm"
-        }, r.group)
       }, {
         key: 'kg',
         header: 'ปริมาณ (Kg)',
@@ -3021,7 +2928,7 @@ try { (() => {
         fontSize: 'var(--text-xs)',
         color: 'var(--text-tertiary)'
       }
-    }, "\u0E01\u0E25\u0E38\u0E48\u0E21 ", p.group, " \xB7 \u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [...D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
+    }, "\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [...D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1
       }
@@ -3247,11 +3154,6 @@ try { (() => {
       value: p.val,
       color: `var(--viz-${i % 8 + 1})`
     }));
-    const groupSegs = groupAgg().map(g => ({
-      label: g.group,
-      value: g.val,
-      color: groupColors[g.group] || 'var(--slate-500)'
-    }));
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E41\u0E15\u0E48\u0E25\u0E30\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Product Mix)",
       subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E25\u0E1A.) \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 2569",
@@ -3297,27 +3199,10 @@ try { (() => {
     }, sorted.map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: p.share + '%',
+      label: p.name,      value: p.share + '%',
       ratio: sorted.length ? p.val / sorted[0].val : 0,
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E15\u0E32\u0E21\u0E01\u0E25\u0E38\u0E48\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      subtitle: "4 \u0E01\u0E25\u0E38\u0E48\u0E21\u0E2B\u0E25\u0E31\u0E01"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: 8
-      }
-    }, /*#__PURE__*/React.createElement(DonutChart, {
-      size: 200,
-      thickness: 30,
-      centerValue: String(groupAgg().length),
-      centerLabel: "\u0E01\u0E25\u0E38\u0E48\u0E21",
-      data: groupSegs
     })))));
   }
 
@@ -3414,9 +3299,7 @@ try { (() => {
     }, prodByPrice.slice(0, 8).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: fmt.dec1(p.avgPrice) + ' ฿/Kg',
+      label: p.name,      value: fmt.dec1(p.avgPrice) + ' ฿/Kg',
       ratio: p.avgPrice / prodByPrice[0].avgPrice,
       color: "var(--viz-3)"
     }))), /*#__PURE__*/React.createElement(Card, {
@@ -5764,12 +5647,6 @@ try { (() => {
     orders: 'sales'
   };
   const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
-  const groupColors = {
-    'ฟิล์มใส': 'var(--viz-1)',
-    'พิมพ์สี': 'var(--viz-3)',
-    'PCR (รีไซเคิล)': 'var(--viz-2)',
-    'สูตรพิเศษ': 'var(--viz-4)'
-  };
 
   function KpiRow({
     onDrill,
@@ -5925,9 +5802,7 @@ try { (() => {
     }, prodByVal.slice(0, 5).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: fmt.dec1(p.val) + ' ลบ.',
+      label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
       ratio: p.val / prodByVal[0].val,
       share: p.share + '%',
       delta: prodGrowth(p),
@@ -5950,44 +5825,7 @@ try { (() => {
       delta: c.mom,
       color: "var(--viz-4)",
       onClick: () => onDrill('customer')
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "Product Mix",
-      subtitle: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E15\u0E32\u0E21\u0E01\u0E25\u0E38\u0E48\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      actions: /*#__PURE__*/React.createElement("button", {
-        onClick: () => onDrill('mix'),
-        style: {
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-tertiary)',
-          cursor: 'pointer'
-        }
-      }, /*#__PURE__*/React.createElement(Icon, {
-        name: "external-link",
-        size: 14
-      }))
-    }, /*#__PURE__*/React.createElement(DonutChart, {
-      size: 140,
-      thickness: 20,
-      centerValue: fmt.m(D.totals.value / 1e6),
-      centerLabel: "\u0E23\u0E27\u0E21 (\u0E25\u0E1A.)",
-      showLegend: true,
-      data: groupAgg(D.PRODUCTS).map(g => ({
-        label: g.group,
-        value: g.val,
-        color: groupColors[g.group] || 'var(--slate-500)'
-      }))
-    }))));
-  }
-  function groupAgg(prods) {
-    prods = prods || D.PRODUCTS;
-    const map = {};
-    prods.forEach(p => {
-      map[p.group] = (map[p.group] || 0) + p.val;
-    });
-    return Object.entries(map).map(([group, val]) => ({
-      group,
-      val
-    })).sort((a, b) => b.val - a.val);
+    })))));
   }
   function SalesScreen({ filters }) {
     const D = viewFor(filters);
@@ -6190,40 +6028,21 @@ try { (() => {
   const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
-  const groupColors = {
-    'ฟิล์มใส': 'var(--viz-1)',
-    'พิมพ์สี': 'var(--viz-3)',
-    'PCR (รีไซเคิล)': 'var(--viz-2)',
-    'สูตรพิเศษ': 'var(--viz-4)'
-  };
   const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
   // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
   const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(1)); // พัน Kg
 
-  function groupAgg(prods) {
-    prods = prods || D.PRODUCTS;
-    const map = {};
-    prods.forEach(p => {
-      map[p.group] = (map[p.group] || 0) + p.val;
-    });
-    return Object.entries(map).map(([group, val]) => ({
-      group,
-      val
-    })).sort((a, b) => b.val - a.val);
-  }
 
   // ---------- Product Analysis ----------
   function ProductScreen({ filters }) {
     const D = viewFor(filters);
     const NACT = D.NACT;
     const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
-    const groupAgg = (prods) => { prods = prods || D.PRODUCTS; const map = {}; prods.forEach(p => { map[p.group] = (map[p.group] || 0) + p.val; }); return Object.entries(map).map(([group, val]) => ({group, val})).sort((a, b) => b.val - a.val); };
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
     const max = sorted.length ? sorted[0][metric] : 1;
-    const topG = groupAgg()[0];
     if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
       product: sel,
       onBack: () => setSel(null)
@@ -6252,14 +6071,6 @@ try { (() => {
       value: D.totals.avgPrice,
       unit: "\u0E3F/Kg",
       delta: 3.6
-    }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E01\u0E25\u0E38\u0E48\u0E21\u0E02\u0E32\u0E22\u0E14\u0E35\u0E2A\u0E38\u0E14",
-      value: topG.group,
-      unit: fmt.dec1(topG.val) + ' ลบ.',
-      icon: /*#__PURE__*/React.createElement(Icon, {
-        name: "layers",
-        size: 15
-      })
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
       gap: 16,
@@ -6286,27 +6097,13 @@ try { (() => {
     }, sorted.slice(0, 10).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
+      label: p.name,      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
       ratio: p[metric] / max,
       share: p.share + '%',
       delta: prodGrowth(p),
-      color: groupColors[p.group] || 'var(--viz-1)',
+      color: `var(--viz-${i % 8 + 1})`,
       onClick: () => setSel(p)
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22\u0E15\u0E32\u0E21\u0E01\u0E25\u0E38\u0E48\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32"
-    }, /*#__PURE__*/React.createElement(DonutChart, {
-      size: 180,
-      thickness: 26,
-      centerValue: fmt.m(D.totals.value / 1e6),
-      centerLabel: "\u0E23\u0E27\u0E21 (\u0E25\u0E1A.)",
-      data: groupAgg().map(g => ({
-        label: g.group,
-        value: g.val,
-        color: groupColors[g.group] || 'var(--slate-500)'
-      }))
-    }))), /*#__PURE__*/React.createElement(Card, {
+    })))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
       subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
       actions: /*#__PURE__*/React.createElement(Badge, {
@@ -6355,14 +6152,6 @@ try { (() => {
             fontWeight: 500
           }
         }, r.name)
-      }, {
-        key: 'group',
-        header: 'กลุ่ม',
-        muted: true,
-        render: r => /*#__PURE__*/React.createElement(Badge, {
-          tone: "neutral",
-          size: "sm"
-        }, r.group)
       }, {
         key: 'kg',
         header: 'ปริมาณ (Kg)',
@@ -6447,7 +6236,7 @@ try { (() => {
         fontSize: 'var(--text-xs)',
         color: 'var(--text-tertiary)'
       }
-    }, "\u0E01\u0E25\u0E38\u0E48\u0E21 ", p.group, " \xB7 \u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [...D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
+    }, "\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [...D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1
       }
@@ -6669,18 +6458,12 @@ try { (() => {
     const D = viewFor(filters);
     const NACT = D.NACT;
     const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
-    const groupAgg = (prods) => { prods = prods || D.PRODUCTS; const map = {}; prods.forEach(p => { map[p.group] = (map[p.group] || 0) + p.val; }); return Object.entries(map).map(([group, val]) => ({group, val})).sort((a, b) => b.val - a.val); };
     const [view, setView] = React.useState('treemap');
     const sorted = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const segs = sorted.map((p, i) => ({
       label: p.name,
       value: p.val,
       color: `var(--viz-${i % 8 + 1})`
-    }));
-    const groupSegs = groupAgg().map(g => ({
-      label: g.group,
-      value: g.val,
-      color: groupColors[g.group] || 'var(--slate-500)'
     }));
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E41\u0E15\u0E48\u0E25\u0E30\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Product Mix)",
@@ -6727,27 +6510,10 @@ try { (() => {
     }, sorted.map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: p.share + '%',
+      label: p.name,      value: p.share + '%',
       ratio: sorted.length ? p.val / sorted[0].val : 0,
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E15\u0E32\u0E21\u0E01\u0E25\u0E38\u0E48\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      subtitle: "4 \u0E01\u0E25\u0E38\u0E48\u0E21\u0E2B\u0E25\u0E31\u0E01"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: 8
-      }
-    }, /*#__PURE__*/React.createElement(DonutChart, {
-      size: 200,
-      thickness: 30,
-      centerValue: String(groupAgg().length),
-      centerLabel: "\u0E01\u0E25\u0E38\u0E48\u0E21",
-      data: groupSegs
     })))));
   }
 
@@ -6846,9 +6612,7 @@ try { (() => {
     }, prodByPrice.slice(0, 8).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,
-      sublabel: p.group,
-      value: fmt.dec1(p.avgPrice) + ' ฿/Kg',
+      label: p.name,      value: fmt.dec1(p.avgPrice) + ' ฿/Kg',
       ratio: p.avgPrice / prodByPrice[0].avgPrice,
       color: "var(--viz-3)"
     }))), /*#__PURE__*/React.createElement(Card, {
