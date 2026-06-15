@@ -2884,7 +2884,7 @@ try { (() => {
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D Drill Down",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted,
+      rows: sorted.slice(0, 10),
       onRowClick: setSel,
       rowKey: r => r.id,
       columns: [{
@@ -3497,8 +3497,10 @@ try { (() => {
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
 
-    // All customers with purchases in selected month, sorted by volume
-    const byMonth = [...D.CUSTOMERS].filter(c => (c.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
+    // Top 10 ranked by the selected month's volume (Kg)
+    const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
+    // All customers with purchases in selected month
+    const allByMonth = [...D.CUSTOMERS].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
@@ -3584,8 +3586,8 @@ try { (() => {
         color: 'var(--slate-500)'
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 \u2014 \u0E40\u0E23\u0E35\u0E22\u0E07\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
-      subtitle: `ปริมาณ (Kg) เดือน ${D.MONTHS_ACT[mon]} · ${byMonth.length} รายที่มีการซื้อ`,
+      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E08\u0E31\u0E14\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19",
+      subtitle: `ปริมาณ (Kg) เฉพาะเดือน ${D.MONTHS_ACT[mon]} · อันดับเปลี่ยนตามเดือน`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: String(mon),
@@ -3616,7 +3618,7 @@ try { (() => {
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E14\u0E39\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted,
+      rows: sorted.slice(0, 10),
       onRowClick: setSel,
       rowKey: r => r.id,
       columns: [{
@@ -3658,6 +3660,43 @@ try { (() => {
           value: r.mom,
           size: "sm"
         })
+    ), /*#__PURE__*/React.createElement(Card, {
+      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E43\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19 " + D.MONTHS_ACT[mon],
+      subtitle: "\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E21\u0E35\u0E22\u0E2D\u0E14\u0E0B\u0E37\u0E49\u0E2D · " + allByMonth.length + " \u0E23\u0E32\u0E22",
+      padding: "none",
+      style: { marginTop: 16 }
+    }, /*#__PURE__*/React.createElement(DataTable, {
+      rows: allByMonth,
+      onRowClick: setSel,
+      rowKey: r => r.id,
+      columns: [{
+        key: '_r',
+        header: '#',
+        width: 48,
+        numeric: true,
+        sortable: false,
+        render: (r, i) => i + 1
+      }, {
+        key: 'name',
+        header: '\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32',
+        render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name)
+      }, {
+        key: 'monKg',
+        header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
+        numeric: true,
+        render: r => fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
+      }, {
+        key: 'monShare',
+        header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
+        numeric: true,
+        render: r => monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014'
+      }, {
+        key: 'monDelta',
+        header: '% MoM',
+        numeric: true,
+        render: r => mon > 0 && r.monthly[mon - 1]
+          ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
+          : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014')
       }]
     })));
   }
@@ -6245,7 +6284,7 @@ try { (() => {
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D Drill Down",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted,
+      rows: sorted.slice(0, 10),
       onRowClick: setSel,
       rowKey: r => r.id,
       columns: [{
@@ -6865,8 +6904,10 @@ try { (() => {
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
 
-    // All customers with purchases in selected month, sorted by volume
-    const byMonth = [...D.CUSTOMERS].filter(c => (c.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
+    // Top 10 ranked by the selected month's volume (Kg)
+    const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
+    // All customers with purchases in selected month
+    const allByMonth = [...D.CUSTOMERS].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
@@ -6952,8 +6993,8 @@ try { (() => {
         color: 'var(--slate-500)'
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 \u2014 \u0E40\u0E23\u0E35\u0E22\u0E07\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
-      subtitle: `ปริมาณ (Kg) เดือน ${D.MONTHS_ACT[mon]} · ${byMonth.length} รายที่มีการซื้อ`,
+      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E08\u0E31\u0E14\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19",
+      subtitle: `ปริมาณ (Kg) เฉพาะเดือน ${D.MONTHS_ACT[mon]} · อันดับเปลี่ยนตามเดือน`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: String(mon),
@@ -6984,7 +7025,7 @@ try { (() => {
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E14\u0E39\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted,
+      rows: sorted.slice(0, 10),
       onRowClick: setSel,
       rowKey: r => r.id,
       columns: [{
@@ -7026,6 +7067,43 @@ try { (() => {
           value: r.mom,
           size: "sm"
         })
+    ), /*#__PURE__*/React.createElement(Card, {
+      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E43\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19 " + D.MONTHS_ACT[mon],
+      subtitle: "\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E21\u0E35\u0E22\u0E2D\u0E14\u0E0B\u0E37\u0E49\u0E2D · " + allByMonth.length + " \u0E23\u0E32\u0E22",
+      padding: "none",
+      style: { marginTop: 16 }
+    }, /*#__PURE__*/React.createElement(DataTable, {
+      rows: allByMonth,
+      onRowClick: setSel,
+      rowKey: r => r.id,
+      columns: [{
+        key: '_r',
+        header: '#',
+        width: 48,
+        numeric: true,
+        sortable: false,
+        render: (r, i) => i + 1
+      }, {
+        key: 'name',
+        header: '\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32',
+        render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name)
+      }, {
+        key: 'monKg',
+        header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
+        numeric: true,
+        render: r => fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
+      }, {
+        key: 'monShare',
+        header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
+        numeric: true,
+        render: r => monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014'
+      }, {
+        key: 'monDelta',
+        header: '% MoM',
+        numeric: true,
+        render: r => mon > 0 && r.monthly[mon - 1]
+          ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
+          : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014')
       }]
     })));
   }
