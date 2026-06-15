@@ -20,11 +20,21 @@
     return txt ? JSON.parse(txt) : null;
   }
   window.BWP_DB = {
-    // returns the dashboard payload, or throws if the password is wrong
+    // Single-password (legacy)
     getDashboard: function (pass) { return call('get_dashboard', { pass: pass }); },
-    // saves the payload (officer); throws if password wrong
     saveDashboard: function (pass, payload) { return call('save_dashboard', { pass: pass, new_payload: payload }); },
-    // rotate the shared password
-    setPass: function (oldPass, newPass) { return call('set_dashboard_pass', { old_pass: oldPass, new_pass: newPass }); }
+    setPass: function (oldPass, newPass) { return call('set_dashboard_pass', { old_pass: oldPass, new_pass: newPass }); },
+    // Multi-user
+    getDashboardUser: function (username, pass) { return call('get_dashboard_user', { p_username: username, p_pass: pass }); },
+    saveDashboardUser: function (username, pass, payload) { return call('save_dashboard_user', { p_username: username, p_pass: pass, new_payload: payload }); },
+    addUser: function (adminUser, adminPass, newUsername, displayName, role, newPass) {
+      return call('add_bwp_user', { p_admin_user: adminUser, p_admin_pass: adminPass, p_new_username: newUsername, p_display_name: displayName, p_role: role, p_new_pass: newPass });
+    },
+    deactivateUser: function (adminUser, adminPass, targetUsername) {
+      return call('deactivate_bwp_user', { p_admin_user: adminUser, p_admin_pass: adminPass, p_target_username: targetUsername });
+    },
+    changePassword: function (username, oldPass, newPass) {
+      return call('change_bwp_password', { p_username: username, p_old_pass: oldPass, p_new_pass: newPass });
+    },
   };
 })();

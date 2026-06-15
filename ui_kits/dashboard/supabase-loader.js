@@ -1,10 +1,9 @@
-/* BWP Vantage — dashboard login gate + live-data loader.
-   The app stays blocked (App.ready() requires window.BWP_AUTHED) until a correct
-   shared password is entered. On success we fetch the real payload via the
-   gatekeeper RPC, merge it into window.VDATA, flip BWP_AUTHED, and mount. */
+/* BWP Vantage — dashboard login gate + live-data loader (multi-user).
+   The app stays blocked until valid credentials are entered.
+   On success: fetch dashboard payload, set window.VDATA, flip BWP_AUTHED. */
 (function () {
   window.__BWP_SOURCE = 'gated';
-  var KEY = 'bwp_pass';
+  var CREDS_KEY = 'bwp_creds';
 
   function applyPayload(payload) {
     if (!payload || typeof payload !== 'object') return false;
@@ -19,66 +18,147 @@
   }
 
   function gate() {
+    // Inject animation keyframes + mobile style
+    var style = document.createElement('style');
+    style.textContent = [
+      '@keyframes bwpFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}',
+      '@keyframes bwpSpin{to{transform:rotate(360deg)}}',
+      '#bwp-login input:focus{border-color:#3b82f6!important;outline:none}',
+      '#bwp-login .bwp-btn:hover:not(:disabled){background:#1d4ed8!important}',
+      '#bwp-login .bwp-btn:disabled{opacity:.6;cursor:not-allowed}',
+    ].join('');
+    document.head.appendChild(style);
+
     var ov = document.createElement('div');
     ov.id = 'bwp-login';
-    ov.setAttribute('style', [
-      'position:fixed', 'inset:0', 'z-index:99999', 'display:flex',
-      'align-items:center', 'justify-content:center',
-      'background:#0b1220', 'font-family:system-ui,-apple-system,Segoe UI,sans-serif'
-    ].join(';'));
-    ov.innerHTML =
-      '<form id="bwp-login-form" style="width:340px;max-width:90vw;background:#141d2e;border:1px solid #243049;border-radius:16px;padding:28px 26px;box-shadow:0 20px 60px rgba(0,0,0,.5)">' +
-      '<div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:.02em">BWP Vantage</div>' +
-      '<div style="font-size:13px;color:#7c8aa5;margin:6px 0 20px">Sales Intelligence · กรุณาเข้าสู่ระบบ</div>' +
-      '<input id="bwp-pass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" ' +
-      'style="width:100%;box-sizing:border-box;background:#0b1220;border:1px solid #2a3650;border-radius:10px;color:#fff;font-size:15px;padding:11px 13px;outline:none" />' +
-      '<div id="bwp-err" style="color:#f87171;font-size:12.5px;min-height:18px;margin:8px 2px 0"></div>' +
-      '<button id="bwp-go" type="submit" style="width:100%;margin-top:10px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;padding:11px;cursor:pointer">เข้าสู่ระบบ</button>' +
-      '</form>';
+    ov.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#07101f;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:16px');
+
+    ov.innerHTML = [
+      '<div style="width:400px;max-width:100%;background:linear-gradient(160deg,#141d2e,#0f1929);border:1px solid #1e3052;border-radius:20px;padding:40px 36px;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:bwpFadeIn .4s ease">',
+        /* Logo */
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">',
+          '<svg width="42" height="42" viewBox="0 0 48 48" fill="none">',
+            '<rect width="48" height="48" rx="11" fill="#1f6feb"/>',
+            '<path d="M12 31.5L20 22.5L26.5 29L36 16.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>',
+            '<circle cx="36" cy="16.5" r="3" fill="white"/>',
+            '<path d="M12 36.5H36" stroke="white" stroke-opacity=".45" stroke-width="2.4" stroke-linecap="round"/>',
+          '</svg>',
+          '<div>',
+            '<div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em">BWP <span style="color:#6b7fa3;font-weight:500">Vantage</span></div>',
+            '<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#4a5d7a;margin-top:1px">Sales Intelligence</div>',
+          '</div>',
+        '</div>',
+        /* Title */
+        '<div style="font-size:15px;color:#8fa4c0;margin-bottom:24px">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</div>',
+        /* Username */
+        '<label style="display:block;font-size:12px;font-weight:600;color:#6b7fa3;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">ชื่อผู้ใช้</label>',
+        '<input id="bwp-user" type="text" placeholder="กรอกชื่อผู้ใช้" autocomplete="username" ',
+          'style="width:100%;box-sizing:border-box;background:#0a1525;border:1px solid #1e3052;border-radius:10px;color:#e2e8f0;font-size:14px;padding:11px 14px;margin-bottom:14px;transition:border .2s"/>',
+        /* Password */
+        '<label style="display:block;font-size:12px;font-weight:600;color:#6b7fa3;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">รหัสผ่าน</label>',
+        '<div style="position:relative">',
+          '<input id="bwp-pass" type="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" ',
+            'style="width:100%;box-sizing:border-box;background:#0a1525;border:1px solid #1e3052;border-radius:10px;color:#e2e8f0;font-size:14px;padding:11px 40px 11px 14px;transition:border .2s"/>',
+          '<button id="bwp-eye" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#4a5d7a;font-size:16px;padding:0;line-height:1" title="แสดง/ซ่อนรหัสผ่าน">👁</button>',
+        '</div>',
+        /* Error */
+        '<div id="bwp-err" style="color:#f87171;font-size:12.5px;min-height:20px;margin:10px 2px 0"></div>',
+        /* Submit */
+        '<button id="bwp-go" type="button" class="bwp-btn" ',
+          'style="width:100%;margin-top:10px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;padding:12px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:8px">',
+          '<span id="bwp-btn-txt">เข้าสู่ระบบ</span>',
+        '</button>',
+        /* Footer */
+        '<div style="margin-top:24px;text-align:center;font-size:11px;color:#2e4060">Best World Interplas Co., Ltd. · ข้อมูลภายในองค์กรเท่านั้น</div>',
+      '</div>',
+    ].join('');
+
     document.body.appendChild(ov);
 
-    var form = ov.querySelector('#bwp-login-form');
-    var input = ov.querySelector('#bwp-pass');
-    var err = ov.querySelector('#bwp-err');
-    var btn = ov.querySelector('#bwp-go');
-    input.focus();
+    var userInput = ov.querySelector('#bwp-user');
+    var passInput = ov.querySelector('#bwp-pass');
+    var errEl    = ov.querySelector('#bwp-err');
+    var btn      = ov.querySelector('#bwp-go');
+    var btnTxt   = ov.querySelector('#bwp-btn-txt');
+    var eyeBtn   = ov.querySelector('#bwp-eye');
 
-    function tryPass(pass, fromStore) {
-      btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ…'; err.textContent = '';
-      window.BWP_DB.getDashboard(pass).then(function (payload) {
-        try { sessionStorage.setItem(KEY, pass); } catch (e) {}
-        applyPayload(payload);
+    userInput.focus();
+
+    // Show/hide password toggle
+    eyeBtn.addEventListener('click', function () {
+      if (passInput.type === 'password') { passInput.type = 'text'; eyeBtn.textContent = '🙈'; }
+      else { passInput.type = 'password'; eyeBtn.textContent = '👁'; }
+    });
+
+    // Enter key submits
+    [userInput, passInput].forEach(function (el) {
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+    });
+    btn.addEventListener('click', doLogin);
+
+    function setLoading(on) {
+      btn.disabled = on;
+      btnTxt.textContent = on ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบ';
+    }
+
+    function tryLogin(username, pass, fromStore) {
+      setLoading(true);
+      errEl.textContent = '';
+      window.BWP_DB.getDashboardUser(username, pass).then(function (result) {
+        var creds = { username: result.username || username, pass: pass, role: result.role || 'viewer', displayName: result.username || username };
+        try { sessionStorage.setItem(CREDS_KEY, JSON.stringify(creds)); } catch (e) {}
+        window.BWP_USER = { username: creds.username, role: creds.role, displayName: creds.displayName };
+        window.BWP_PASS = pass; // backward compat for data editor
+        applyPayload(result.payload);
         ov.parentNode && ov.parentNode.removeChild(ov);
       }).catch(function (e) {
-        if (fromStore) { try { sessionStorage.removeItem(KEY); } catch (_) {} }
-        btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
-        err.textContent = (e && e.status === 400) || /unauthorized/i.test(e && e.message || '')
-          ? 'รหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง';
-        input.select();
+        if (fromStore) { try { sessionStorage.removeItem(CREDS_KEY); } catch (_) {} }
+        setLoading(false);
+        var msg = (e && e.message) || '';
+        if ((e && e.status === 400) || /unauthorized/i.test(msg)) {
+          errEl.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+        } else {
+          errEl.textContent = 'เชื่อมต่อไม่สำเร็จ — ลองใหม่อีกครั้ง';
+        }
+        passInput.select();
       });
     }
 
-    form.addEventListener('submit', function (ev) { ev.preventDefault(); var p = input.value.trim(); if (p) tryPass(p, false); });
+    function doLogin() {
+      var u = userInput.value.trim();
+      var p = passInput.value.trim();
+      if (!u) { errEl.textContent = 'กรุณากรอกชื่อผู้ใช้'; userInput.focus(); return; }
+      if (!p) { errEl.textContent = 'กรุณากรอกรหัสผ่าน'; passInput.focus(); return; }
+      tryLogin(u, p, false);
+    }
 
-    // auto-login if a password is already in this browser session
-    var saved = null; try { saved = sessionStorage.getItem(KEY); } catch (e) {}
-    if (saved) tryPass(saved, true);
+    // Auto-login from session
+    var saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem(CREDS_KEY)); } catch (e) {}
+    if (saved && saved.username && saved.pass) {
+      userInput.value = saved.username;
+      tryLogin(saved.username, saved.pass, true);
+    }
   }
 
   function fatal(msg) {
     var d = document.createElement('div');
-    d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#0b1220;color:#cbd5e1;font-family:system-ui,sans-serif;text-align:center;padding:24px');
+    d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#07101f;color:#cbd5e1;font-family:system-ui,sans-serif;text-align:center;padding:24px');
     d.innerHTML = '<div><div style="font-size:16px;font-weight:600;color:#fff">โหลดไม่สำเร็จ</div><div style="font-size:13px;margin-top:8px;color:#94a3b8">' + msg + '</div><button onclick="location.reload()" style="margin-top:16px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:10px 18px;cursor:pointer">ลองใหม่</button></div>';
     document.body.appendChild(d);
   }
+
   var tries = 0;
   function start() {
     if (window.BWP_DB) { gate(); return; }
-    if (++tries > 120) { fatal('สคริปต์บางตัวโหลดไม่ครบ — กดลองใหม่ หรือ Ctrl+Shift+R เพื่อล้างแคช'); return; }
+    if (++tries > 120) { fatal('สคริปต์บางตัวโหลดไม่ครบ — กด Ctrl+Shift+R เพื่อล้างแคช'); return; }
     setTimeout(start, 30);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-  // expose logout for completeness
-  window.BWP_LOGOUT = function () { try { sessionStorage.removeItem('bwp_pass'); } catch (e) {} location.reload(); };
+  window.BWP_LOGOUT = function () {
+    try { sessionStorage.removeItem(CREDS_KEY); } catch (e) {}
+    window.BWP_USER = null;
+    location.reload();
+  };
 })();
