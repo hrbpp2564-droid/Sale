@@ -332,7 +332,6 @@ function boot(payload) {
   let def = 0; for (let i=0;i<12;i++){ if (arr[i]!=null && n(arr[i])>0) def = i; }
   let nextEmpty = -1; for (let i=0;i<12;i++){ if (arr[i]==null || n(arr[i])===0){ nextEmpty=i; break; } }
   curMonth = nextEmpty >= 0 ? nextEmpty : def;
-  buildCustDatalist();
   buildYearSelect();
   buildMonthSelect();
   renderMonth();
@@ -390,6 +389,16 @@ function renderMonth() {
   renderPreview();
 }
 
+function buildCustOptions(selected) {
+  const opts = CUSTOMERS_DB.map(name =>
+    `<option value="${esc(name)}"${name === selected ? ' selected' : ''}>${esc(name)}</option>`
+  ).join('');
+  // if selected name not in DB, add it as first option so it shows correctly
+  const extra = selected && !CUSTOMERS_DB.includes(selected)
+    ? `<option value="${esc(selected)}" selected>${esc(selected)}</option>` : '';
+  return `<option value="">— เลือกลูกค้า —</option>${extra}${opts}`;
+}
+
 function renderCustTable() {
   $('custMonLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
   const tb = $('custBody'); tb.innerHTML = '';
@@ -399,7 +408,7 @@ function renderCustTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><button class="del-btn" data-del="${idx}" title="ลบแถวนี้">×</button></td>
-      <td><input class="text cust-name" list="custNames" data-cname="${idx}" value="${esc(c.name)}" placeholder="ชื่อลูกค้า"></td>
+      <td><select class="cust-name" data-cname="${idx}" style="width:100%;min-width:150px">${buildCustOptions(c.name)}</select></td>
       <td class="num"><input class="kg" data-ckg="${idx}" data-key="p0" value="${valOr(mp.p0)}" placeholder="0"></td>
       <td class="num"><input class="kg" data-ckg="${idx}" data-key="p1" value="${valOr(mp.p1)}" placeholder="0"></td>
       <td class="num"><input class="kg" data-ckg="${idx}" data-key="p2" value="${valOr(mp.p2)}" placeholder="0"></td>
@@ -485,14 +494,9 @@ function collectMonth() {
     arr.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
     return;
   }
-  // collect customer names
-  document.querySelectorAll('[data-cname]').forEach(inp => {
-    const idx = +inp.dataset.cname;
-    raw.customers[idx].name = inp.value.trim();
-    if (inp.value.trim() && !CUSTOMERS_DB.includes(inp.value.trim())) {
-      CUSTOMERS_DB.push(inp.value.trim());
-      buildCustDatalist();
-    }
+  // collect customer names from select dropdowns
+  document.querySelectorAll('[data-cname]').forEach(sel => {
+    raw.customers[+sel.dataset.cname].name = sel.value;
   });
   // collect product kg per customer
   document.querySelectorAll('[data-ckg]').forEach(inp => {
@@ -672,29 +676,34 @@ function importWorkbook(wb) {
   // reset customers for 2569 (keep history)
   raw.customers.forEach(c => { c.monthlyProd = padProd12([]); });
 
-  let added = 0, updated = 0;
+  let added = 0, updated = 0, skipped = 0;
   rows.slice(1).forEach(row => {
     const mon = String(row[monCol]||'').trim();
     const custName = String(row[custCol]||'').trim();
     if (!custName || TH_IDX[mon] === undefined) return;
-    const m = TH_IDX[mon];
 
+    // คำนวณยอดรวมก่อน — ถ้า 0 ทั้งหมดไม่ต้องเพิ่ม
+    const prodKgTotal = Object.values(prodCols).reduce((s, col) => s + n(row[col]), 0);
+    const rowVal = valCol >= 0 ? n(row[valCol]) : 0;
+    if (prodKgTotal === 0 && rowVal === 0) { skipped++; return; }
+
+    const m = TH_IDX[mon];
     let cust = raw.customers.find(c => c.name === custName);
     if (!cust) {
       cust = { name: custName, monthlyProd: padProd12([]) };
       raw.customers.push(cust);
       added++;
-      if (!CUSTOMERS_DB.includes(custName)) { CUSTOMERS_DB.push(custName); buildCustDatalist(); }
+      if (!CUSTOMERS_DB.includes(custName)) CUSTOMERS_DB.push(custName);
     } else { updated++; }
 
     const mp = cust.monthlyProd[m];
     Object.entries(prodCols).forEach(([key, col]) => { mp[key] = n(row[col]); });
-    if (valCol >= 0) mp.value = n(row[valCol]);
+    if (valCol >= 0) mp.value = rowVal;
   });
 
   curYear = CUR_YEAR; curMonth = 0;
   buildYearSelect(); buildMonthSelect(); renderMonth();
-  toast(`✓ นำเข้าสำเร็จ · ลูกค้าใหม่ ${added} · อัปเดต ${updated} · ตรวจสอบแล้วกด "บันทึก"`, 'ok');
+  toast(`✓ นำเข้าสำเร็จ · ลูกค้าใหม่ ${added} · อัปเดต ${updated} · ข้ามแถวว่าง ${skipped} · ตรวจสอบแล้วกด "บันทึก"`, 'ok');
 }
 
 // auto-login
