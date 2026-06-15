@@ -3494,8 +3494,8 @@ try { (() => {
     const [sel, setSel] = React.useState(null);
     const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
-    const max = sorted[0].kg;
-    const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
+    const max = sorted.length ? sorted[0].kg : 1;
+    const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0] || { name: '—', mom: 0 };
 
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
@@ -4872,6 +4872,14 @@ try { (() => {
       }),
       onClick: () => window.location.href = '/bwp-data-editor/'
     }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      size: "md",
+      iconLeft: /*#__PURE__*/React.createElement(Icon, {
+        name: "users",
+        size: 15
+      }),
+      onClick: () => window.location.href = '/bwp-customer-db/'
+    }, "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32"), /*#__PURE__*/React.createElement(Button, {
       variant: "secondary",
       size: "md",
       iconLeft: /*#__PURE__*/React.createElement(Icon, {
@@ -5467,6 +5475,14 @@ try { (() => {
       }),
       onClick: () => window.location.href = '/bwp-data-editor/'
     }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      size: "md",
+      iconLeft: /*#__PURE__*/React.createElement(Icon, {
+        name: "users",
+        size: 15
+      }),
+      onClick: () => window.location.href = '/bwp-customer-db/'
+    }, "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32"), /*#__PURE__*/React.createElement(Button, {
       variant: "secondary",
       size: "md",
       iconLeft: /*#__PURE__*/React.createElement(Icon, {
@@ -6902,8 +6918,8 @@ try { (() => {
     const [sel, setSel] = React.useState(null);
     const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
-    const max = sorted[0].kg;
-    const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
+    const max = sorted.length ? sorted[0].kg : 1;
+    const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0] || { name: '—', mom: 0 };
 
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);

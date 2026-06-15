@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
-<link rel="stylesheet" href="../styles.css?v=20260615e" />
+<link rel="stylesheet" href="../styles.css?v=20260615h" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -111,7 +111,7 @@
       <h2>ยอดรวมของเดือน <span class="tag" id="mLbl"></span></h2>
       <div class="grid2">
         <div class="fld"><label>มูลค่าขายรวม (ล้านบาท)</label><input id="mValue" placeholder="—"></div>
-        <div class="fld"><label>ปริมาณขายรวม (พัน Kg)</label><input id="mVolume" placeholder="—"></div>
+        <div class="fld"><label>ปริมาณขายรวม (พัน Kg — เช่น 650 = 650,000 Kg)</label><input id="mVolume" placeholder="—"></div>
       </div>
       <div class="hint">ปีย้อนหลัง: กรอกเฉพาะยอดรวมรายเดือน (มูลค่า/ปริมาณ) เพื่อใช้เปรียบเทียบหลายปี</div>
     </div>
@@ -182,9 +182,9 @@
 <datalist id="custNames"></datalist>
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260615e"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260615e"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260615e"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260615h"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260615h"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260615h"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -340,12 +340,7 @@ function boot(payload) {
   setStatus('เข้าสู่ระบบแล้ว · พร้อมบันทึก', 'var(--positive)');
 }
 
-function buildCustDatalist() {
-  const dl = $('custNames'); dl.innerHTML = '';
-  CUSTOMERS_DB.forEach(name => {
-    const opt = document.createElement('option'); opt.value = name; dl.appendChild(opt);
-  });
-}
+// buildCustDatalist removed — using inline select dropdowns
 
 function buildYearSelect() {
   const sel = $('yearSel'); sel.innerHTML = '';
@@ -569,7 +564,7 @@ $('saveBtn').addEventListener('click', () => {
   // clean empty rows
   raw.customers = raw.customers.filter(c => {
     if (!c.name || !c.name.trim()) {
-      return PRODUCTS_STD.some(std => raw.customers.find(() => true) && c.monthlyProd.some(mp => n(mp[std.key]) > 0));
+      return c.monthlyProd.some(mp => PRODUCTS_STD.some(std => n(mp[std.key]) > 0));
     }
     return true;
   });
