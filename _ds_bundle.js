@@ -903,7 +903,8 @@ function Card({
   const pad = pads[padding] ?? pads.md;
   // Header should never sit flush against the card edge, even when the body
   // uses padding="none" (e.g. tables that supply their own cell padding).
-  const headerPadX = (padding === 'none' ? pads.md : (typeof pad === 'number' ? pad + 'px' : pad));
+  // 14px matches DataTable's cell padding so the title aligns with the first column.
+  const headerPadX = (padding === 'none' ? '14px' : (typeof pad === 'number' ? pad + 'px' : pad));
   const [hover, setHover] = React.useState(false);
   return /*#__PURE__*/React.createElement("section", _extends({
     onMouseEnter: () => interactive && setHover(true),
