@@ -10,8 +10,8 @@
     money: (n) => (Math.round(n * 10) / 10).toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' ลบ.',
     m: (n) => (Math.round(n * 10) / 10).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'M',
     kg: (n) => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgK: (n) => Math.round(n / 1000).toLocaleString('en-US') + ' พัน Kg',
-    kgM: (n) => (n / 1e6).toFixed(2) + ' ล้าน Kg',
+    kgK: (n) => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kgM: (n) => Math.round(n).toLocaleString('en-US') + ' Kg',
     pct: (n) => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1) + '%',
   };
 

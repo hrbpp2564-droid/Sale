@@ -15,8 +15,8 @@ if (!window.__BWP_APP_LOADED) {
     money: (n) => (Math.round(n * 10) / 10).toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' ลบ.',
     m: (n) => (Math.round(n * 10) / 10).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'M',
     kg: (n) => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgK: (n) => Math.round(n / 1000).toLocaleString('en-US') + ' พัน Kg',
-    kgM: (n) => (n / 1e6).toFixed(2) + ' ล้าน Kg',
+    kgK: (n) => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kgM: (n) => Math.round(n).toLocaleString('en-US') + ' Kg',
     pct: (n) => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1) + '%',
   };
 
@@ -674,7 +674,7 @@ if (!window.__BWP_APP_LOADED) {
             ))}
           </Card>
           <Card title="สัดส่วนปริมาณ — Top 10 vs อื่น ๆ">
-            <DonutChart size={180} thickness={26} centerValue={fmt.kgM(D.custTotalKg * 1).replace(' ล้าน Kg','M')} centerLabel="Kg รวม"
+            <DonutChart size={180} thickness={26} centerValue={Math.round(D.custTotalKg).toLocaleString('en-US')} centerLabel="Kg รวม"
               data={[
                 ...sorted.slice(0, 6).map((c, i) => ({ label: c.name.split(' ')[0], value: c.kg, color: `var(--viz-${i + 1})` })),
                 { label: 'ลูกค้าอื่น', value: D.custTotalKg - sorted.slice(0, 6).reduce((s, c) => s + c.kg, 0), color: 'var(--slate-500)' },
@@ -947,7 +947,7 @@ if (!window.__BWP_APP_LOADED) {
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.int(F.yearEndVal)} unit="ลบ." delta={13.8} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
-          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={fmt.dec1(F.yearEndKg)} unit="ล้าน Kg" delta={9.2} icon={<Icon name="box" size={15} />} />
+          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={9.2} icon={<Icon name="box" size={15} />} />
           <KpiCard label="Confidence Level" value={F.confidence} unit="%" icon={<Icon name="target" size={15} />} />
           <KpiCard label="เดือนที่เหลือ" value={String(12 - NACT)} unit="เดือน" icon={<Icon name="clock" size={15} />} />
         </Grid>

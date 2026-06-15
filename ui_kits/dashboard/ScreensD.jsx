@@ -181,7 +181,7 @@
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.int(F.yearEndVal)} unit="ลบ." delta={13.8} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
-          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={fmt.dec1(F.yearEndKg)} unit="ล้าน Kg" delta={9.2} icon={<Icon name="box" size={15} />} />
+          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={9.2} icon={<Icon name="box" size={15} />} />
           <KpiCard label="Confidence Level" value={F.confidence} unit="%" icon={<Icon name="target" size={15} />} />
           <KpiCard label="เดือนที่เหลือ" value={String(12 - NACT)} unit="เดือน" icon={<Icon name="clock" size={15} />} />
         </Grid>

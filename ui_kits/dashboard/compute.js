@@ -128,7 +128,7 @@
 
     var KPIS = [
       { id: 'value', label: 'มูลค่าขายรวม', value: totalValueLbn.toFixed(1), unit: 'ลบ.', delta: momPct(val69), yoy: yoyVal, accent: true, spark: val69.slice(0, NACT), color: 'var(--accent)' },
-      { id: 'volume', label: 'ปริมาณขายรวม', value: (totalVolKg / 1e6).toFixed(2), unit: 'ล้าน Kg', delta: momPct(vol69), yoy: yoyKg, spark: vol69.slice(0, NACT), color: 'var(--viz-2)' },
+      { id: 'volume', label: 'ปริมาณขายรวม', value: Math.round(totalVolKg).toLocaleString('en-US'), unit: 'Kg', delta: momPct(vol69), yoy: yoyKg, spark: vol69.slice(0, NACT), color: 'var(--viz-2)' },
       { id: 'price', label: 'ราคาเฉลี่ย/Kg', value: avgPrice.toFixed(1), unit: '฿/Kg', delta: momPct(price69), yoy: yoyPrice, spark: price69.slice(0, NACT), color: 'var(--viz-3)' },
       { id: 'customers', label: 'จำนวนลูกค้า', value: String(nCustomers), unit: 'ราย', delta: 0, yoy: 0, spark: monthlyCustCounts(rcust, NACT), color: 'var(--viz-4)' },
       { id: 'products', label: 'จำนวนผลิตภัณฑ์', value: String(nProducts), unit: 'ประเภท', delta: 0, yoy: 0, spark: new Array(NACT).fill(nProducts), color: 'var(--viz-5)' }

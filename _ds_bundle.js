@@ -2115,8 +2115,8 @@ try { (() => {
       maximumFractionDigits: 1
     }) + 'M',
     kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgK: n => Math.round(n / 1000).toLocaleString('en-US') + ' พัน Kg',
-    kgM: n => (n / 1e6).toFixed(2) + ' ล้าน Kg',
+    kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kgM: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1) + '%'
   };
 
@@ -2336,8 +2336,8 @@ try { (() => {
     }, D.KPIS.map(k => /*#__PURE__*/React.createElement(KpiCard, {
       key: k.id,
       label: k.label,
-      value: k.value,
-      unit: k.unit,
+      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.value,
+      unit: k.id === 'volume' ? 'Kg' : k.unit,
       delta: k.delta,
       deltaSuffix: " MoM",
       secondary: k.yoy ? {
@@ -2423,8 +2423,8 @@ try { (() => {
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
-        name: 'ปริมาณ 2569 (พัน Kg)',
-        data: vol69,
+        name: 'ปริมาณ 2569 (Kg)',
+        data: vol69.map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
@@ -2563,8 +2563,8 @@ try { (() => {
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
-        name: 'ปริมาณ (พัน Kg)',
-        data: D.volumeByYear[2569].slice(0, NACT),
+        name: 'ปริมาณ (Kg)',
+        data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
@@ -2691,9 +2691,9 @@ try { (() => {
         render: r => fmt.dec1(r.v69)
       }, {
         key: 'kg69',
-        header: 'ปริมาณ (พัน Kg)',
+        header: 'ปริมาณ (Kg)',
         numeric: true,
-        render: r => fmt.int(r.kg69)
+        render: r => fmt.int(Math.round(r.kg69 * 1000))
       }, {
         key: 'price',
         header: 'ราคาเฉลี่ย (฿/Kg)',
@@ -2870,12 +2870,12 @@ try { (() => {
       showDots: true,
       series: [{
         name: 'ยอดรวมทุกสินค้า',
-        data: D.volumeByYear[2569].slice(0, NACT),
+        data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'area'
       }, ...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
         name: p.name,
-        data: prodKgK(p),
+        data: prodKg(p),
         color: `var(--viz-${i % 8 + 1})`,
         type: 'line'
       }))]
@@ -3572,7 +3572,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(DonutChart, {
       size: 180,
       thickness: 26,
-      centerValue: fmt.kgM(D.custTotalKg * 1).replace(' ล้าน Kg', 'M'),
+      centerValue: Math.round(D.custTotalKg).toLocaleString('en-US'),
       centerLabel: "Kg \u0E23\u0E27\u0E21",
       data: [...sorted.slice(0, 6).map((c, i) => ({
         label: c.name.split(' ')[0],
@@ -3878,7 +3878,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(ParetoChart, {
       height: 320,
       threshold: 80,
-      valueFormat: v => fmt.int(v) + ' พัน Kg',
+      valueFormat: v => fmt.int(Math.round(v * 1000)) + ' Kg',
       data: paretoData
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -4028,7 +4028,7 @@ try { (() => {
   function YearScreen() {
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
-    const unit = metric === 'value' ? 'ลบ.' : 'พัน Kg';
+    const unit = metric === 'value' ? 'ลบ.' : 'Kg';
     const years = D.YEARS.filter(y => Array.isArray(src[y])); // only years with data
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
@@ -4115,7 +4115,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -4406,8 +4406,8 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      value: fmt.dec1(F.yearEndKg),
-      unit: "\u0E25\u0E49\u0E32\u0E19 Kg",
+      value: Math.round(F.yearEndKg * 1e6).toLocaleString('en-US'),
+      unit: "Kg",
       delta: 9.2,
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "box",
@@ -4993,8 +4993,8 @@ try { (() => {
       maximumFractionDigits: 1
     }) + 'M',
     kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgK: n => Math.round(n / 1000).toLocaleString('en-US') + ' พัน Kg',
-    kgM: n => (n / 1e6).toFixed(2) + ' ล้าน Kg',
+    kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kgM: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1) + '%'
   };
 
@@ -5693,8 +5693,8 @@ try { (() => {
     }, D.KPIS.map(k => /*#__PURE__*/React.createElement(KpiCard, {
       key: k.id,
       label: k.label,
-      value: k.value,
-      unit: k.unit,
+      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.value,
+      unit: k.id === 'volume' ? 'Kg' : k.unit,
       delta: k.delta,
       deltaSuffix: " MoM",
       secondary: k.yoy ? {
@@ -5780,8 +5780,8 @@ try { (() => {
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
-        name: 'ปริมาณ 2569 (พัน Kg)',
-        data: vol69,
+        name: 'ปริมาณ 2569 (Kg)',
+        data: vol69.map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
@@ -5920,8 +5920,8 @@ try { (() => {
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
-        name: 'ปริมาณ (พัน Kg)',
-        data: D.volumeByYear[2569].slice(0, NACT),
+        name: 'ปริมาณ (Kg)',
+        data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
@@ -6048,9 +6048,9 @@ try { (() => {
         render: r => fmt.dec1(r.v69)
       }, {
         key: 'kg69',
-        header: 'ปริมาณ (พัน Kg)',
+        header: 'ปริมาณ (Kg)',
         numeric: true,
-        render: r => fmt.int(r.kg69)
+        render: r => fmt.int(Math.round(r.kg69 * 1000))
       }, {
         key: 'price',
         header: 'ราคาเฉลี่ย (฿/Kg)',
@@ -6231,12 +6231,12 @@ try { (() => {
       showDots: true,
       series: [{
         name: 'ยอดรวมทุกสินค้า',
-        data: D.volumeByYear[2569].slice(0, NACT),
+        data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'area'
       }, ...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
         name: p.name,
-        data: prodKgK(p),
+        data: prodKg(p),
         color: `var(--viz-${i % 8 + 1})`,
         type: 'line'
       }))]
@@ -6940,7 +6940,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(DonutChart, {
       size: 180,
       thickness: 26,
-      centerValue: fmt.kgM(D.custTotalKg * 1).replace(' ล้าน Kg', 'M'),
+      centerValue: Math.round(D.custTotalKg).toLocaleString('en-US'),
       centerLabel: "Kg \u0E23\u0E27\u0E21",
       data: [...sorted.slice(0, 6).map((c, i) => ({
         label: c.name.split(' ')[0],
@@ -7248,7 +7248,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(ParetoChart, {
       height: 320,
       threshold: 80,
-      valueFormat: v => fmt.int(v) + ' พัน Kg',
+      valueFormat: v => fmt.int(Math.round(v * 1000)) + ' Kg',
       data: paretoData
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -7398,7 +7398,7 @@ try { (() => {
     const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
-    const unit = metric === 'value' ? 'ลบ.' : 'พัน Kg';
+    const unit = metric === 'value' ? 'ลบ.' : 'Kg';
     const years = D.YEARS.filter(y => Array.isArray(src[y])); // only years with data
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
@@ -7485,7 +7485,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -7778,8 +7778,8 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      value: fmt.dec1(F.yearEndKg),
-      unit: "\u0E25\u0E49\u0E32\u0E19 Kg",
+      value: Math.round(F.yearEndKg * 1e6).toLocaleString('en-US'),
+      unit: "Kg",
       delta: 9.2,
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "box",

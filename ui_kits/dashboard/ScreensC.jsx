@@ -44,7 +44,7 @@
             ))}
           </Card>
           <Card title="สัดส่วนปริมาณ — Top 10 vs อื่น ๆ">
-            <DonutChart size={180} thickness={26} centerValue={fmt.kgM(D.custTotalKg * 1).replace(' ล้าน Kg','M')} centerLabel="Kg รวม"
+            <DonutChart size={180} thickness={26} centerValue={Math.round(D.custTotalKg).toLocaleString('en-US')} centerLabel="Kg รวม"
               data={[
                 ...sorted.slice(0, 6).map((c, i) => ({ label: c.name.split(' ')[0], value: c.kg, color: `var(--viz-${i + 1})` })),
                 { label: 'ลูกค้าอื่น', value: D.custTotalKg - sorted.slice(0, 6).reduce((s, c) => s + c.kg, 0), color: 'var(--slate-500)' },
