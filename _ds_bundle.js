@@ -2312,7 +2312,7 @@ try { (() => {
     if (allC.length < 5) top5 = rnd(cum, 1);
     const patch = {
       value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
-      volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
+      volume: { value: Math.round(sumVol * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(sumVol, sumVolC) },
       price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
@@ -5734,7 +5734,7 @@ try { (() => {
     if (allC.length < 5) top5 = rnd(cum, 1);
     const patch = {
       value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
-      volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
+      volume: { value: Math.round(sumVol * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(sumVol, sumVolC) },
       price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
