@@ -2274,18 +2274,38 @@ try { (() => {
     const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
-    // products: filter by group, and per-month value when a single month is selected
+    const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
+    // products: filter by group/product, re-slice monthly to selected months, recompute val/share
     let prods = D.PRODUCTS;
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
-    if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
+    prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
-    // customers: filter by selected customer, and per-month kg for a single month
-    let custs = D.CUSTOMERS;
-    if (cg && cg !== 'all') custs = custs.filter((c) => c.id === cg);
-    if (single) custs = custs.map((c) => Object.assign({}, c, { kg: c.monthly[mi] || 0 }));
-    const totC = sum(custs.map((c) => c.kg));
-    if (single) custs = custs.map((c) => Object.assign({}, c, { share: totC ? rnd(c.kg / totC * 100, 1) : 0 }));
+    // customers: re-slice monthly to selected months, recompute kg/share/mom; filter by selected customer
+    const remapCust = (list) => {
+      let out = (list || []).map((c) => {
+        const m = reslice(c.monthly);
+        const kg = Math.round(sum(m));
+        const L = m.length;
+        const mom = L >= 2 && m[L - 2] ? rnd((m[L - 1] / m[L - 2] - 1) * 100, 1) : 0;
+        return Object.assign({}, c, { monthly: m, kg: kg, mom: mom });
+      }).filter((c) => c.kg > 0);
+      const tot = sum(out.map((c) => c.kg)) || 1;
+      out = out.map((c) => Object.assign({}, c, { share: rnd(c.kg / tot * 100, 1) }));
+      out.sort((a, b) => b.kg - a.kg);
+      return out;
+    };
+    let allC = remapCust((D.allCustomers && D.allCustomers.length) ? D.allCustomers : D.CUSTOMERS);
+    if (cg && cg !== 'all') {
+      const selName = (D.CUSTOMERS.find((c) => c.id === cg) || {}).name;
+      if (selName) allC = allC.filter((c) => c.name === selName);
+    }
+    let custs = allC.slice(0, 10).map((c, i) => Object.assign({ id: 'c' + (i + 1) }, c));
+    const custTotalKg = sum(allC.map((c) => c.kg));
+    let cum = 0, top3 = 0, top5 = 0;
+    allC.forEach((c, i) => { cum += c.share; if (i === 2) top3 = rnd(cum, 1); if (i === 4) top5 = rnd(cum, 1); });
+    if (allC.length < 3) top3 = rnd(cum, 1);
+    if (allC.length < 5) top5 = rnd(cum, 1);
     const patch = {
       value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
       volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
@@ -2303,7 +2323,10 @@ try { (() => {
       KPIS: KPIS,
       PRODUCTS: prods,
       CUSTOMERS: custs,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1) }),
+      allCustomers: allC,
+      custTotalKg: custTotalKg,
+      nCustomers: allC.length,
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5 }),
     });
   }
   const KPI_DRILL = {
@@ -5695,18 +5718,38 @@ try { (() => {
     const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
-    // products: filter by group, and per-month value when a single month is selected
+    const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
+    // products: filter by group/product, re-slice monthly to selected months, recompute val/share
     let prods = D.PRODUCTS;
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
-    if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
+    prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
-    // customers: filter by selected customer, and per-month kg for a single month
-    let custs = D.CUSTOMERS;
-    if (cg && cg !== 'all') custs = custs.filter((c) => c.id === cg);
-    if (single) custs = custs.map((c) => Object.assign({}, c, { kg: c.monthly[mi] || 0 }));
-    const totC = sum(custs.map((c) => c.kg));
-    if (single) custs = custs.map((c) => Object.assign({}, c, { share: totC ? rnd(c.kg / totC * 100, 1) : 0 }));
+    // customers: re-slice monthly to selected months, recompute kg/share/mom; filter by selected customer
+    const remapCust = (list) => {
+      let out = (list || []).map((c) => {
+        const m = reslice(c.monthly);
+        const kg = Math.round(sum(m));
+        const L = m.length;
+        const mom = L >= 2 && m[L - 2] ? rnd((m[L - 1] / m[L - 2] - 1) * 100, 1) : 0;
+        return Object.assign({}, c, { monthly: m, kg: kg, mom: mom });
+      }).filter((c) => c.kg > 0);
+      const tot = sum(out.map((c) => c.kg)) || 1;
+      out = out.map((c) => Object.assign({}, c, { share: rnd(c.kg / tot * 100, 1) }));
+      out.sort((a, b) => b.kg - a.kg);
+      return out;
+    };
+    let allC = remapCust((D.allCustomers && D.allCustomers.length) ? D.allCustomers : D.CUSTOMERS);
+    if (cg && cg !== 'all') {
+      const selName = (D.CUSTOMERS.find((c) => c.id === cg) || {}).name;
+      if (selName) allC = allC.filter((c) => c.name === selName);
+    }
+    let custs = allC.slice(0, 10).map((c, i) => Object.assign({ id: 'c' + (i + 1) }, c));
+    const custTotalKg = sum(allC.map((c) => c.kg));
+    let cum = 0, top3 = 0, top5 = 0;
+    allC.forEach((c, i) => { cum += c.share; if (i === 2) top3 = rnd(cum, 1); if (i === 4) top5 = rnd(cum, 1); });
+    if (allC.length < 3) top3 = rnd(cum, 1);
+    if (allC.length < 5) top5 = rnd(cum, 1);
     const patch = {
       value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
       volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
@@ -5724,7 +5767,10 @@ try { (() => {
       KPIS: KPIS,
       PRODUCTS: prods,
       CUSTOMERS: custs,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1) }),
+      allCustomers: allC,
+      custTotalKg: custTotalKg,
+      nCustomers: allC.length,
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5 }),
     });
   }
   const KPI_DRILL = {
