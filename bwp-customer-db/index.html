@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BWP — ฐานข้อมูลลูกค้า</title>
+<link rel="stylesheet" href="../styles.css?v=20260615g" />
+<style>
+  body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 22px 100px; }
+  h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .sub { color: var(--text-tertiary); font-size: 14px; margin-bottom: 20px; }
+  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 16px;
+         background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+         position: sticky; top: 0; z-index: 20; }
+  .status { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .card { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+          padding: 18px 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 16px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .tag { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+       color: var(--text-tertiary); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border-default); }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+  input, select { box-sizing: border-box; background: var(--surface-inset); border: 1px solid var(--border-default);
+                  border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-sans);
+                  font-size: 13px; padding: 7px 10px; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px; border-radius: var(--radius-md);
+         border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.ghost { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-default); }
+  .btn.danger { background: transparent; color: var(--negative); border: 1px solid var(--border-subtle); }
+  .btn.sm { height: 30px; padding: 0 12px; font-size: 12.5px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:hover:not(:disabled) { opacity: .85; }
+  .add-row { display: flex; gap: 10px; align-items: center; margin-top: 14px; }
+  .add-row input { flex: 1; }
+  .add-row select { width: 180px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge.b1 { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .badge.b2 { background: rgba(168,85,247,.15); color: #c084fc; }
+  .badge.b3 { background: rgba(52,211,153,.15); color: #34d399; }
+  .badge.b4 { background: rgba(251,191,36,.15); color: #fbbf24; }
+  .ic { opacity: .5; font-size: 13px; }
+  .search-bar { display: flex; gap: 10px; margin-bottom: 14px; }
+  .search-bar input { flex: 1; }
+  .count-badge { background: var(--surface-2); border: 1px solid var(--border-default); border-radius: 99px;
+                 padding: 2px 10px; font-size: 12px; color: var(--text-tertiary); }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+           background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+           padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow-lg); transition: all .25s; pointer-events: none; z-index: 99; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.ok { border-color: var(--positive); } .toast.err { border-color: var(--negative); }
+  a { color: var(--text-link); }
+  #login { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: #0b1220; }
+  #login form { width: 340px; max-width: 90vw; background: #141d2e; border: 1px solid #243049; border-radius: 16px; padding: 28px 26px; }
+  #login .t { font-size: 20px; font-weight: 700; color: #fff; }
+  #login .s { font-size: 13px; color: #7c8aa5; margin: 6px 0 20px; }
+  #login input { width: 100%; text-align: left; background: #0b1220; border: 1px solid #2a3650; border-radius: 10px;
+                 color: #fff; font-size: 15px; padding: 11px 13px; }
+  #login .err { color: #f87171; font-size: 12.5px; min-height: 18px; margin: 8px 2px 0; }
+  #login button { width: 100%; margin-top: 10px; background: #2563eb; border: none; border-radius: 10px;
+                  color: #fff; font-size: 15px; font-weight: 600; padding: 11px; cursor: pointer; }
+  .edit-inp { width: 100%; }
+  .empty-state { text-align: center; padding: 32px; color: var(--text-tertiary); font-size: 14px; }
+</style>
+</head>
+<body class="vantage">
+
+<div id="login">
+  <form id="loginForm">
+    <div class="t">ฐานข้อมูลลูกค้า</div>
+    <div class="s">BWP Vantage · สำหรับเจ้าหน้าที่</div>
+    <input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
+    <div class="err" id="loginErr"></div>
+    <button id="loginGo" type="submit">เข้าสู่ระบบ</button>
+  </form>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <h1>ฐานข้อมูลลูกค้า</h1>
+  <div class="sub">จัดการรายชื่อลูกค้าที่ใช้ใน Dropdown ตอนกรอกข้อมูล · <a href="/bwp-data-editor/">← กรอกข้อมูล</a> · <a href="/">Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
+
+  <div class="bar">
+    <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังโหลด…</span></div>
+    <div style="flex:1"></div>
+    <button class="btn ghost" id="exportBtn" type="button">⬇ Export CSV</button>
+    <button class="btn ghost" id="importCsvBtn" type="button">⬆ Import CSV</button>
+    <input type="file" id="csvFile" accept=".csv,.txt" style="display:none">
+    <button class="btn primary" id="saveBtn" disabled>💾 บันทึกรายชื่อ</button>
+  </div>
+
+  <div id="mainContent" style="display:none">
+
+    <!-- stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px" id="statsBox"></div>
+
+    <!-- customer list card -->
+    <div class="card">
+      <h2>
+        รายชื่อลูกค้าทั้งหมด
+        <span class="count-badge" id="countBadge">0 ราย</span>
+        <span style="flex:1"></span>
+      </h2>
+
+      <div class="search-bar">
+        <input id="searchInp" placeholder="🔍 ค้นหาชื่อลูกค้า…" type="search" />
+        <select id="filterType">
+          <option value="">ทุกประเภท</option>
+          <option>ลูกค้าอุตสาหกรรม</option>
+          <option>ค้าปลีก/ค้าส่ง</option>
+          <option>ส่งออก</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th>ชื่อลูกค้า</th>
+            <th style="width:180px">ประเภท</th>
+            <th style="width:100px">หมายเหตุ</th>
+            <th style="width:80px"></th>
+          </tr>
+        </thead>
+        <tbody id="custTableBody"></tbody>
+      </table>
+
+      <div id="emptyState" class="empty-state" style="display:none">ไม่พบลูกค้าที่ค้นหา</div>
+
+      <!-- add new row -->
+      <div class="add-row">
+        <input id="newName" placeholder="ชื่อลูกค้าใหม่…" type="text" />
+        <select id="newType">
+          <option value="">เลือกประเภท</option>
+          <option>ลูกค้าอุตสาหกรรม</option>
+          <option>ค้าปลีก/ค้าส่ง</option>
+          <option>ส่งออก</option>
+          <option>อื่นๆ</option>
+        </select>
+        <button class="btn primary sm" id="addBtn" type="button">+ เพิ่ม</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260615g"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260615g"></script>
+<script>
+const TYPE_COLORS = {
+  'ลูกค้าอุตสาหกรรม': 'b1',
+  'ค้าปลีก/ค้าส่ง': 'b2',
+  'ส่งออก': 'b3',
+  'อื่นๆ': 'b4',
+  '': ''
+};
+
+const DEFAULT_CUSTOMERS = [
+  { name: 'โทน้ำทิพย์', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'ที.ซีฟาร์มา', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'หาดทิพย์', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'โอสลสภา', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'กรีนสปอต', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'เสริมสุข', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'บิ๊กซี', type: 'ค้าปลีก/ค้าส่ง', note: '' },
+  { name: 'เทสโก้ โลตัส', type: 'ค้าปลีก/ค้าส่ง', note: '' },
+  { name: 'แม็คโคร', type: 'ค้าปลีก/ค้าส่ง', note: '' },
+  { name: 'ท็อปส์', type: 'ค้าปลีก/ค้าส่ง', note: '' },
+  { name: 'ซีพีเอฟ', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'เบทาโกร', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'สหฟาร์ม', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'คาราบาว', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'ไทยเบฟ', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'ดอยคำ', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'มาลี', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'ดอลฟิน', type: 'ลูกค้าอุตสาหกรรม', note: '' },
+  { name: 'ไทยยูเนี่ยน', type: 'ส่งออก', note: '' },
+];
+
+const $ = id => document.getElementById(id);
+let PASS = null, db = [], payload = null;
+let editingIdx = null;
+let searchQ = '', filterTypeQ = '';
+
+function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show '+(kind||''); setTimeout(() => t.className='toast '+(kind||''), 3400); }
+function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ---------- login ----------
+function doLogin(pass, fromStore) {
+  $('loginGo').disabled = true; $('loginGo').textContent = 'กำลังตรวจสอบ…'; $('loginErr').textContent = '';
+  window.BWP_DB.getDashboard(pass).then((p) => {
+    PASS = pass; payload = p;
+    try { sessionStorage.setItem('bwp_pass', pass); } catch(e){}
+    $('login').style.display = 'none'; $('app').style.display = 'block';
+    boot(p);
+  }).catch((e) => {
+    if (fromStore) try { sessionStorage.removeItem('bwp_pass'); } catch(_){}
+    $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
+    $('loginErr').textContent = (e && e.status===400) || /unauthorized/i.test(e&&e.message||'') ? 'รหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ';
+    $('loginPass').select();
+  });
+}
+$('loginForm').addEventListener('submit', ev => { ev.preventDefault(); const p=$('loginPass').value.trim(); if(p) doLogin(p,false); });
+
+function boot(p) {
+  payload = p;
+  // load customersDB from _raw if exists, else seed from DEFAULT
+  const stored = (p._raw && p._raw.customersDB) ? p._raw.customersDB : null;
+  if (stored && stored.length > 0) {
+    db = stored.map(c => typeof c === 'string' ? { name: c, type: '', note: '' } : { name: c.name||'', type: c.type||'', note: c.note||'' });
+    // merge any customers in dashboard but not in db
+    const names = db.map(c => c.name);
+    (p.allCustomers||[]).forEach(c => { if (!names.includes(c.name)) db.push({ name: c.name, type: '', note: '' }); });
+  } else {
+    db = DEFAULT_CUSTOMERS.map(c => ({...c}));
+  }
+  $('mainContent').style.display = 'block';
+  $('saveBtn').disabled = false;
+  setStatus('เข้าสู่ระบบแล้ว · ' + db.length + ' ราย', 'var(--positive)');
+  renderStats();
+  renderTable();
+}
+
+function renderStats() {
+  const types = {};
+  db.forEach(c => { const t = c.type||'ไม่ระบุ'; types[t] = (types[t]||0)+1; });
+  const box = $('statsBox'); box.innerHTML = '';
+  [{ l:'รวมทั้งหมด', v: db.length, u:'ราย' }].concat(
+    Object.entries(types).map(([t,v]) => ({ l: t, v, u:'ราย' }))
+  ).forEach(k => {
+    const d = document.createElement('div');
+    d.style.cssText = 'background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 14px';
+    d.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary)">${k.l}</div><div style="font-size:20px;font-weight:700">${k.v} <span style="font-size:12px;color:var(--text-tertiary)">${k.u}</span></div>`;
+    box.appendChild(d);
+  });
+}
+
+function getFiltered() {
+  return db.filter((c, i) => {
+    const q = searchQ.toLowerCase();
+    const matchQ = !q || c.name.toLowerCase().includes(q);
+    const matchT = !filterTypeQ || c.type === filterTypeQ;
+    return matchQ && matchT;
+  });
+}
+
+function renderTable() {
+  const filtered = getFiltered();
+  const tb = $('custTableBody'); tb.innerHTML = '';
+  $('countBadge').textContent = db.length + ' ราย';
+  $('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
+  filtered.forEach((c) => {
+    const realIdx = db.indexOf(c);
+    const tr = document.createElement('tr');
+    tr.dataset.idx = realIdx;
+    const col = TYPE_COLORS[c.type] || '';
+    if (editingIdx === realIdx) {
+      tr.innerHTML = `
+        <td class="ic">${realIdx+1}</td>
+        <td><input class="edit-inp" id="editName" value="${esc(c.name)}" /></td>
+        <td>
+          <select id="editType" style="width:100%">
+            <option value="">เลือกประเภท</option>
+            ${['ลูกค้าอุตสาหกรรม','ค้าปลีก/ค้าส่ง','ส่งออก','อื่นๆ'].map(t=>`<option${t===c.type?' selected':''}>${t}</option>`).join('')}
+          </select>
+        </td>
+        <td><input class="edit-inp" id="editNote" value="${esc(c.note||'')}" placeholder="—" /></td>
+        <td style="display:flex;gap:6px;padding:6px">
+          <button class="btn primary sm" onclick="saveEdit(${realIdx})">✓</button>
+          <button class="btn ghost sm" onclick="cancelEdit()">✕</button>
+        </td>`;
+    } else {
+      tr.innerHTML = `
+        <td class="ic">${realIdx+1}</td>
+        <td style="font-weight:500">${esc(c.name)}</td>
+        <td>${col ? `<span class="badge ${col}">${esc(c.type)}</span>` : '<span class="ic">—</span>'}</td>
+        <td class="ic">${esc(c.note||'') || '—'}</td>
+        <td style="display:flex;gap:6px;padding:6px">
+          <button class="btn ghost sm" onclick="startEdit(${realIdx})">✎</button>
+          <button class="btn danger sm" onclick="deleteRow(${realIdx})">×</button>
+        </td>`;
+    }
+    tb.appendChild(tr);
+  });
+}
+
+function startEdit(idx) { editingIdx = idx; renderTable(); setTimeout(() => { const el=$('editName'); if(el) el.focus(); }, 50); }
+function cancelEdit() { editingIdx = null; renderTable(); }
+function saveEdit(idx) {
+  const name = ($('editName').value||'').trim();
+  if (!name) { toast('กรุณาใส่ชื่อลูกค้า','err'); return; }
+  db[idx].name = name;
+  db[idx].type = $('editType').value;
+  db[idx].note = ($('editNote').value||'').trim();
+  editingIdx = null;
+  renderStats();
+  renderTable();
+}
+function deleteRow(idx) {
+  if (!confirm('ลบลูกค้า "' + db[idx].name + '" ออกจากฐานข้อมูล?')) return;
+  db.splice(idx, 1);
+  if (editingIdx === idx) editingIdx = null;
+  renderStats();
+  renderTable();
+}
+
+$('searchInp').addEventListener('input', e => { searchQ = e.target.value; renderTable(); });
+$('filterType').addEventListener('change', e => { filterTypeQ = e.target.value; renderTable(); });
+
+$('addBtn').addEventListener('click', () => {
+  const name = $('newName').value.trim();
+  if (!name) { $('newName').focus(); toast('กรุณาใส่ชื่อลูกค้า','err'); return; }
+  if (db.some(c => c.name === name)) { toast('มีชื่อนี้แล้วในฐานข้อมูล','err'); return; }
+  db.push({ name, type: $('newType').value, note: '' });
+  $('newName').value = ''; $('newType').value = '';
+  renderStats(); renderTable();
+  setStatus('ยังไม่บันทึก — กด "💾 บันทึกรายชื่อ"', 'var(--warning)');
+});
+
+$('newName').addEventListener('keydown', e => { if (e.key === 'Enter') $('addBtn').click(); });
+
+// ---------- save to Supabase ----------
+$('saveBtn').addEventListener('click', () => {
+  $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
+  // attach customersDB to existing payload _raw
+  if (!payload._raw) payload._raw = {};
+  payload._raw.customersDB = db.map(c => ({ name: c.name, type: c.type, note: c.note }));
+  window.BWP_DB.saveDashboard(PASS, payload).then(() => {
+    setStatus('บันทึกแล้ว · ' + db.length + ' ราย · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
+    toast('✓ บันทึกฐานข้อมูลลูกค้าสำเร็จ', 'ok');
+  }).catch(e => {
+    setStatus('บันทึกไม่สำเร็จ','var(--negative)');
+    toast('บันทึกไม่สำเร็จ — '+(e&&e.message||''), 'err');
+  }).finally(() => { $('saveBtn').disabled = false; });
+});
+
+// ---------- export CSV ----------
+$('exportBtn').addEventListener('click', () => {
+  const rows = [['ชื่อลูกค้า','ประเภท','หมายเหตุ']].concat(db.map(c => [c.name, c.type||'', c.note||'']));
+  const csv = rows.map(r => r.map(cell => '"' + String(cell).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'BWP_ลูกค้า_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+});
+
+// ---------- import CSV ----------
+$('importCsvBtn').addEventListener('click', () => $('csvFile').click());
+$('csvFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const lines = ev.target.result.replace(/^﻿/,'').split(/\r?\n/).filter(l => l.trim());
+      const start = lines[0].toLowerCase().includes('ชื่อ') ? 1 : 0;
+      let added = 0;
+      lines.slice(start).forEach(line => {
+        const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g,'').replace(/""/g,'"'));
+        const name = parts[0]; if (!name) return;
+        if (!db.some(c => c.name === name)) {
+          db.push({ name, type: parts[1]||'', note: parts[2]||'' }); added++;
+        }
+      });
+      renderStats(); renderTable();
+      toast('✓ นำเข้า CSV แล้ว · เพิ่ม ' + added + ' ราย', 'ok');
+      setStatus('นำเข้าแล้ว · ยังไม่บันทึก — กด "💾 บันทึกรายชื่อ"', 'var(--warning)');
+    } catch(err) { toast('อ่านไฟล์ไม่สำเร็จ — '+(err&&err.message||''), 'err'); }
+    $('csvFile').value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+$('logout').addEventListener('click', e => { e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload(); });
+
+(function(){ let saved=null; try{saved=sessionStorage.getItem('bwp_pass');}catch(e){} if(saved) doLogin(saved,true); else $('loginPass').focus(); })();
+</script>
+</body>
+</html>

@@ -88,7 +88,7 @@
 
 <div class="wrap" id="app" style="display:none">
   <h1>บันทึกข้อมูลการขาย</h1>
-  <div class="sub">กรอกยอดขายต่อลูกค้าและสินค้า → ระบบสรุปยอดรายสินค้าและยอดรวมอัตโนมัติ · <a href="/">← Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
+  <div class="sub">กรอกยอดขายต่อลูกค้าและสินค้า → ระบบสรุปยอดรายสินค้าและยอดรวมอัตโนมัติ · <a href="/bwp-customer-db/">👥 จัดการลูกค้า</a> · <a href="/">← Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
 
   <div class="bar">
     <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังโหลด…</span></div>
@@ -97,6 +97,9 @@
     <label style="font-size:13px;color:var(--text-secondary)">เดือน:</label>
     <select id="monthSel"></select>
     <div style="flex:1"></div>
+    <button class="btn ghost sm" id="tmplBtn" type="button">⬇ เทมเพลต Excel</button>
+    <button class="btn ghost sm" id="uploadBtn" type="button">⬆ อัปโหลด Excel</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
     <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
@@ -185,12 +188,13 @@
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
-// ---- ฐานข้อมูลชื่อลูกค้า (เพิ่มชื่อได้ที่นี่) ----
-let CUSTOMERS_DB = [
+// ---- ฐานข้อมูลชื่อลูกค้า (โหลดจาก Supabase หรือ fallback) ----
+const DEFAULT_CUSTOMERS_DB = [
   'โทน้ำทิพย์','ที.ซีฟาร์มา','หาดทิพย์','โอสลสภา','กรีนสปอต','เสริมสุข',
   'บิ๊กซี','เทสโก้ โลตัส','แม็คโคร','ท็อปส์','ซีพีเอฟ','เบทาโกร','สหฟาร์ม',
   'คาราบาว','ไทยเบฟ','ดอยคำ','มาลี','ดอลฟิน','ไทยยูเนี่ยน',
 ];
+let CUSTOMERS_DB = [...DEFAULT_CUSTOMERS_DB];
 
 const PRODUCTS_STD = [
   { key: 'p0', name: 'ม้วนใส',      group: 'ฟิล์มใส' },
@@ -317,6 +321,11 @@ function toComputeRaw() {
 
 // ---------- boot ----------
 function boot(payload) {
+  // โหลด customersDB จาก Supabase
+  if (payload._raw && payload._raw.customersDB && payload._raw.customersDB.length > 0) {
+    const fromDB = payload._raw.customersDB.map(c => typeof c === 'string' ? c : c.name).filter(Boolean);
+    CUSTOMERS_DB = [...new Set([...fromDB, ...DEFAULT_CUSTOMERS_DB])];
+  }
   raw = deriveRaw(payload);
   curYear = CUR_YEAR;
   const arr = toComputeRaw().monthly.value;
@@ -580,8 +589,117 @@ $('saveBtn').addEventListener('click', () => {
   }).finally(() => { $('saveBtn').disabled = false; });
 });
 
+// ---------- Excel: download template ----------
+$('tmplBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  const TH12 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: กรอกข้อมูล
+  const headers = ['เดือน','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (ลบ.)'];
+  const dataRows = [];
+  // สร้างแถวตัวอย่างสำหรับแต่ละเดือนและลูกค้า
+  const sampleCusts = CUSTOMERS_DB.slice(0, 5);
+  TH12.slice(0, 5).forEach(m => {
+    sampleCusts.forEach(c => {
+      dataRows.push([m, c, 0, 0, 0, 0, 0, 0]);
+    });
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+  ws1['!cols'] = [{wch:8},{wch:22},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'ข้อมูลการขาย 2569');
+
+  // Sheet 2: รายชื่อลูกค้า
+  const ws2 = XLSX.utils.aoa_to_sheet([['รายชื่อลูกค้า'], ...CUSTOMERS_DB.map(c => [c])]);
+  ws2['!cols'] = [{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'รายชื่อลูกค้า');
+
+  // Sheet 3: รายการสินค้า
+  const ws3 = XLSX.utils.aoa_to_sheet([
+    ['รายการสินค้า (คอลัมน์ในชีต 1)'],
+    ['ม้วนใส'],['ม้วนพิมพ์'],['ถุงคลุม/ชีท'],['ฟิล์มยืด'],['ถุงหลอด'],
+  ]);
+  ws3['!cols'] = [{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'รายการสินค้า');
+
+  XLSX.writeFile(wb, 'BWP_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  toast('✓ ดาวน์โหลดเทมเพลต Excel แล้ว', 'ok');
+});
+
+// ---------- Excel: upload ----------
+$('uploadBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  $('fileInput').click();
+});
+$('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+      importWorkbook(wb);
+    } catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
+    $('fileInput').value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function importWorkbook(wb) {
+  const TH_IDX = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
+  const PROD_KEY = {'ม้วนใส':'p0','ม้วนพิมพ์':'p1','ถุงคลุม/ชีท':'p2','ฟิล์มยืด':'p3','ถุงหลอด':'p4'};
+
+  // หา sheet ข้อมูลการขาย (sheet แรกหรือชื่อขึ้นต้นด้วย "ข้อมูล")
+  const sheetName = wb.SheetNames.find(s => s.startsWith('ข้อมูล')) || wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  if (!ws) { toast('ไม่พบชีตข้อมูลในไฟล์','err'); return; }
+
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }).filter(r => r && r.length > 1);
+  if (rows.length < 2) { toast('ไม่พบข้อมูลในชีต','err'); return; }
+
+  // parse header row (row 0)
+  const hdr = rows[0].map(h => String(h||'').trim());
+  const monCol = hdr.findIndex(h => h === 'เดือน');
+  const custCol = hdr.findIndex(h => h === 'ลูกค้า');
+  const valCol = hdr.findIndex(h => h.includes('มูลค่า'));
+  const prodCols = {}; // prodKey → colIdx
+  hdr.forEach((h, i) => {
+    const clean = h.replace(/\s*\(.*?\)/g,'').trim();
+    if (PROD_KEY[clean]) prodCols[PROD_KEY[clean]] = i;
+  });
+
+  if (monCol < 0 || custCol < 0) { toast('ไม่พบคอลัมน์ "เดือน" หรือ "ลูกค้า"','err'); return; }
+
+  // reset customers for 2569 (keep history)
+  raw.customers.forEach(c => { c.monthlyProd = padProd12([]); });
+
+  let added = 0, updated = 0;
+  rows.slice(1).forEach(row => {
+    const mon = String(row[monCol]||'').trim();
+    const custName = String(row[custCol]||'').trim();
+    if (!custName || TH_IDX[mon] === undefined) return;
+    const m = TH_IDX[mon];
+
+    let cust = raw.customers.find(c => c.name === custName);
+    if (!cust) {
+      cust = { name: custName, monthlyProd: padProd12([]) };
+      raw.customers.push(cust);
+      added++;
+      if (!CUSTOMERS_DB.includes(custName)) { CUSTOMERS_DB.push(custName); buildCustDatalist(); }
+    } else { updated++; }
+
+    const mp = cust.monthlyProd[m];
+    Object.entries(prodCols).forEach(([key, col]) => { mp[key] = n(row[col]); });
+    if (valCol >= 0) mp.value = n(row[valCol]);
+  });
+
+  curYear = CUR_YEAR; curMonth = 0;
+  buildYearSelect(); buildMonthSelect(); renderMonth();
+  toast(`✓ นำเข้าสำเร็จ · ลูกค้าใหม่ ${added} · อัปเดต ${updated} · ตรวจสอบแล้วกด "บันทึก"`, 'ok');
+}
+
 // auto-login
 (function(){ let saved=null; try{saved=sessionStorage.getItem('bwp_pass');}catch(e){} if(saved) doLogin(saved, true); else $('loginPass').focus(); })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </body>
 </html>
