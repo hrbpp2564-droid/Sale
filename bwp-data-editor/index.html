@@ -4,47 +4,67 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
-<link rel="stylesheet" href="../styles.css?v=20260612n" />
+<link rel="stylesheet" href="../styles.css?v=20260615e" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 22px 100px; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
   h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
   .sub { color: var(--text-tertiary); font-size: 14px; margin-bottom: 20px; }
-  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 16px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); position: sticky; top: 0; z-index: 20; }
+  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 16px;
+         background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+         position: sticky; top: 0; z-index: 20; }
   .status { font-size: 13px; display: flex; align-items: center; gap: 8px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .card { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 16px; }
+  .card { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+          padding: 18px 20px; margin-bottom: 16px; }
   .card h2 { font-size: 16px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
   .card h2 .tag { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border-default); }
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+       color: var(--text-tertiary); font-weight: 600; padding: 6px 8px;
+       border-bottom: 1px solid var(--border-default); white-space: nowrap; }
   th.num, td.num { text-align: right; }
-  td { padding: 5px 8px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
-  td.lbl { color: var(--text-secondary); }
-  input, select { box-sizing: border-box; background: var(--surface-inset); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-numeric); font-size: 13px; padding: 7px 9px; text-align: right; }
+  td { padding: 4px 6px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+  input, select { box-sizing: border-box; background: var(--surface-inset); border: 1px solid var(--border-default);
+                  border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-numeric);
+                  font-size: 13px; padding: 6px 8px; }
   input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
   input.text, select { text-align: left; font-family: var(--font-sans); }
-  .kg { width: 130px; }
+  .cust-name { width: 100%; min-width: 140px; }
+  .kg { width: 90px; text-align: right; }
+  .val { width: 90px; text-align: right; }
+  .tot { width: 90px; text-align: right; background: var(--surface-2); color: var(--text-secondary); cursor: default; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
   .fld { display: flex; flex-direction: column; gap: 5px; }
   .fld label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; }
   .fld input { text-align: right; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: var(--radius-md); border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: var(--radius-md);
+         border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 600; cursor: pointer; }
   .btn.primary { background: var(--accent); color: #fff; }
   .btn.ghost { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-default); }
   .btn.sm { height: 30px; padding: 0 12px; font-size: 12.5px; }
+  .btn.danger { background: transparent; color: var(--negative); border: 1px solid var(--border-default); }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow-lg); transition: all .25s; pointer-events: none; z-index: 99; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+           background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+           padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow-lg); transition: all .25s;
+           pointer-events: none; z-index: 99; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.ok { border-color: var(--positive); } .toast.err { border-color: var(--negative); }
   .hint { font-size: 12px; color: var(--text-tertiary); margin-top: 10px; line-height: 1.6; }
   .kpibox { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 10px; }
   .kpi { background: var(--surface-inset); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 14px; }
   .kpi .l { font-size: 11px; color: var(--text-tertiary); } .kpi .v { font-size: 20px; font-weight: 700; font-family: var(--font-numeric); }
-  .search { width: 220px; text-align: left; font-family: var(--font-sans); }
-  .custrow td:first-child { width: 60%; }
+  .prod-sum-table { width: 100%; border-collapse: collapse; }
+  .prod-sum-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+  .prod-sum-table td.lbl { color: var(--text-secondary); font-weight: 500; }
+  .prod-sum-table td.val { text-align: right; font-family: var(--font-numeric); }
+  .prod-sum-table tr:last-child td { border-bottom: none; font-weight: 700; }
+  .del-btn { background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 2px 6px; font-size: 14px; border-radius: 4px; }
+  .del-btn:hover { color: var(--negative); background: var(--surface-2); }
+  .arrow { color: var(--text-tertiary); font-size: 18px; text-align: center; margin: 4px 0; }
   a { color: var(--text-link); }
-  /* login */
   #login { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: #0b1220; }
   #login form { width: 340px; max-width: 90vw; background: #141d2e; border: 1px solid #243049; border-radius: 16px; padding: 28px 26px; }
   #login .t { font-size: 20px; font-weight: 700; color: #fff; }
@@ -68,7 +88,7 @@
 
 <div class="wrap" id="app" style="display:none">
   <h1>บันทึกข้อมูลการขาย</h1>
-  <div class="sub">กรอกยอดขายของเดือน → กดบันทึก → ระบบสรุปเป็นแดชบอร์ดให้อัตโนมัติ · <a href="/">← ไปหน้า Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
+  <div class="sub">กรอกยอดขายต่อลูกค้าและสินค้า → ระบบสรุปยอดรายสินค้าและยอดรวมอัตโนมัติ · <a href="/">← Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
 
   <div class="bar">
     <div class="status"><span class="dot" id="dot" style="background:var(--warning)"></span><span id="statusText">กำลังโหลด…</span></div>
@@ -77,78 +97,122 @@
     <label style="font-size:13px;color:var(--text-secondary)">เดือน:</label>
     <select id="monthSel"></select>
     <div style="flex:1"></div>
-    <a class="btn ghost" id="tmplBtn" href="/bwp-data-editor/BWP-template.xlsx" download>⬇ เทมเพลต Excel</a>
-    <button class="btn ghost" id="uploadBtn" type="button">⬆ อัปโหลด Excel</button>
-    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
     <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
 
   <div id="forms" style="display:none">
-    <div class="card">
+
+    <!-- ปีย้อนหลัง: กรอกเฉพาะยอดรวม -->
+    <div class="card" id="histCard" style="display:none">
       <h2>ยอดรวมของเดือน <span class="tag" id="mLbl"></span></h2>
       <div class="grid2">
         <div class="fld"><label>มูลค่าขายรวม (ล้านบาท)</label><input id="mValue" placeholder="—"></div>
         <div class="fld"><label>ปริมาณขายรวม (พัน Kg)</label><input id="mVolume" placeholder="—"></div>
       </div>
-      <div class="hint" id="totHint">เช่น มูลค่า 59.4 = 59.4 ล้านบาท · ปริมาณ 646 = 646,000 Kg</div>
+      <div class="hint">ปีย้อนหลัง: กรอกเฉพาะยอดรวมรายเดือน (มูลค่า/ปริมาณ) เพื่อใช้เปรียบเทียบหลายปี</div>
     </div>
 
+    <!-- ปีปัจจุบัน -->
     <div id="detailCards">
-    <div class="card">
-      <h2>ยอดรายสินค้า (Kg) <span class="tag">— ของเดือนที่เลือก</span></h2>
-      <table><thead><tr><th>สินค้า</th><th>กลุ่ม</th><th class="num">ปริมาณ (Kg)</th></tr></thead><tbody id="prodBody"></tbody></table>
-      <div style="margin-top:10px"><button class="btn ghost sm" id="addProd" type="button">+ เพิ่มสินค้า</button></div>
-    </div>
 
-    <div class="card">
-      <h2>ยอดรายลูกค้า (Kg) <span class="tag">— ของเดือนที่เลือก</span>
-        <span style="flex:1"></span>
-        <input class="search" id="custSearch" placeholder="ค้นหาลูกค้า…">
-      </h2>
-      <table><thead><tr><th>ลูกค้า</th><th class="num">ปริมาณ (Kg)</th></tr></thead><tbody id="custBody"></tbody></table>
-      <div style="margin-top:10px"><button class="btn ghost sm" id="addCust" type="button">+ เพิ่มลูกค้า</button></div>
-    </div>
+      <!-- [1] ตารางยอดรายลูกค้า (MAIN ENTRY) -->
+      <div class="card">
+        <h2>
+          ยอดรายลูกค้า <span class="tag" id="custMonLbl">— เดือนที่เลือก</span>
+          <span style="flex:1"></span>
+        </h2>
+        <div class="tbl-wrap">
+          <table id="custTable">
+            <thead>
+              <tr>
+                <th style="width:40px"></th>
+                <th style="min-width:150px">ลูกค้า</th>
+                <th class="num">ม้วนใส<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
+                <th class="num">ม้วนพิมพ์<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
+                <th class="num">ถุงคลุม/ชีท<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
+                <th class="num">ฟิล์มยืด<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
+                <th class="num">ถุงหลอด<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
+                <th class="num" style="background:var(--surface-2)">ยอดรวม<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
+                <th class="num">มูลค่า<br><small style="font-weight:400;text-transform:none">(ลบ.)</small></th>
+              </tr>
+            </thead>
+            <tbody id="custBody"></tbody>
+            <tfoot id="custFoot"></tfoot>
+          </table>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button class="btn ghost sm" id="addCust" type="button">+ เพิ่มลูกค้า</button>
+          <span class="hint" style="margin:0">คลิก × ลบแถว · ยอดรวมและยอดรายสินค้าอัปเดตอัตโนมัติ</span>
+        </div>
+      </div>
 
-    <div class="card">
-      <h2>สรุปที่คำนวณได้ <span class="tag">— ตัวอย่างก่อนบันทึก</span></h2>
-      <div class="kpibox" id="kpiPreview"></div>
-      <div class="hint">ตัวเลขเหล่านี้คำนวณจากข้อมูลทุกเดือนที่กรอกไว้ และจะอัปเดตทันทีเมื่อบันทึก</div>
-    </div>
+      <div class="arrow">↓</div>
+
+      <!-- [2] ยอดรายสินค้า (AUTO-CALCULATED) -->
+      <div class="card">
+        <h2>ยอดรายสินค้า <span class="tag">— สรุปจากยอดลูกค้าข้างบน (อัตโนมัติ)</span></h2>
+        <table class="prod-sum-table" id="prodSumTable">
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <!-- [3] ยอดรวมของเดือน (AUTO-CALCULATED) -->
+      <div class="card">
+        <h2>ยอดรวมของเดือน <span class="tag">— คำนวณจากยอดรายสินค้า (อัตโนมัติ)</span></h2>
+        <div class="kpibox" id="monthSummary"></div>
+      </div>
+
+      <!-- [4] Preview KPIs -->
+      <div class="card">
+        <h2>สรุปที่คำนวณได้ <span class="tag">— ตัวอย่างก่อนบันทึก</span></h2>
+        <div class="kpibox" id="kpiPreview"></div>
+        <div class="hint">ตัวเลขเหล่านี้คำนวณจากข้อมูลทุกเดือนที่กรอกไว้ และจะอัปเดตทันทีเมื่อบันทึก</div>
+      </div>
+
     </div>
   </div>
 </div>
 
+<datalist id="custNames"></datalist>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260612n"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260612n"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260612n"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260615e"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260615e"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260615e"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const GROUPS = ['ฟิล์มใส','พิมพ์สี','PCR (รีไซเคิล)','สูตรพิเศษ'];
-// 5 รายการสินค้ามาตรฐาน — จะแสดงให้กรอกเสมอแม้ยังไม่มีข้อมูล
-const PRODUCTS_STD = [
-  { name: 'ม้วนใส',      group: 'ฟิล์มใส' },
-  { name: 'ม้วนพิมพ์',    group: 'พิมพ์สี' },
-  { name: 'ถุงคลุม/ชีท',  group: 'ฟิล์มใส' },
-  { name: 'ฟิล์มยืด',     group: 'PCR (รีไซเคิล)' },
-  { name: 'ถุงหลอด',      group: 'สูตรพิเศษ' },
+
+// ---- ฐานข้อมูลชื่อลูกค้า (เพิ่มชื่อได้ที่นี่) ----
+let CUSTOMERS_DB = [
+  'โทน้ำทิพย์','ที.ซีฟาร์มา','หาดทิพย์','โอสลสภา','กรีนสปอต','เสริมสุข',
+  'บิ๊กซี','เทสโก้ โลตัส','แม็คโคร','ท็อปส์','ซีพีเอฟ','เบทาโกร','สหฟาร์ม',
+  'คาราบาว','ไทยเบฟ','ดอยคำ','มาลี','ดอลฟิน','ไทยยูเนี่ยน',
 ];
-const CUR_YEAR = 2569;                    // ปีปัจจุบัน (กรอกครบทั้งสินค้า/ลูกค้า)
-const HIST_YEARS = [2565, 2566, 2567, 2568]; // ปีย้อนหลัง (กรอกเฉพาะยอดรวมรายเดือน)
-const ALL_YEARS = HIST_YEARS.concat([CUR_YEAR]);
-const $ = (id) => document.getElementById(id);
+
+const PRODUCTS_STD = [
+  { key: 'p0', name: 'ม้วนใส',      group: 'ฟิล์มใส' },
+  { key: 'p1', name: 'ม้วนพิมพ์',    group: 'พิมพ์สี' },
+  { key: 'p2', name: 'ถุงคลุม/ชีท',  group: 'ฟิล์มใส' },
+  { key: 'p3', name: 'ฟิล์มยืด',     group: 'PCR (รีไซเคิล)' },
+  { key: 'p4', name: 'ถุงหลอด',      group: 'สูตรพิเศษ' },
+];
+
+const CUR_YEAR   = 2569;
+const HIST_YEARS = [2565, 2566, 2567, 2568];
+const ALL_YEARS  = HIST_YEARS.concat([CUR_YEAR]);
+const $ = id => document.getElementById(id);
 let PASS = null, raw = null, curMonth = 0, curYear = CUR_YEAR;
 
 const isCur = () => curYear === CUR_YEAR;
-// ยอดรวมรายเดือนของปีที่กำลังกรอก (ปีปัจจุบัน=raw.monthly, ปีย้อนหลัง=raw.history[ปี])
 function curArr() { return isCur() ? raw.monthly : raw.history[String(curYear)]; }
 
-function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (kind||''); setTimeout(() => { t.className = 'toast ' + (kind||''); }, 3400); }
+function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show '+(kind||''); setTimeout(() => { t.className='toast '+(kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
 function n(x){ const v = parseFloat(x); return isFinite(v) ? v : 0; }
+function fmt(x) { return Number.isInteger(x) ? x.toLocaleString('en-US') : x.toFixed(1); }
 
 // ---------- login ----------
 function doLogin(pass, fromStore) {
@@ -166,31 +230,51 @@ function doLogin(pass, fromStore) {
 }
 $('loginForm').addEventListener('submit', (ev) => { ev.preventDefault(); const p = $('loginPass').value.trim(); if (p) doLogin(p, false); });
 
-// ---------- derive raw from payload (self-heal if _raw missing) ----------
+function pad12(a){ a = (a||[]).slice(0,12).map(x => x===null||x==='' ? null : x); while (a.length<12) a.push(null); return a; }
+function padProd12(a){
+  a = a || [];
+  const blank = () => ({ p0:0, p1:0, p2:0, p3:0, p4:0, value:0 });
+  const out = [];
+  for (let i=0;i<12;i++) out.push(Object.assign(blank(), a[i]||{}));
+  return out;
+}
+
+// ---------- derive raw from payload ----------
 function deriveRaw(payload) {
   let r;
   if (payload && payload._raw && payload._raw.monthly) {
     const s = payload._raw;
     r = {
       monthly: { value: pad12(s.monthly.value), volume: pad12(s.monthly.volume) },
-      products: (s.products||[]).map(p => ({ name: p.name, group: p.group||'ฟิล์มใส', monthlyKg: pad12(p.monthlyKg) })),
-      customers: (s.customers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthlyKg) })),
+      customers: (s.customers||[]).map(c => ({
+        name: c.name,
+        monthlyProd: padProd12(c.monthlyProd),
+        // legacy: if no monthlyProd but has monthlyKg, preserve as total in p0
+        _legacyKg: c.monthlyProd ? null : pad12(c.monthlyKg)
+      })),
       history: {}
     };
+    // migrate legacy monthlyKg → monthlyProd
+    r.customers.forEach(c => {
+      if (c._legacyKg) {
+        c._legacyKg.forEach((kg, m) => {
+          if (kg) c.monthlyProd[m].p0 = n(kg); // put in ม้วนใส as placeholder
+        });
+        delete c._legacyKg;
+      }
+    });
     const h = s.history || {};
     Object.keys(h).forEach(y => { r.history[y] = { value: pad12(h[y] && h[y].value), volume: pad12(h[y] && h[y].volume) }; });
   } else {
     // back-calc from derived payload
     const val = pad12((payload.valueByYear && payload.valueByYear['2569']) || []);
     const vol = pad12((payload.volumeByYear && payload.volumeByYear['2569']) || []);
-    const products = (payload.PRODUCTS||[]).map(p => ({
-      name: p.name, group: p.group||'ฟิล์มใส',
-      monthlyKg: pad12((p.monthly||[]).map((v,i)=> (p.priceMonthly&&p.priceMonthly[i]) ? Math.round(v*1e6/p.priceMonthly[i]) : 0))
+    const customers = (payload.allCustomers||[]).map(c => ({
+      name: c.name,
+      monthlyProd: padProd12((c.monthly||[]).map((kg,i) => ({ p0: kg||0, value: 0 })))
     }));
-    const customers = (payload.allCustomers||[]).map(c => ({ name: c.name, monthlyKg: pad12(c.monthly||[]) }));
-    r = { monthly: { value: val, volume: vol }, products, customers, history: {} };
+    r = { monthly: { value: val, volume: vol }, customers, history: {} };
   }
-  // seed every history year so it is always editable; prefer _raw.history, else valueByYear
   HIST_YEARS.forEach(y => {
     const key = String(y);
     if (!r.history[key]) {
@@ -199,29 +283,47 @@ function deriveRaw(payload) {
       r.history[key] = { value: pad12(v), volume: pad12(k) };
     }
   });
+  // collect known customer names
+  r.customers.forEach(c => { if (c.name && !CUSTOMERS_DB.includes(c.name)) CUSTOMERS_DB.push(c.name); });
   return r;
 }
-function pad12(a){ a = (a||[]).slice(0,12).map(x => x===null||x==='' ? null : x); while (a.length<12) a.push(null); return a; }
 
-// ---------- ensure the 5 standard products always have a row ----------
-function ensureStdProducts() {
-  PRODUCTS_STD.forEach(std => {
-    const found = raw.products.find(p => (p.name||'').trim() === std.name);
-    if (found) { if (!found.group) found.group = std.group; }
-    else raw.products.push({ name: std.name, group: std.group, monthlyKg: pad12([]) });
-  });
+// ---------- build compute-compatible raw from new structure ----------
+function toComputeRaw() {
+  const products = PRODUCTS_STD.map((std, pi) => ({
+    name: std.name, group: std.group,
+    monthlyKg: Array(12).fill(0).map((_, m) =>
+      raw.customers.reduce((s, c) => s + n((c.monthlyProd[m]||{})[std.key]), 0)
+    )
+  }));
+  const monthly = {
+    value: Array(12).fill(0).map((_, m) => {
+      const v = raw.customers.reduce((s, c) => s + n((c.monthlyProd[m]||{}).value), 0);
+      return v > 0 ? v : null;
+    }),
+    volume: Array(12).fill(0).map((_, m) => {
+      const kg = products.reduce((s, p) => s + (p.monthlyKg[m]||0), 0);
+      return kg > 0 ? kg / 1000 : null; // → พัน Kg
+    })
+  };
+  const customers = raw.customers.map(c => ({
+    name: c.name,
+    monthlyKg: Array(12).fill(0).map((_, m) =>
+      PRODUCTS_STD.reduce((s, std) => s + n((c.monthlyProd[m]||{})[std.key]), 0)
+    )
+  }));
+  return { monthly, products, customers, history: raw.history };
 }
 
 // ---------- boot ----------
 function boot(payload) {
   raw = deriveRaw(payload);
-  ensureStdProducts();
   curYear = CUR_YEAR;
-  const arr = curArr().value;
-  // default month = first empty month (next to enter), else last month
+  const arr = toComputeRaw().monthly.value;
   let def = 0; for (let i=0;i<12;i++){ if (arr[i]!=null && n(arr[i])>0) def = i; }
   let nextEmpty = -1; for (let i=0;i<12;i++){ if (arr[i]==null || n(arr[i])===0){ nextEmpty=i; break; } }
   curMonth = nextEmpty >= 0 ? nextEmpty : def;
+  buildCustDatalist();
   buildYearSelect();
   buildMonthSelect();
   renderMonth();
@@ -230,13 +332,20 @@ function boot(payload) {
   setStatus('เข้าสู่ระบบแล้ว · พร้อมบันทึก', 'var(--positive)');
 }
 
+function buildCustDatalist() {
+  const dl = $('custNames'); dl.innerHTML = '';
+  CUSTOMERS_DB.forEach(name => {
+    const opt = document.createElement('option'); opt.value = name; dl.appendChild(opt);
+  });
+}
+
 function buildYearSelect() {
   const sel = $('yearSel'); sel.innerHTML = '';
   ALL_YEARS.forEach(y => {
-    const a = (y === CUR_YEAR ? raw.monthly : raw.history[String(y)]).value;
-    const has = a.some(v => v != null && n(v) > 0);
+    const a = y === CUR_YEAR ? toComputeRaw().monthly.value : raw.history[String(y)].value;
+    const has = (a||[]).some(v => v != null && n(v) > 0);
     const o = document.createElement('option'); o.value = y;
-    o.textContent = y + (y === CUR_YEAR ? ' (ปีปัจจุบัน)' : '') + (has ? ' ✓' : '');
+    o.textContent = y + (y === CUR_YEAR ? ' (ปัจจุบัน)' : '') + (has ? ' ✓' : '');
     sel.appendChild(o);
   });
   sel.value = curYear;
@@ -244,163 +353,222 @@ function buildYearSelect() {
 
 function buildMonthSelect() {
   const sel = $('monthSel'); sel.innerHTML = '';
-  const arr = curArr().value;
-  TH.forEach((m,i) => { const has = arr[i]!=null && n(arr[i])>0; const o = document.createElement('option'); o.value=i; o.textContent = m + (has ? ' ✓' : ''); sel.appendChild(o); });
+  const arr = isCur() ? toComputeRaw().monthly.value : curArr().value;
+  TH.forEach((m,i) => {
+    const has = arr[i]!=null && n(arr[i])>0;
+    const o = document.createElement('option'); o.value=i;
+    o.textContent = m + (has ? ' ✓' : '');
+    sel.appendChild(o);
+  });
   sel.value = curMonth;
 }
 
-// ---------- render one month ----------
+// ---------- render ----------
 function renderMonth() {
   const cur = isCur();
+  $('histCard').style.display   = cur ? 'none' : 'block';
   $('detailCards').style.display = cur ? 'block' : 'none';
-  $('totHint').textContent = cur
-    ? 'เช่น มูลค่า 59.4 = 59.4 ล้านบาท · ปริมาณ 646 = 646,000 Kg'
-    : 'ปีย้อนหลัง: กรอกเฉพาะยอดรวมรายเดือน (มูลค่า/ปริมาณ) เพื่อใช้เปรียบเทียบหลายปี';
   $('mLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
-  const arr = curArr();
-  $('mValue').value = valOr(arr.value[curMonth]);
-  $('mVolume').value = valOr(arr.volume[curMonth]);
-  if (!cur) { renderPreview(); return; }
-  // products
-  const pb = $('prodBody'); pb.innerHTML = '';
-  raw.products.forEach((p, idx) => {
-    const tr = document.createElement('tr');
-    const opts = GROUPS.map(g => '<option'+(g===p.group?' selected':'')+'>'+g+'</option>').join('');
-    tr.innerHTML =
-      '<td><input class="text" style="width:100%" data-pname="'+idx+'" value="'+esc(p.name)+'"></td>' +
-      '<td><select data-pgroup="'+idx+'">'+opts+'</select></td>' +
-      '<td class="num"><input class="kg" data-pkg="'+idx+'" value="'+valOr(p.monthlyKg[curMonth])+'" placeholder="0"></td>';
-    pb.appendChild(tr);
-  });
-  // customers
-  renderCustomers('');
+  if (!cur) {
+    const arr = curArr();
+    $('mValue').value = valOr(arr.value[curMonth]);
+    $('mVolume').value = valOr(arr.volume[curMonth]);
+    renderPreview(); return;
+  }
+  renderCustTable();
+  renderProdSummary();
+  renderMonthSummary();
   renderPreview();
 }
-function renderCustomers(filter) {
-  const cb = $('custBody'); cb.innerHTML = '';
+
+function renderCustTable() {
+  $('custMonLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
+  const tb = $('custBody'); tb.innerHTML = '';
   raw.customers.forEach((c, idx) => {
-    if (filter && c.name.toLowerCase().indexOf(filter.toLowerCase()) < 0) return;
-    const tr = document.createElement('tr'); tr.className = 'custrow';
-    tr.innerHTML =
-      '<td><input class="text" style="width:100%" data-cname="'+idx+'" value="'+esc(c.name)+'"></td>' +
-      '<td class="num"><input class="kg" data-ckg="'+idx+'" value="'+valOr(c.monthlyKg[curMonth])+'" placeholder="0"></td>';
-    cb.appendChild(tr);
+    const mp = c.monthlyProd[curMonth];
+    const tot = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><button class="del-btn" data-del="${idx}" title="ลบแถวนี้">×</button></td>
+      <td><input class="text cust-name" list="custNames" data-cname="${idx}" value="${esc(c.name)}" placeholder="ชื่อลูกค้า"></td>
+      <td class="num"><input class="kg" data-ckg="${idx}" data-key="p0" value="${valOr(mp.p0)}" placeholder="0"></td>
+      <td class="num"><input class="kg" data-ckg="${idx}" data-key="p1" value="${valOr(mp.p1)}" placeholder="0"></td>
+      <td class="num"><input class="kg" data-ckg="${idx}" data-key="p2" value="${valOr(mp.p2)}" placeholder="0"></td>
+      <td class="num"><input class="kg" data-ckg="${idx}" data-key="p3" value="${valOr(mp.p3)}" placeholder="0"></td>
+      <td class="num"><input class="kg" data-ckg="${idx}" data-key="p4" value="${valOr(mp.p4)}" placeholder="0"></td>
+      <td class="num"><input class="tot" data-ctot="${idx}" value="${tot > 0 ? tot.toLocaleString('en-US') : ''}" readonly></td>
+      <td class="num"><input class="val" data-cval="${idx}" value="${valOr(mp.value)}" placeholder="0"></td>
+    `;
+    tb.appendChild(tr);
+  });
+  // footer totals
+  const ft = $('custFoot'); ft.innerHTML = '';
+  const sums = { p0:0, p1:0, p2:0, p3:0, p4:0, tot:0, val:0 };
+  raw.customers.forEach(c => {
+    const mp = c.monthlyProd[curMonth];
+    PRODUCTS_STD.forEach(std => { sums[std.key] += n(mp[std.key]); });
+    sums.tot += PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
+    sums.val += n(mp.value);
+  });
+  const tr = document.createElement('tr');
+  tr.style.cssText = 'font-weight:700;background:var(--surface-2)';
+  tr.innerHTML = `
+    <td></td><td style="font-size:12px;color:var(--text-tertiary)">รวมทั้งหมด</td>
+    ${PRODUCTS_STD.map(std => `<td class="num" style="font-family:var(--font-numeric)">${sums[std.key] > 0 ? sums[std.key].toLocaleString('en-US') : '—'}</td>`).join('')}
+    <td class="num" style="font-family:var(--font-numeric)">${sums.tot > 0 ? sums.tot.toLocaleString('en-US') : '—'}</td>
+    <td class="num" style="font-family:var(--font-numeric)">${sums.val > 0 ? sums.val.toFixed(2) : '—'}</td>
+  `;
+  ft.appendChild(tr);
+}
+
+function renderProdSummary() {
+  const cRaw = toComputeRaw();
+  const tbody = $('prodSumTable').querySelector('tbody'); tbody.innerHTML = '';
+  let grandKg = 0;
+  PRODUCTS_STD.forEach(std => {
+    const kg = cRaw.products.find(p => p.name === std.name)?.monthlyKg[curMonth] || 0;
+    grandKg += kg;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="lbl">${std.name}</td><td class="val">${kg > 0 ? kg.toLocaleString('en-US') + ' Kg' : '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+  const trTot = document.createElement('tr');
+  trTot.innerHTML = `<td class="lbl">รวม</td><td class="val">${grandKg > 0 ? grandKg.toLocaleString('en-US') + ' Kg' : '—'}</td>`;
+  tbody.appendChild(trTot);
+}
+
+function renderMonthSummary() {
+  const cRaw = toComputeRaw();
+  const vol_pK = cRaw.monthly.volume[curMonth] || 0;    // พัน Kg
+  const val_lbn = cRaw.monthly.value[curMonth] || 0;    // ลบ.
+  const kg = vol_pK * 1000;
+  const price = (kg > 0 && val_lbn > 0) ? (val_lbn * 1e6 / kg).toFixed(1) : '—';
+  const box = $('monthSummary'); box.innerHTML = '';
+  [
+    { l: 'ปริมาณรวม',    v: kg > 0 ? Math.round(kg).toLocaleString('en-US') : '—', u: 'Kg' },
+    { l: 'มูลค่ารวม',    v: val_lbn > 0 ? val_lbn.toFixed(2) : '—', u: 'ลบ.' },
+    { l: 'ราคาเฉลี่ย',   v: price, u: '฿/Kg' },
+  ].forEach(k => {
+    const d = document.createElement('div'); d.className='kpi';
+    d.innerHTML = `<div class="l">${k.l}</div><div class="v">${k.v} <span style="font-size:12px;color:var(--text-tertiary)">${k.u}</span></div>`;
+    box.appendChild(d);
   });
 }
+
+function renderPreview() {
+  const out = window.BWP_compute(toComputeRaw());
+  const box = $('kpiPreview'); box.innerHTML = '';
+  out.KPIS.forEach(k => {
+    const d = document.createElement('div'); d.className='kpi';
+    d.innerHTML = `<div class="l">${k.label}</div><div class="v">${k.value} <span style="font-size:12px;color:var(--text-tertiary)">${k.unit}</span></div>`;
+    box.appendChild(d);
+  });
+}
+
 function valOr(x){ return (x===null||x===undefined||x==='') ? '' : x; }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 // ---------- collect current month inputs back into raw ----------
 function collectMonth() {
-  const arr = curArr();
-  arr.value[curMonth]  = $('mValue').value.trim()===''  ? null : n($('mValue').value);
-  arr.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
-  if (!isCur()) return; // ปีย้อนหลังกรอกเฉพาะยอดรวม ไม่มีตารางสินค้า/ลูกค้า
-  document.querySelectorAll('[data-pname]').forEach(inp => { raw.products[+inp.dataset.pname].name = inp.value.trim(); });
-  document.querySelectorAll('[data-pgroup]').forEach(sel => { raw.products[+sel.dataset.pgroup].group = sel.value; });
-  document.querySelectorAll('[data-pkg]').forEach(inp => { raw.products[+inp.dataset.pkg].monthlyKg[curMonth] = inp.value.trim()===''?0:n(inp.value); });
-  document.querySelectorAll('[data-cname]').forEach(inp => { raw.customers[+inp.dataset.cname].name = inp.value.trim(); });
-  document.querySelectorAll('[data-ckg]').forEach(inp => { raw.customers[+inp.dataset.ckg].monthlyKg[curMonth] = inp.value.trim()===''?0:n(inp.value); });
-}
-
-function renderPreview() {
-  collectMonth();
-  const out = window.BWP_compute(raw);
-  const box = $('kpiPreview'); box.innerHTML = '';
-  out.KPIS.forEach(k => {
-    const d = document.createElement('div'); d.className='kpi';
-    d.innerHTML = '<div class="l">'+k.label+'</div><div class="v">'+k.value+' <span style="font-size:12px;color:var(--text-tertiary)">'+k.unit+'</span></div>';
-    box.appendChild(d);
+  if (!isCur()) {
+    const arr = curArr();
+    arr.value[curMonth]  = $('mValue').value.trim()===''  ? null : n($('mValue').value);
+    arr.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
+    return;
+  }
+  // collect customer names
+  document.querySelectorAll('[data-cname]').forEach(inp => {
+    const idx = +inp.dataset.cname;
+    raw.customers[idx].name = inp.value.trim();
+    if (inp.value.trim() && !CUSTOMERS_DB.includes(inp.value.trim())) {
+      CUSTOMERS_DB.push(inp.value.trim());
+      buildCustDatalist();
+    }
+  });
+  // collect product kg per customer
+  document.querySelectorAll('[data-ckg]').forEach(inp => {
+    const idx = +inp.dataset.ckg;
+    const key = inp.dataset.key;
+    raw.customers[idx].monthlyProd[curMonth][key] = inp.value.trim()==='' ? 0 : n(inp.value);
+  });
+  // collect customer values
+  document.querySelectorAll('[data-cval]').forEach(inp => {
+    const idx = +inp.dataset.cval;
+    raw.customers[idx].monthlyProd[curMonth].value = inp.value.trim()==='' ? 0 : n(inp.value);
+  });
+  // update row totals
+  document.querySelectorAll('[data-ctot]').forEach(inp => {
+    const idx = +inp.dataset.ctot;
+    const mp = raw.customers[idx].monthlyProd[curMonth];
+    const tot = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
+    inp.value = tot > 0 ? tot.toLocaleString('en-US') : '';
   });
 }
 
 // ---------- events ----------
 $('yearSel').addEventListener('change', (e) => { collectMonth(); curYear = +e.target.value; buildMonthSelect(); renderMonth(); });
 $('monthSel').addEventListener('change', (e) => { collectMonth(); curMonth = +e.target.value; renderMonth(); });
-$('custSearch').addEventListener('input', (e) => { renderCustomers(e.target.value); });
-$('addProd').addEventListener('click', () => { collectMonth(); raw.products.push({ name:'สินค้าใหม่', group:'ฟิล์มใส', monthlyKg: pad12([]) }); renderMonth(); });
-$('addCust').addEventListener('click', () => { collectMonth(); raw.customers.push({ name:'ลูกค้าใหม่', monthlyKg: pad12([]) }); renderMonth(); $('custBody').lastChild.querySelector('input').focus(); });
-['mValue','mVolume'].forEach(id => $(id).addEventListener('input', renderPreview));
-$('prodBody').addEventListener('input', renderPreview);
-$('custBody').addEventListener('input', (e) => { if (e.target.classList.contains('kg')) renderPreview(); });
-$('logout').addEventListener('click', (e) => { e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload(); });
 
-// ---------- import from Excel ----------
-const SHEET_TOTALS = 'ยอดรวมรายเดือน', SHEET_PROD = 'สินค้า 2569 (Kg)', SHEET_CUST = 'ลูกค้า 2569 (Kg)';
-function monthIndex(label) {
-  if (label == null) return -1;
-  const s = String(label).trim();
-  const i = TH.indexOf(s); if (i >= 0) return i;
-  const num = parseInt(s, 10); // also accept 1-12
-  return (num >= 1 && num <= 12) ? num - 1 : -1;
-}
-function importWorkbook(wb) {
-  // build a fresh raw, preserving nothing (Excel is the source of truth on import)
-  const fresh = { monthly: { value: pad12([]), volume: pad12([]) }, products: [], customers: [], history: {} };
-  HIST_YEARS.forEach(y => fresh.history[String(y)] = { value: pad12([]), volume: pad12([]) });
+$('addCust').addEventListener('click', () => {
+  collectMonth();
+  raw.customers.push({ name:'', monthlyProd: padProd12([]) });
+  renderCustTable();
+  // focus new row name input
+  const rows = $('custBody').querySelectorAll('tr');
+  const lastRow = rows[rows.length-1];
+  if (lastRow) { const inp = lastRow.querySelector('input.text'); if (inp) inp.focus(); }
+});
 
-  // sheet 1 — totals per year/month
-  const t = wb.Sheets[SHEET_TOTALS];
-  if (!t) throw new Error('ไม่พบชีต "' + SHEET_TOTALS + '"');
-  XLSX.utils.sheet_to_json(t, { header: 1 }).slice(1).forEach(row => {
-    if (!row || row.length === 0) return;
-    const year = parseInt(row[0], 10); const mi = monthIndex(row[1]);
-    if (!year || mi < 0) return;
-    const val = row[2] === '' || row[2] == null ? null : n(row[2]);
-    const vol = row[3] === '' || row[3] == null ? null : n(row[3]);
-    const tgt = year === CUR_YEAR ? fresh.monthly : fresh.history[String(year)];
-    if (!tgt) return; // ปีนอกช่วงที่รองรับ
-    tgt.value[mi] = val; tgt.volume[mi] = vol;
-  });
+$('custBody').addEventListener('click', (e) => {
+  if (e.target.dataset.del !== undefined) {
+    const idx = +e.target.dataset.del;
+    collectMonth();
+    raw.customers.splice(idx, 1);
+    renderCustTable();
+    renderProdSummary();
+    renderMonthSummary();
+    renderPreview();
+  }
+});
 
-  // sheet 2 — products (Kg per month, year 2569)
-  const p = wb.Sheets[SHEET_PROD];
-  if (p) XLSX.utils.sheet_to_json(p, { header: 1 }).slice(1).forEach(row => {
-    if (!row || !String(row[0] || '').trim()) return;
-    const mk = pad12([]); for (let m = 0; m < 12; m++) mk[m] = n(row[2 + m]);
-    fresh.products.push({ name: String(row[0]).trim(), group: String(row[1] || 'ฟิล์มใส').trim(), monthlyKg: mk });
-  });
+$('custBody').addEventListener('input', (e) => {
+  collectMonth();
+  renderProdSummary();
+  renderMonthSummary();
+  if (e.target.dataset.ckg !== undefined || e.target.dataset.cval !== undefined) renderPreview();
+});
 
-  // sheet 3 — customers (Kg per month, year 2569)
-  const c = wb.Sheets[SHEET_CUST];
-  if (c) XLSX.utils.sheet_to_json(c, { header: 1 }).slice(1).forEach(row => {
-    if (!row || !String(row[0] || '').trim()) return;
-    const mk = pad12([]); for (let m = 0; m < 12; m++) mk[m] = n(row[1 + m]);
-    fresh.customers.push({ name: String(row[0]).trim(), monthlyKg: mk });
-  });
+['mValue','mVolume'].forEach(id => $(id) && $(id).addEventListener('input', renderPreview));
 
-  raw = fresh;
-  ensureStdProducts();
-  curYear = CUR_YEAR; curMonth = 0;
-  buildYearSelect(); buildMonthSelect(); renderMonth();
-  const np = raw.products.filter(x => (x.monthlyKg||[]).some(v=>n(v)>0)).length;
-  const nc = raw.customers.length;
-  toast('✓ นำเข้าจาก Excel แล้ว · สินค้า '+np+' · ลูกค้า '+nc+' — ตรวจสอบแล้วกด "บันทึก"', 'ok');
-}
-$('uploadBtn').addEventListener('click', () => $('fileInput').click());
-$('fileInput').addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (!file) return;
-  if (typeof XLSX === 'undefined') { toast('ตัวอ่าน Excel ยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง', 'err'); return; }
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try { importWorkbook(XLSX.read(new Uint8Array(ev.target.result), { type: 'array' })); }
-    catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
-    $('fileInput').value = '';
-  };
-  reader.readAsArrayBuffer(file);
+$('logout').addEventListener('click', (e) => {
+  e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload();
 });
 
 $('reloadBtn').addEventListener('click', () => {
   setStatus('กำลังโหลด…','var(--warning)');
-  window.BWP_DB.getDashboard(PASS).then(boot).catch(e => { setStatus('โหลดไม่สำเร็จ','var(--negative)'); toast('โหลดไม่สำเร็จ','err'); });
+  window.BWP_DB.getDashboard(PASS).then(boot).catch(e => {
+    setStatus('โหลดไม่สำเร็จ','var(--negative)'); toast('โหลดไม่สำเร็จ','err');
+  });
 });
 
 $('saveBtn').addEventListener('click', () => {
   collectMonth();
-  // clean up empty new rows
-  raw.products = raw.products.filter(p => p.name && p.name.trim() && p.name !== 'สินค้าใหม่' || (p.monthlyKg||[]).some(x=>n(x)>0));
-  raw.customers = raw.customers.filter(c => (c.name && c.name.trim() && c.name !== 'ลูกค้าใหม่') || (c.monthlyKg||[]).some(x=>n(x)>0));
-  const payload = window.BWP_compute(raw);
+  // clean empty rows
+  raw.customers = raw.customers.filter(c => {
+    if (!c.name || !c.name.trim()) {
+      return PRODUCTS_STD.some(std => raw.customers.find(() => true) && c.monthlyProd.some(mp => n(mp[std.key]) > 0));
+    }
+    return true;
+  });
+  // build _raw to save (new format)
+  const saveRaw = {
+    monthly: toComputeRaw().monthly,
+    products: toComputeRaw().products,
+    customers: raw.customers.map(c => ({ name: c.name, monthlyProd: c.monthlyProd })),
+    history: raw.history
+  };
+  const payload = window.BWP_compute(toComputeRaw());
+  payload._raw = saveRaw;
   $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
   window.BWP_DB.saveDashboard(PASS, payload).then(() => {
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
@@ -412,7 +580,7 @@ $('saveBtn').addEventListener('click', () => {
   }).finally(() => { $('saveBtn').disabled = false; });
 });
 
-// auto-login if session has a password
+// auto-login
 (function(){ let saved=null; try{saved=sessionStorage.getItem('bwp_pass');}catch(e){} if(saved) doLogin(saved, true); else $('loginPass').focus(); })();
 </script>
 </body>
