@@ -1956,6 +1956,7 @@ try { (() => {
     const [active, setActive] = React.useState(() => localStorage.getItem('vantage.screen') || 'overview');
     const [theme, setTheme] = React.useState(() => localStorage.getItem('vantage.theme') || 'dark');
     const [collapsed, setCollapsed] = React.useState(false);
+    var _mobileOpen = React.useState(false); var mobileOpen = _mobileOpen[0]; var setMobileOpen = _mobileOpen[1];
     const [filters, setFilters] = React.useState({
       year: '2569',
       month: 'all',
@@ -1988,11 +1989,17 @@ try { (() => {
         background: 'var(--bg-app)'
       }
     }, /*#__PURE__*/React.createElement(Sidebar, {
+      'data-sidebar': true,
+      className: mobileOpen ? 'open' : '',
       active: active,
       onNav: nav,
       collapsed: collapsed,
       onToggle: () => setCollapsed(c => !c)
+    }), mobileOpen && /*#__PURE__*/React.createElement('div', {
+      'data-sidebar-backdrop': true,
+      onClick: function() { setMobileOpen(false); }
     }), /*#__PURE__*/React.createElement("div", {
+      'data-main': true,
       style: {
         flex: 1,
         minWidth: 0,
@@ -2005,7 +2012,8 @@ try { (() => {
       title: screen.title,
       subtitle: screen.subtitle,
       theme: theme,
-      onTheme: () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+      onTheme: () => setTheme(t => t === 'dark' ? 'light' : 'dark'),
+      onMenuToggle: function() { setMobileOpen(!mobileOpen); }
     }), /*#__PURE__*/React.createElement(FilterBar, {
       filters: filters,
       setFilters: setFilters
@@ -4715,7 +4723,8 @@ try { (() => {
     theme,
     onTheme,
     breadcrumb,
-    onBack
+    onBack,
+    onMenuToggle
   }) {
     return /*#__PURE__*/React.createElement("header", {
       style: {
@@ -4732,7 +4741,12 @@ try { (() => {
         backdropFilter: 'blur(8px)',
         borderBottom: '1px solid var(--border-subtle)'
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, React.createElement('button', {
+      'data-hamburger': true,
+      onClick: onMenuToggle || function(){},
+      style: { display: 'none', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', marginRight: 4 },
+      className: 'bwp-hamburger'
+    }, React.createElement(window.Icon, { name: 'menu', size: 20 })), /*#__PURE__*/React.createElement("div", {
       style: {
         minWidth: 0,
         flex: 1
@@ -4839,29 +4853,19 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(Icon, {
       name: theme === 'dark' ? 'sun' : 'moon',
       size: 17
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        paddingLeft: 6,
-        marginLeft: 2,
-        borderLeft: '1px solid var(--border-subtle)'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 32,
-        height: 32,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg,var(--viz-4),var(--accent))',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontWeight: 600,
-        fontSize: 13
-      }
-    }, "B"))));
+    })), React.createElement('div', {
+      style: { display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 6, marginLeft: 2, borderLeft: '1px solid var(--border-subtle)', cursor: 'pointer' },
+      title: 'ออกจากระบบ',
+      onClick: function() { window.BWP_LOGOUT && window.BWP_LOGOUT(); }
+    },
+      React.createElement('div', {
+        style: { width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,var(--viz-4),var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: 13 }
+      }, (window.BWP_USER && window.BWP_USER.username || 'B').charAt(0).toUpperCase()),
+      React.createElement('span', {
+        style: { fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'none' },
+        className: 'bwp-username'
+      }, window.BWP_USER && window.BWP_USER.username || '')
+    )));
   }
   function FilterBar({
     filters,
@@ -5322,7 +5326,8 @@ try { (() => {
     theme,
     onTheme,
     breadcrumb,
-    onBack
+    onBack,
+    onMenuToggle
   }) {
     return /*#__PURE__*/React.createElement("header", {
       style: {
@@ -5339,7 +5344,12 @@ try { (() => {
         backdropFilter: 'blur(8px)',
         borderBottom: '1px solid var(--border-subtle)'
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, React.createElement('button', {
+      'data-hamburger': true,
+      onClick: onMenuToggle || function(){},
+      style: { display: 'none', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', marginRight: 4 },
+      className: 'bwp-hamburger'
+    }, React.createElement(window.Icon, { name: 'menu', size: 20 })), /*#__PURE__*/React.createElement("div", {
       style: {
         minWidth: 0,
         flex: 1
@@ -5446,29 +5456,19 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(Icon, {
       name: theme === 'dark' ? 'sun' : 'moon',
       size: 17
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        paddingLeft: 6,
-        marginLeft: 2,
-        borderLeft: '1px solid var(--border-subtle)'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 32,
-        height: 32,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg,var(--viz-4),var(--accent))',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontWeight: 600,
-        fontSize: 13
-      }
-    }, "B"))));
+    })), React.createElement('div', {
+      style: { display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 6, marginLeft: 2, borderLeft: '1px solid var(--border-subtle)', cursor: 'pointer' },
+      title: 'ออกจากระบบ',
+      onClick: function() { window.BWP_LOGOUT && window.BWP_LOGOUT(); }
+    },
+      React.createElement('div', {
+        style: { width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,var(--viz-4),var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: 13 }
+      }, (window.BWP_USER && window.BWP_USER.username || 'B').charAt(0).toUpperCase()),
+      React.createElement('span', {
+        style: { fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'none' },
+        className: 'bwp-username'
+      }, window.BWP_USER && window.BWP_USER.username || '')
+    )));
   }
   function FilterBar({
     filters,
@@ -7937,6 +7937,7 @@ try { (() => {
     const [active, setActive] = React.useState(() => localStorage.getItem('vantage.screen') || 'overview');
     const [theme, setTheme] = React.useState(() => localStorage.getItem('vantage.theme') || 'dark');
     const [collapsed, setCollapsed] = React.useState(false);
+    var _mobileOpen = React.useState(false); var mobileOpen = _mobileOpen[0]; var setMobileOpen = _mobileOpen[1];
     const [filters, setFilters] = React.useState({
       year: '2569',
       month: 'all',
@@ -7969,11 +7970,17 @@ try { (() => {
         background: 'var(--bg-app)'
       }
     }, /*#__PURE__*/React.createElement(Sidebar, {
+      'data-sidebar': true,
+      className: mobileOpen ? 'open' : '',
       active: active,
       onNav: nav,
       collapsed: collapsed,
       onToggle: () => setCollapsed(c => !c)
+    }), mobileOpen && /*#__PURE__*/React.createElement('div', {
+      'data-sidebar-backdrop': true,
+      onClick: function() { setMobileOpen(false); }
     }), /*#__PURE__*/React.createElement("div", {
+      'data-main': true,
       style: {
         flex: 1,
         minWidth: 0,
@@ -7986,7 +7993,8 @@ try { (() => {
       title: screen.title,
       subtitle: screen.subtitle,
       theme: theme,
-      onTheme: () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+      onTheme: () => setTheme(t => t === 'dark' ? 'light' : 'dark'),
+      onMenuToggle: function() { setMobileOpen(!mobileOpen); }
     }), /*#__PURE__*/React.createElement(FilterBar, {
       filters: filters,
       setFilters: setFilters
