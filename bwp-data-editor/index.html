@@ -689,7 +689,6 @@ function importWorkbook(wb) {
       cust = { name: custName, monthlyProd: padProd12([]) };
       raw.customers.push(cust);
       added++;
-      if (!CUSTOMERS_DB.includes(custName)) CUSTOMERS_DB.push(custName);
     } else { updated++; }
 
     const mp = cust.monthlyProd[m];
