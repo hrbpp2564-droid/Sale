@@ -3491,7 +3491,7 @@ try { (() => {
   } = window;
   const D = window.VDATA;
   const NACT = D.NACT;
-  function CustomerScreen() {
+  function CustomerScreen({ filters } = {}) {
     const [sel, setSel] = React.useState(null);
     const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
@@ -3501,9 +3501,14 @@ try { (() => {
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
     // All customers with purchases in selected month
-    const allByMonth = [...(D.allCustomers||D.CUSTOMERS)].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
     const monTotal = (D.allCustomers||D.CUSTOMERS).reduce((s, c) => s + (c.monthly[mon] || 0), 0);
+    // ตารางลูกค้าทั้งหมด: ทำตามตัวกรองเดือนด้านบน — "ทุกเดือน" = แสดงลูกค้าทุกรายเรียงตามยอดรวม
+    const gAll = !filters || filters.month == null || filters.month === 'all' || filters.month === '';
+    const baseAll = D.allCustomers || D.CUSTOMERS;
+    const allByMonth = gAll
+      ? [...baseAll].filter(cx => (cx.kg || 0) > 0).sort((a, b) => (b.kg || 0) - (a.kg || 0))
+      : [...baseAll].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null)
@@ -3663,7 +3668,7 @@ try { (() => {
         })
       }]
     })), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E43\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19 " + D.MONTHS_ACT[mon],
+      title: gAll ? "ลูกค้าทั้งหมด (ทุกเดือน)" : ("ลูกค้าทั้งหมดในเดือน " + D.MONTHS_ACT[mon]),
       subtitle: "\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E21\u0E35\u0E22\u0E2D\u0E14\u0E0B\u0E37\u0E49\u0E2D · " + allByMonth.length + " \u0E23\u0E32\u0E22",
       padding: "none",
       style: { marginTop: 16 }
@@ -3686,19 +3691,21 @@ try { (() => {
         key: 'monKg',
         header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
         numeric: true,
-        render: r => fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
+        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
       }, {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
         numeric: true,
-        render: r => monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014'
+        render: r => gAll ? ((r.share != null ? r.share : 0) + '%') : (monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014')
       }, {
         key: 'monDelta',
         header: '% MoM',
         numeric: true,
-        render: r => mon > 0 && r.monthly[mon - 1]
-          ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
-          : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014')
+        render: r => gAll
+          ? /*#__PURE__*/React.createElement(DeltaBadge, { value: r.mom, size: "sm" })
+          : (mon > 0 && r.monthly[mon - 1]
+            ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
+            : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014'))
       }]
     })));
   }
@@ -6926,9 +6933,14 @@ try { (() => {
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
     // All customers with purchases in selected month
-    const allByMonth = [...(D.allCustomers||D.CUSTOMERS)].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     const maxMon = byMonth[0] ? byMonth[0].monthly[mon] || 1 : 1;
     const monTotal = (D.allCustomers||D.CUSTOMERS).reduce((s, c) => s + (c.monthly[mon] || 0), 0);
+    // ตารางลูกค้าทั้งหมด: ทำตามตัวกรองเดือนด้านบน — "ทุกเดือน" = แสดงลูกค้าทุกรายเรียงตามยอดรวม
+    const gAll = !filters || filters.month == null || filters.month === 'all' || filters.month === '';
+    const baseAll = D.allCustomers || D.CUSTOMERS;
+    const allByMonth = gAll
+      ? [...baseAll].filter(cx => (cx.kg || 0) > 0).sort((a, b) => (b.kg || 0) - (a.kg || 0))
+      : [...baseAll].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null)
@@ -7088,7 +7100,7 @@ try { (() => {
         })
       }]
     })), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E43\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19 " + D.MONTHS_ACT[mon],
+      title: gAll ? "ลูกค้าทั้งหมด (ทุกเดือน)" : ("ลูกค้าทั้งหมดในเดือน " + D.MONTHS_ACT[mon]),
       subtitle: "\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E21\u0E35\u0E22\u0E2D\u0E14\u0E0B\u0E37\u0E49\u0E2D · " + allByMonth.length + " \u0E23\u0E32\u0E22",
       padding: "none",
       style: { marginTop: 16 }
@@ -7111,19 +7123,21 @@ try { (() => {
         key: 'monKg',
         header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
         numeric: true,
-        render: r => fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
+        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round((r.monthly[mon] || 0) * 1000))
       }, {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
         numeric: true,
-        render: r => monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014'
+        render: r => gAll ? ((r.share != null ? r.share : 0) + '%') : (monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014')
       }, {
         key: 'monDelta',
         header: '% MoM',
         numeric: true,
-        render: r => mon > 0 && r.monthly[mon - 1]
-          ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
-          : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014')
+        render: r => gAll
+          ? /*#__PURE__*/React.createElement(DeltaBadge, { value: r.mom, size: "sm" })
+          : (mon > 0 && r.monthly[mon - 1]
+            ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
+            : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014'))
       }]
     })));
   }
