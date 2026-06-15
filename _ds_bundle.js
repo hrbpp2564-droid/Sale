@@ -2279,7 +2279,7 @@ try { (() => {
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
-    // products: filter by group/product, re-slice monthly to selected months, recompute val/share
+    // products: filter by product, re-slice monthly to selected months, recompute val/share
     let prods = D.PRODUCTS;
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
@@ -5584,7 +5584,7 @@ try { (() => {
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
-    // products: filter by group/product, re-slice monthly to selected months, recompute val/share
+    // products: filter by product, re-slice monthly to selected months, recompute val/share
     let prods = D.PRODUCTS;
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
