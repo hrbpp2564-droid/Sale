@@ -255,7 +255,8 @@ function deriveRaw(payload) {
         // legacy: if no monthlyProd but has monthlyKg, preserve as total in p0
         _legacyKg: c.monthlyProd ? null : pad12(c.monthlyKg)
       })),
-      history: {}
+      history: {},
+      customersDB: s.customersDB || []
     };
     // migrate legacy monthlyKg → monthlyProd
     r.customers.forEach(c => {
@@ -572,7 +573,8 @@ $('saveBtn').addEventListener('click', () => {
     monthly: toComputeRaw().monthly,
     products: toComputeRaw().products,
     customers: raw.customers.map(c => ({ name: c.name, monthlyProd: c.monthlyProd })),
-    history: raw.history
+    history: raw.history,
+    customersDB: raw.customersDB || []
   };
   const payload = window.BWP_compute(toComputeRaw());
   payload._raw = saveRaw;
