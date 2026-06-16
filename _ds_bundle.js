@@ -3730,12 +3730,12 @@ try { (() => {
       subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: D.MONTHS_ACT,
+      labels: _detailD.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
         name: c.name,
-        data: c.monthly,
+        data: c.monthly.slice(0, _NACT),
         color: 'var(--viz-4)',
         type: 'area'
       }]
@@ -7008,12 +7008,12 @@ try { (() => {
       subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: D.MONTHS_ACT,
+      labels: _detailD.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
         name: c.name,
-        data: c.monthly,
+        data: c.monthly.slice(0, _NACT),
         color: 'var(--viz-4)',
         type: 'area'
       }]
