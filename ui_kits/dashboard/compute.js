@@ -176,7 +176,7 @@
       allCustomers: allCustomers,
       custTotalKg: Math.round(totalCustKg),
       nCustomers: nCustomers,
-      nSizes: nCustomers,
+      nSizes: nProducts,
       KPIS: KPIS,
       totals: {
         value: Math.round(totalValueBaht), volume: Math.round(totalVolKg), avgPrice: avgPrice,

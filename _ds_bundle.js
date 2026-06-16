@@ -2747,7 +2747,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (\u0E02\u0E19\u0E32\u0E14)",
-      value: String(D.nSizes),
+      value: String(D.PRODUCTS.filter(p => p.kg > 0).length),
       unit: "SKU",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "package",
@@ -3242,18 +3242,16 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / D.nSizes),
+      value: fmt.dec1(D.totals.value / 1e6 / (D.PRODUCTS.filter(p => p.kg > 0).length || 1)),
       unit: "\u0E25\u0E1A./SKU",
-      delta: 6.9,
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "package",
         size: 15
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / D.nCustomers),
+      value: fmt.dec1(D.totals.value / 1e6 / (D.nCustomers || 1)),
       unit: "\u0E25\u0E1A./\u0E23\u0E32\u0E22",
-      delta: 5.1,
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "users",
         size: 15
@@ -6056,7 +6054,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (\u0E02\u0E19\u0E32\u0E14)",
-      value: String(D.nSizes),
+      value: String(D.PRODUCTS.filter(p => p.kg > 0).length),
       unit: "SKU",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "package",
@@ -6556,18 +6554,16 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / D.nSizes),
+      value: fmt.dec1(D.totals.value / 1e6 / (D.PRODUCTS.filter(p => p.kg > 0).length || 1)),
       unit: "\u0E25\u0E1A./SKU",
-      delta: 6.9,
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "package",
         size: 15
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / D.nCustomers),
+      value: fmt.dec1(D.totals.value / 1e6 / (D.nCustomers || 1)),
       unit: "\u0E25\u0E1A./\u0E23\u0E32\u0E22",
-      delta: 5.1,
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "users",
         size: 15
