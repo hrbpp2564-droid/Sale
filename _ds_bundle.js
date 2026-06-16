@@ -3490,13 +3490,13 @@ try { (() => {
       thickness: 26,
       centerValue: Math.round(D.custTotalKg).toLocaleString('en-US'),
       centerLabel: "Kg \u0E23\u0E27\u0E21",
-      data: [...sorted.slice(0, 6).map((c, i) => ({
+      data: [...sorted.slice(0, 10).map((c, i) => ({
         label: c.name.split(' ')[0],
         value: c.kg,
-        color: `var(--viz-${i + 1})`
+        color: `var(--viz-${(i % 5) + 1})`
       })), {
         label: 'ลูกค้าอื่น',
-        value: D.custTotalKg - sorted.slice(0, 6).reduce((s, c) => s + c.kg, 0),
+        value: D.custTotalKg - sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0),
         color: 'var(--slate-500)'
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
@@ -6759,13 +6759,13 @@ try { (() => {
       thickness: 26,
       centerValue: Math.round(D.custTotalKg).toLocaleString('en-US'),
       centerLabel: "Kg \u0E23\u0E27\u0E21",
-      data: [...sorted.slice(0, 6).map((c, i) => ({
+      data: [...sorted.slice(0, 10).map((c, i) => ({
         label: c.name.split(' ')[0],
         value: c.kg,
-        color: `var(--viz-${i + 1})`
+        color: `var(--viz-${(i % 5) + 1})`
       })), {
         label: 'ลูกค้าอื่น',
-        value: D.custTotalKg - sorted.slice(0, 6).reduce((s, c) => s + c.kg, 0),
+        value: D.custTotalKg - sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0),
         color: 'var(--slate-500)'
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
