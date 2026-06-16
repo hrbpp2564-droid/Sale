@@ -24,6 +24,7 @@ function DonutChart({
   showLegend = true,
   gap = 2,
   // degrees between segments
+  valueFormat = null,
   style = {}
 }) {
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
@@ -111,7 +112,14 @@ function DonutChart({
       fontWeight: 'var(--weight-semibold)',
       color: 'var(--text-primary)'
     }
-  }, segs[active].pct.toFixed(2), "%"), /*#__PURE__*/React.createElement("span", {
+  }, segs[active].pct.toFixed(2), "%"), valueFormat ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-numeric)',
+      fontSize: 'var(--text-xs)',
+      color: 'var(--text-secondary)',
+      marginTop: 1
+    }
+  }, valueFormat(segs[active].value)) : null, /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 'var(--text-2xs)',
       color: 'var(--text-tertiary)',
@@ -171,9 +179,10 @@ function DonutChart({
       fontFamily: 'var(--font-numeric)',
       fontSize: 'var(--text-sm)',
       fontWeight: 'var(--weight-semibold)',
-      color: 'var(--text-primary)'
+      color: 'var(--text-primary)',
+      whiteSpace: 'nowrap'
     }
-  }, s.pct.toFixed(2), "%")))));
+  }, active === s.i && valueFormat ? valueFormat(s.value) : s.pct.toFixed(2) + "%")))));
 }
 Object.assign(__ds_scope, { DonutChart });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/charts/DonutChart.jsx", error: String((e && e.message) || e) }); }
@@ -3185,6 +3194,7 @@ try { (() => {
       thickness: 40,
       centerValue: fmt.m(D.totals.value / 1e6),
       centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E25\u0E1A.)",
+      valueFormat: v => (v / 1e6).toFixed(2) + " \u0E25\u0E1A.",
       data: segs
     }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -3493,6 +3503,7 @@ try { (() => {
       thickness: 26,
       centerValue: Math.round(D.custTotalKg).toLocaleString('en-US'),
       centerLabel: "Kg \u0E23\u0E27\u0E21",
+      valueFormat: v => Math.round(v).toLocaleString('en-US') + " Kg",
       data: [...sorted.slice(0, 10).map((c, i) => ({
         label: c.name.split(' ')[0],
         value: c.kg,
@@ -6458,6 +6469,7 @@ try { (() => {
       thickness: 40,
       centerValue: fmt.m(D.totals.value / 1e6),
       centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E25\u0E1A.)",
+      valueFormat: v => (v / 1e6).toFixed(2) + " \u0E25\u0E1A.",
       data: segs
     }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -6769,6 +6781,7 @@ try { (() => {
       thickness: 26,
       centerValue: Math.round(D.custTotalKg).toLocaleString('en-US'),
       centerLabel: "Kg \u0E23\u0E27\u0E21",
+      valueFormat: v => Math.round(v).toLocaleString('en-US') + " Kg",
       data: [...sorted.slice(0, 10).map((c, i) => ({
         label: c.name.split(' ')[0],
         value: c.kg,
