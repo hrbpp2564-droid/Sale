@@ -37,12 +37,7 @@
       '<div style="width:400px;max-width:100%;background:linear-gradient(160deg,#141d2e,#0f1929);border:1px solid #1e3052;border-radius:20px;padding:40px 36px;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:bwpFadeIn .4s ease">',
         /* Logo */
         '<div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">',
-          '<svg width="42" height="42" viewBox="0 0 48 48" fill="none">',
-            '<rect width="48" height="48" rx="11" fill="#1f6feb"/>',
-            '<path d="M12 31.5L20 22.5L26.5 29L36 16.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>',
-            '<circle cx="36" cy="16.5" r="3" fill="white"/>',
-            '<path d="M12 36.5H36" stroke="white" stroke-opacity=".45" stroke-width="2.4" stroke-linecap="round"/>',
-          '</svg>',
+          '<img src="/assets/bwp-logo.svg" width="44" height="44" alt="BWP" style="display:block"/>',
           '<div>',
             '<div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em">BWP <span style="color:#6b7fa3;font-weight:500">Vantage</span></div>',
             '<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#4a5d7a;margin-top:1px">Sales Intelligence</div>',

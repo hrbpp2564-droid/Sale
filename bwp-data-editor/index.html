@@ -4,7 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
-<link rel="stylesheet" href="../styles.css?v=20260615t" />
+<link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
+<link rel="stylesheet" href="../styles.css?v=20260615u" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -78,6 +79,7 @@
 
 <div id="login">
   <form id="loginForm">
+    <img src="/assets/bwp-logo.svg" width="56" height="56" alt="BWP" style="display:block;margin:0 auto 14px"/>
     <div class="t">บันทึกข้อมูลการขาย</div>
     <div class="s">BWP Vantage · สำหรับเจ้าหน้าที่</div>
     <input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
@@ -87,7 +89,7 @@
 </div>
 
 <div class="wrap" id="app" style="display:none">
-  <h1>บันทึกข้อมูลการขาย</h1>
+  <h1 style="display:flex;align-items:center;gap:12px"><img src="/assets/bwp-logo.svg" width="36" height="36" alt="BWP"/>บันทึกข้อมูลการขาย</h1>
   <div class="sub">กรอกยอดขายต่อลูกค้าและสินค้า → ระบบสรุปยอดรายสินค้าและยอดรวมอัตโนมัติ · <a href="/bwp-customer-db/">👥 จัดการลูกค้า</a> · <a href="/">← Dashboard</a> · <a href="#" id="logout">ออกจากระบบ</a></div>
 
   <div class="bar">
@@ -181,9 +183,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260615t"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260615t"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260615t"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260615u"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260615u"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260615u"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 

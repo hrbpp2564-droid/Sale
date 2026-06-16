@@ -4506,37 +4506,15 @@ try { (() => {
         padding: collapsed ? '0' : '0 18px',
         justifyContent: collapsed ? 'center' : 'flex-start'
       }
-    }, /*#__PURE__*/React.createElement("svg", {
+    }, /*#__PURE__*/React.createElement("img", {
+      src: "/assets/bwp-logo.svg",
       width: "30",
       height: "30",
-      viewBox: "0 0 48 48",
-      fill: "none",
+      alt: "BWP",
       style: {
         flex: '0 0 auto'
       }
-    }, /*#__PURE__*/React.createElement("rect", {
-      width: "48",
-      height: "48",
-      rx: "11",
-      fill: "#1f6feb"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M12 31.5L20 22.5L26.5 29L36 16.5",
-      stroke: "white",
-      strokeWidth: "3.2",
-      strokeLinecap: "round",
-      strokeLinejoin: "round"
-    }), /*#__PURE__*/React.createElement("circle", {
-      cx: "36",
-      cy: "16.5",
-      r: "3",
-      fill: "white"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M12 36.5H36",
-      stroke: "white",
-      strokeOpacity: "0.45",
-      strokeWidth: "2.4",
-      strokeLinecap: "round"
-    })), !collapsed && /*#__PURE__*/React.createElement("div", {
+    }), !collapsed && /*#__PURE__*/React.createElement("div", {
       style: {
         lineHeight: 1.1
       }
@@ -5098,37 +5076,15 @@ try { (() => {
         padding: collapsed ? '0' : '0 18px',
         justifyContent: collapsed ? 'center' : 'flex-start'
       }
-    }, /*#__PURE__*/React.createElement("svg", {
+    }, /*#__PURE__*/React.createElement("img", {
+      src: "/assets/bwp-logo.svg",
       width: "30",
       height: "30",
-      viewBox: "0 0 48 48",
-      fill: "none",
+      alt: "BWP",
       style: {
         flex: '0 0 auto'
       }
-    }, /*#__PURE__*/React.createElement("rect", {
-      width: "48",
-      height: "48",
-      rx: "11",
-      fill: "#1f6feb"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M12 31.5L20 22.5L26.5 29L36 16.5",
-      stroke: "white",
-      strokeWidth: "3.2",
-      strokeLinecap: "round",
-      strokeLinejoin: "round"
-    }), /*#__PURE__*/React.createElement("circle", {
-      cx: "36",
-      cy: "16.5",
-      r: "3",
-      fill: "white"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M12 36.5H36",
-      stroke: "white",
-      strokeOpacity: "0.45",
-      strokeWidth: "2.4",
-      strokeLinecap: "round"
-    })), !collapsed && /*#__PURE__*/React.createElement("div", {
+    }), !collapsed && /*#__PURE__*/React.createElement("div", {
       style: {
         lineHeight: 1.1
       }
