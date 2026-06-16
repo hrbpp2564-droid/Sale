@@ -3421,7 +3421,8 @@ try { (() => {
       : [...baseAll].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
-      onBack: () => setSel(null)
+      onBack: () => setSel(null),
+      viewD: D
     });
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
@@ -3621,10 +3622,14 @@ try { (() => {
   }
   function CustomerDetail({
     customer: c,
-    onBack
+    onBack,
+    viewD
   }) {
-    const rank = [...(D.allCustomers||D.CUSTOMERS)].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
-    const avgPrice = D.totals.avgPrice;
+    const _detailD = viewD || window.VDATA;
+    const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
+    const _NACT = _detailD.NACT || 1;
+    const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
+    const avgPrice = _detailD.totals.avgPrice;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -3701,7 +3706,7 @@ try { (() => {
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.int(c.kg / NACT),
+      value: fmt.int(c.kg / (_NACT || 1)),
       unit: "Kg",
       delta: c.mom
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -3752,8 +3757,8 @@ try { (() => {
         size: 15
       }),
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      metric: fmt.int(Math.max(...c.monthly)) + ' Kg',
-      detail: 'เดือน ' + D.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]
+      metric: fmt.int(Math.max(...c.monthly.slice(0, _NACT))) + ' Kg',
+      detail: 'เดือน ' + (_detailD.MONTHS_ACT[c.monthly.slice(0, _NACT).indexOf(Math.max(...c.monthly.slice(0, _NACT)))] || '—')
     }), /*#__PURE__*/React.createElement(InsightCard, {
       tone: rank <= 3 ? 'warning' : 'info',
       icon: /*#__PURE__*/React.createElement(Icon, {
@@ -6692,7 +6697,8 @@ try { (() => {
       : [...baseAll].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
-      onBack: () => setSel(null)
+      onBack: () => setSel(null),
+      viewD: D
     });
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
@@ -6892,10 +6898,14 @@ try { (() => {
   }
   function CustomerDetail({
     customer: c,
-    onBack
+    onBack,
+    viewD
   }) {
-    const rank = [...(D.allCustomers||D.CUSTOMERS)].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
-    const avgPrice = D.totals.avgPrice;
+    const _detailD = viewD || window.VDATA;
+    const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
+    const _NACT = _detailD.NACT || 1;
+    const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
+    const avgPrice = _detailD.totals.avgPrice;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -6972,7 +6982,7 @@ try { (() => {
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.int(c.kg / NACT),
+      value: fmt.int(c.kg / (_NACT || 1)),
       unit: "Kg",
       delta: c.mom
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -7023,8 +7033,8 @@ try { (() => {
         size: 15
       }),
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      metric: fmt.int(Math.max(...c.monthly)) + ' Kg',
-      detail: 'เดือน ' + D.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]
+      metric: fmt.int(Math.max(...c.monthly.slice(0, _NACT))) + ' Kg',
+      detail: 'เดือน ' + (_detailD.MONTHS_ACT[c.monthly.slice(0, _NACT).indexOf(Math.max(...c.monthly.slice(0, _NACT)))] || '—')
     }), /*#__PURE__*/React.createElement(InsightCard, {
       tone: rank <= 3 ? 'warning' : 'info',
       icon: /*#__PURE__*/React.createElement(Icon, {
