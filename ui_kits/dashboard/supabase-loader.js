@@ -10,6 +10,18 @@
     var cur = window.VDATA || {};
     Object.assign(cur, payload);
     if (typeof cur.sum !== 'function') cur.sum = function (a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); };
+    // The stored payload often omits MONTHS_ACT (only TH_MONTHS + NACT + data
+    // arrays are persisted), leaving the skeleton's empty []. Screens that read
+    // window.VDATA directly (e.g. Customer Analysis) then render charts with no
+    // x-axis month labels. Rebuild it from TH_MONTHS so labels always show.
+    if ((!cur.MONTHS_ACT || !cur.MONTHS_ACT.length) && cur.TH_MONTHS && cur.TH_MONTHS.length) {
+      var nA = cur.NACT;
+      if (!nA && cur.volumeByYear && cur.volumeByYear['2569']) {
+        nA = cur.volumeByYear['2569'].filter(function (v) { return v != null; }).length;
+      }
+      cur.MONTHS_ACT = cur.TH_MONTHS.slice(0, nA || 0);
+      if (!cur.NACT) cur.NACT = cur.MONTHS_ACT.length;
+    }
     window.VDATA = cur;
     window.BWP_AUTHED = true;
     window.__BWP_SOURCE = 'supabase';
