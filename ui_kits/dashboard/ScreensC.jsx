@@ -24,14 +24,14 @@
     const maxMon = byMonth[0] ? (byMonth[0].monthly[mon] || 1) : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
 
-    if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} />;
+    if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} viewD={D} />;
 
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="จำนวนลูกค้า" value={String(D.nCustomers)} unit="ราย" icon={<Icon name="users" size={15} />} />
           <KpiCard label="ปริมาณเฉลี่ย/ราย" value={fmt.int(D.custTotalKg / D.nCustomers)} unit="Kg" icon={<Icon name="box" size={15} />} />
-          <KpiCard label="Top 10 = สัดส่วน" value={(sorted.slice(0,10).reduce((s,c)=>s+c.kg,0)/D.custTotalKg*100).toFixed(0)} unit="%" delta={-1.2} />
+          <KpiCard label="Top 10 = สัดส่วน" value={(sorted.slice(0,10).reduce((s,c)=>s+c.kg,0)/D.custTotalKg*100).toFixed(0)} unit="%" />
           <KpiCard label="ลูกค้าโตเร็วสุด" value={fastest.name.split(' ')[0]} unit={fmt.pct(fastest.mom)} delta={fastest.mom} icon={<Icon name="trending-up" size={15} />} />
         </Grid>
 
@@ -80,9 +80,12 @@
     );
   }
 
-  function CustomerDetail({ customer: c, onBack }) {
-    const rank = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).indexOf(c) + 1;
-    const avgPrice = D.totals.avgPrice;
+  function CustomerDetail({ customer: c, onBack, viewD }) {
+    const _detailD = viewD || window.VDATA;
+    const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
+    const _NACT = _detailD.NACT || 1;
+    const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex((x) => x.name === c.name) + 1;
+    const avgPrice = _detailD.totals.avgPrice;
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -102,14 +105,14 @@
           <KpiCard label="ปริมาณขายรวม" value={fmt.int(c.kg)} unit="Kg" delta={c.mom} accent />
           <KpiCard label="มูลค่าโดยประมาณ" value={fmt.dec1(c.kg * avgPrice / 1e6)} unit="ลบ." delta={c.mom} />
           <KpiCard label="สัดส่วนปริมาณ" value={c.share} unit="%" />
-          <KpiCard label="เฉลี่ย/เดือน" value={fmt.int(c.kg / NACT)} unit="Kg" delta={c.mom} />
+          <KpiCard label="เฉลี่ย/เดือน" value={fmt.int(c.kg / _NACT)} unit="Kg" delta={c.mom} />
         </Grid>
 
         <Grid cols={3} gap={16}>
           <div style={{ gridColumn: 'span 2' }}>
             <Card title="แนวโน้มการซื้อรายเดือน · 2569" subtitle="ปริมาณ (Kg) · ม.ค.–พ.ค.">
-              <LineChart height={240} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
-                series={[{ name: c.name, data: c.monthly, color: 'var(--viz-4)', type: 'area' }]} />
+              <LineChart height={240} labels={_detailD.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
+                series={[{ name: c.name, data: c.monthly.slice(0, _NACT), color: 'var(--viz-4)', type: 'area' }]} />
             </Card>
           </div>
           <Card title="สรุปพฤติกรรม" bodyStyle={{ padding: 'var(--space-3)' }}>
@@ -117,7 +120,7 @@
               <InsightCard tone={c.mom >= 0 ? 'positive' : 'negative'} icon={<Icon name={c.mom >= 0 ? 'trending-up' : 'trending-down'} size={15} />}
                 title="แนวโน้มล่าสุด" metric={fmt.pct(c.mom)} detail={`ปริมาณเดือน พ.ค. ${c.mom >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบ เม.ย.`} />
               <InsightCard tone="info" icon={<Icon name="box" size={15} />} title="ปริมาณสูงสุด"
-                metric={fmt.int(Math.max(...c.monthly)) + ' Kg'} detail={'เดือน ' + D.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]} />
+                metric={fmt.int(Math.max(...c.monthly)) + ' Kg'} detail={'เดือน ' + _detailD.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]} />
               <InsightCard tone={rank <= 3 ? 'warning' : 'info'} icon={<Icon name="users" size={15} />} title={'อันดับลูกค้า #' + rank}
                 detail={rank <= 3 ? 'ลูกค้ารายใหญ่ — มีผลต่อความเสี่ยงกระจุกตัว' : 'ลูกค้ากลุ่มกลาง'} />
             </div>

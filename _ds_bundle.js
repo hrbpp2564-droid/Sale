@@ -2746,7 +2746,8 @@ try { (() => {
     const max = sorted.length ? sorted[0][metric] : 1;
     if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
       product: sel,
-      onBack: () => setSel(null)
+      onBack: () => setSel(null),
+      viewD: D
     });
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
@@ -2771,7 +2772,7 @@ try { (() => {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
       value: D.totals.avgPrice.toFixed(2),
       unit: "\u0E3F/Kg",
-      delta: 3.6
+      delta: D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
       gap: 16,
@@ -2887,9 +2888,15 @@ try { (() => {
   }
   function ProductDetail({
     product: p,
-    onBack
+    onBack,
+    viewD
   }) {
-    const topCustForProduct = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
+    const _D = viewD || window.VDATA;
+    const _pg = p.monthly.length >= 2 && p.monthly[p.monthly.length - 2] ? +((p.monthly[p.monthly.length - 1] / p.monthly[p.monthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _kArr = prodKg(p);
+    const _kg = _kArr.length >= 2 && _kArr[_kArr.length - 2] ? +((_kArr[_kArr.length - 1] / _kArr[_kArr.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _pp = p.priceMonthly.length >= 2 && p.priceMonthly[p.priceMonthly.length - 2] ? +((p.priceMonthly[p.priceMonthly.length - 1] / p.priceMonthly[p.priceMonthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const topCustForProduct = [..._D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -2937,12 +2944,12 @@ try { (() => {
         fontSize: 'var(--text-xs)',
         color: 'var(--text-tertiary)'
       }
-    }, "\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [...D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
+    }, "\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [..._D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1
       }
     }), /*#__PURE__*/React.createElement(DeltaBadge, {
-      value: prodGrowth(p),
+      value: _pg,
       size: "lg",
       suffix: " MoM"
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -2955,18 +2962,18 @@ try { (() => {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
       value: fmt.dec1(p.val),
       unit: "\u0E25\u0E1A.",
-      delta: prodGrowth(p),
+      delta: _pg,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22",
       value: fmt.int(p.kg),
       unit: "Kg",
-      delta: prodGrowth(p) - 2
+      delta: _kg
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
       value: fmt.dec1(p.avgPrice),
       unit: "\u0E3F/Kg",
-      delta: 3.1
+      delta: _pp
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15",
       value: p.share,
@@ -2979,7 +2986,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
@@ -3005,7 +3012,7 @@ try { (() => {
       subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       series: [{
         name: p.name,
@@ -3018,7 +3025,7 @@ try { (() => {
       subtitle: "\u0E3F/Kg"
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       series: [{
         name: 'ราคา',
@@ -3028,7 +3035,11 @@ try { (() => {
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E0B\u0E37\u0E49\u0E2D\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u0E19\u0E35\u0E49\u0E21\u0E32\u0E01\u0E17\u0E35\u0E48\u0E2A\u0E38\u0E14",
-      subtitle: "\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13\u0E01\u0E32\u0E23\u0E08\u0E32\u0E01\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E27\u0E21",
+      subtitle: "\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E01\u0E32\u0E23\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25 \u00B7 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u00D7\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E08\u0E23\u0E34\u0E07",
+      actions: /*#__PURE__*/React.createElement(Badge, {
+        tone: "warning",
+        variant: "soft"
+      }, "\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07"),
       bodyStyle: {
         padding: 'var(--space-2)'
       }
@@ -3457,9 +3468,8 @@ try { (() => {
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "Top 10 = \u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19",
       value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(2),
-      unit: "%",
-      delta: -1.2
-    }), /*#__PURE__*/React.createElement(KpiCard, {
+      unit: "%"
+    }),/*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E42\u0E15\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E38\u0E14",
       value: fastest.name.split(' ')[0],
       unit: fmt.pct(fastest.mom),
@@ -4370,7 +4380,7 @@ try { (() => {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
       value: fmt.int(F.yearEndVal),
       unit: "\u0E25\u0E1A.",
-      delta: 13.8,
+      delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })(),
       deltaSuffix: " vs 2568",
       accent: true,
       icon: /*#__PURE__*/React.createElement(Icon, {
@@ -4381,7 +4391,8 @@ try { (() => {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
       value: Math.round(F.yearEndKg * 1e6).toLocaleString('en-US'),
       unit: "Kg",
-      delta: 9.2,
+      delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.volumeByYear && (_vd.volumeByYear['2568'] || _vd.volumeByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndKg * 1000 / _b - 1) * 100).toFixed(1) : 0; })(),
+      deltaSuffix: " vs 2568",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "box",
         size: 15
@@ -6018,7 +6029,8 @@ try { (() => {
     const max = sorted.length ? sorted[0][metric] : 1;
     if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
       product: sel,
-      onBack: () => setSel(null)
+      onBack: () => setSel(null),
+      viewD: D
     });
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
@@ -6043,7 +6055,7 @@ try { (() => {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
       value: D.totals.avgPrice.toFixed(2),
       unit: "\u0E3F/Kg",
-      delta: 3.6
+      delta: D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
       gap: 16,
@@ -6159,9 +6171,15 @@ try { (() => {
   }
   function ProductDetail({
     product: p,
-    onBack
+    onBack,
+    viewD
   }) {
-    const topCustForProduct = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
+    const _D = viewD || window.VDATA;
+    const _pg = p.monthly.length >= 2 && p.monthly[p.monthly.length - 2] ? +((p.monthly[p.monthly.length - 1] / p.monthly[p.monthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _kArr = prodKg(p);
+    const _kg = _kArr.length >= 2 && _kArr[_kArr.length - 2] ? +((_kArr[_kArr.length - 1] / _kArr[_kArr.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _pp = p.priceMonthly.length >= 2 && p.priceMonthly[p.priceMonthly.length - 2] ? +((p.priceMonthly[p.priceMonthly.length - 1] / p.priceMonthly[p.priceMonthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const topCustForProduct = [..._D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -6209,12 +6227,12 @@ try { (() => {
         fontSize: 'var(--text-xs)',
         color: 'var(--text-tertiary)'
       }
-    }, "\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [...D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
+    }, "\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A #", [..._D.PRODUCTS].sort((a, b) => b.val - a.val).indexOf(p) + 1))), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1
       }
     }), /*#__PURE__*/React.createElement(DeltaBadge, {
-      value: prodGrowth(p),
+      value: _pg,
       size: "lg",
       suffix: " MoM"
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -6227,18 +6245,18 @@ try { (() => {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
       value: fmt.dec1(p.val),
       unit: "\u0E25\u0E1A.",
-      delta: prodGrowth(p),
+      delta: _pg,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22",
       value: fmt.int(p.kg),
       unit: "Kg",
-      delta: prodGrowth(p) - 2
+      delta: _kg
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
       value: fmt.dec1(p.avgPrice),
       unit: "\u0E3F/Kg",
-      delta: 3.1
+      delta: _pp
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15",
       value: p.share,
@@ -6251,7 +6269,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
@@ -6277,7 +6295,7 @@ try { (() => {
       subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       series: [{
         name: p.name,
@@ -6290,7 +6308,7 @@ try { (() => {
       subtitle: "\u0E3F/Kg"
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       series: [{
         name: 'ราคา',
@@ -6300,7 +6318,11 @@ try { (() => {
       }]
     }))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E0B\u0E37\u0E49\u0E2D\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u0E19\u0E35\u0E49\u0E21\u0E32\u0E01\u0E17\u0E35\u0E48\u0E2A\u0E38\u0E14",
-      subtitle: "\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13\u0E01\u0E32\u0E23\u0E08\u0E32\u0E01\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E27\u0E21",
+      subtitle: "\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E01\u0E32\u0E23\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25 \u00B7 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u00D7\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E08\u0E23\u0E34\u0E07",
+      actions: /*#__PURE__*/React.createElement(Badge, {
+        tone: "warning",
+        variant: "soft"
+      }, "\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07"),
       bodyStyle: {
         padding: 'var(--space-2)'
       }
@@ -6735,9 +6757,8 @@ try { (() => {
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "Top 10 = \u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19",
       value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(2),
-      unit: "%",
-      delta: -1.2
-    }), /*#__PURE__*/React.createElement(KpiCard, {
+      unit: "%"
+    }),/*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E42\u0E15\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E38\u0E14",
       value: fastest.name.split(' ')[0],
       unit: fmt.pct(fastest.mom),
@@ -7652,7 +7673,7 @@ try { (() => {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
       value: fmt.int(F.yearEndVal),
       unit: "\u0E25\u0E1A.",
-      delta: 13.8,
+      delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })(),
       deltaSuffix: " vs 2568",
       accent: true,
       icon: /*#__PURE__*/React.createElement(Icon, {
@@ -7663,7 +7684,8 @@ try { (() => {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
       value: Math.round(F.yearEndKg * 1e6).toLocaleString('en-US'),
       unit: "Kg",
-      delta: 9.2,
+      delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.volumeByYear && (_vd.volumeByYear['2568'] || _vd.volumeByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndKg * 1000 / _b - 1) * 100).toFixed(1) : 0; })(),
+      deltaSuffix: " vs 2568",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "box",
         size: 15

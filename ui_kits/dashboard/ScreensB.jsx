@@ -32,14 +32,14 @@
     const max = sorted[0][metric];
     const topG = groupAgg()[0];
 
-    if (sel) return <ProductDetail product={sel} onBack={() => setSel(null)} />;
+    if (sel) return <ProductDetail product={sel} onBack={() => setSel(null)} viewD={D} />;
 
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="จำนวนสินค้า (ขนาด)" value={String(D.nSizes)} unit="SKU" icon={<Icon name="package" size={15} />} />
           <KpiCard label="มูลค่าขายรวม" value={fmt.dec1(D.totals.value / 1e6)} unit="ลบ." delta={D.totals.momVal} />
-          <KpiCard label="ราคาเฉลี่ย" value={D.totals.avgPrice} unit="฿/Kg" delta={3.6} />
+          <KpiCard label="ราคาเฉลี่ย" value={D.totals.avgPrice} unit="฿/Kg" delta={D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0} />
           <KpiCard label="กลุ่มขายดีสุด" value={topG.group} unit={fmt.dec1(topG.val) + ' ลบ.'} icon={<Icon name="layers" size={15} />} />
         </Grid>
 
@@ -89,8 +89,13 @@
     );
   }
 
-  function ProductDetail({ product: p, onBack }) {
-    const topCustForProduct = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
+  function ProductDetail({ product: p, onBack, viewD }) {
+    const _D = viewD || window.VDATA;
+    const _pg = p.monthly.length >= 2 && p.monthly[p.monthly.length - 2] ? +((p.monthly[p.monthly.length - 1] / p.monthly[p.monthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _kArr = prodKg(p);
+    const _kg = _kArr.length >= 2 && _kArr[_kArr.length - 2] ? +((_kArr[_kArr.length - 1] / _kArr[_kArr.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _pp = p.priceMonthly.length >= 2 && p.priceMonthly[p.priceMonthly.length - 2] ? +((p.priceMonthly[p.priceMonthly.length - 1] / p.priceMonthly[p.priceMonthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const topCustForProduct = [..._D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -99,22 +104,22 @@
             <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-md)', background: 'var(--accent-subtle)', color: 'var(--accent-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="package" size={19} /></span>
             <div>
               <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>กลุ่ม {p.group} · อันดับ #{[...D.PRODUCTS].sort((a,b)=>b.val-a.val).indexOf(p) + 1}</div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>กลุ่ม {p.group} · อันดับ #{[..._D.PRODUCTS].sort((a,b)=>b.val-a.val).indexOf(p) + 1}</div>
             </div>
           </div>
           <div style={{ flex: 1 }} />
-          <DeltaBadge value={prodGrowth(p)} size="lg" suffix=" MoM" />
+          <DeltaBadge value={_pg} size="lg" suffix=" MoM" />
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="มูลค่าขาย 5 เดือน" value={fmt.dec1(p.val)} unit="ลบ." delta={prodGrowth(p)} accent />
-          <KpiCard label="ปริมาณขาย" value={fmt.int(p.kg)} unit="Kg" delta={prodGrowth(p) - 2} />
-          <KpiCard label="ราคาเฉลี่ย" value={fmt.dec1(p.avgPrice)} unit="฿/Kg" delta={3.1} />
+          <KpiCard label="มูลค่าขาย 5 เดือน" value={fmt.dec1(p.val)} unit="ลบ." delta={_pg} accent />
+          <KpiCard label="ปริมาณขาย" value={fmt.int(p.kg)} unit="Kg" delta={_kg} />
+          <KpiCard label="ราคาเฉลี่ย" value={fmt.dec1(p.avgPrice)} unit="฿/Kg" delta={_pp} />
           <KpiCard label="สัดส่วนพอร์ต" value={p.share} unit="%" />
         </Grid>
 
         <Card title="มูลค่า + ปริมาณ รายเดือน · 2569" subtitle="มูลค่า (ลบ.) แกนซ้าย · ปริมาณ (Kg) แกนขวา · ม.ค.–พ.ค." style={{ marginBottom: 16 }}>
-          <LineChart height={240} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
+          <LineChart height={240} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
             series={[
               { name: 'มูลค่า (ลบ.)', data: p.monthly, color: 'var(--viz-1)', type: 'bar' },
               { name: 'ปริมาณ (Kg)', data: prodKg(p), color: 'var(--viz-2)', type: 'line', axis: 'right' },
@@ -123,16 +128,16 @@
 
         <Grid cols={2} gap={16} style={{ marginBottom: 16 }}>
           <Card title="แนวโน้มปริมาณรายเดือน · 2569" subtitle="ปริมาณ (Kg) · ม.ค.–พ.ค.">
-            <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
+            <LineChart height={220} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
               series={[{ name: p.name, data: prodKg(p), color: 'var(--viz-2)', type: 'area' }]} />
           </Card>
           <Card title="ราคาเฉลี่ยรายเดือน" subtitle="฿/Kg">
-            <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
+            <LineChart height={220} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
               series={[{ name: 'ราคา', data: p.priceMonthly, color: 'var(--viz-3)', type: 'line' }]} />
           </Card>
         </Grid>
 
-        <Card title="ลูกค้าที่ซื้อสินค้านี้มากที่สุด" subtitle="ประมาณการจากสัดส่วนปริมาณรวม" bodyStyle={{ padding: 'var(--space-2)' }}>
+        <Card title="ลูกค้าที่ซื้อสินค้านี้มากที่สุด" subtitle="ตัวอย่างการแสดงผล · ยังไม่มีข้อมูลสินค้า×ลูกค้าจริง" actions={<Badge tone="warning" variant="soft">ตัวอย่าง</Badge>} bodyStyle={{ padding: 'var(--space-2)' }}>
           {topCustForProduct.map((c, i) => {
             const portion = [0.3, 0.22, 0.18, 0.16, 0.14][i];
             return <RankBar key={c.id} rank={i + 1} label={c.name} sublabel={fmt.int(p.kg * portion) + ' Kg (ประมาณ)'}
@@ -229,8 +234,8 @@
       <div>
         <Grid min={200} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="ราคาเฉลี่ยต่อ Kg" value={D.totals.avgPrice} unit="฿/Kg" delta={((D.price69[NACT-1]/D.price69[0])-1)*100} deltaSuffix=" 5เดือน" accent icon={<Icon name="tag" size={15} />} />
-          <KpiCard label="ราคาเฉลี่ยต่อสินค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nSizes)} unit="ลบ./SKU" delta={6.9} icon={<Icon name="package" size={15} />} />
-          <KpiCard label="ราคาเฉลี่ยต่อลูกค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nCustomers)} unit="ลบ./ราย" delta={5.1} icon={<Icon name="users" size={15} />} />
+          <KpiCard label="ราคาเฉลี่ยต่อสินค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nSizes)} unit="ลบ./SKU" icon={<Icon name="package" size={15} />} />
+          <KpiCard label="ราคาเฉลี่ยต่อลูกค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nCustomers)} unit="ลบ./ราย" icon={<Icon name="users" size={15} />} />
         </Grid>
 
         <Card title="ราคาขายเฉลี่ย (Average Selling Price)" subtitle="มูลค่าขาย ÷ ปริมาณขาย · ฿/Kg"

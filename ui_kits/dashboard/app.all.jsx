@@ -419,14 +419,14 @@ if (!window.__BWP_APP_LOADED) {
     const max = sorted[0][metric];
     const topG = groupAgg()[0];
 
-    if (sel) return <ProductDetail product={sel} onBack={() => setSel(null)} />;
+    if (sel) return <ProductDetail product={sel} onBack={() => setSel(null)} viewD={D} />;
 
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="จำนวนสินค้า (ขนาด)" value={String(D.nSizes)} unit="SKU" icon={<Icon name="package" size={15} />} />
           <KpiCard label="มูลค่าขายรวม" value={fmt.dec1(D.totals.value / 1e6)} unit="ลบ." delta={D.totals.momVal} />
-          <KpiCard label="ราคาเฉลี่ย" value={D.totals.avgPrice} unit="฿/Kg" delta={3.6} />
+          <KpiCard label="ราคาเฉลี่ย" value={D.totals.avgPrice} unit="฿/Kg" delta={D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0} />
           <KpiCard label="กลุ่มขายดีสุด" value={topG.group} unit={fmt.dec1(topG.val) + ' ลบ.'} icon={<Icon name="layers" size={15} />} />
         </Grid>
 
@@ -465,8 +465,13 @@ if (!window.__BWP_APP_LOADED) {
     );
   }
 
-  function ProductDetail({ product: p, onBack }) {
-    const topCustForProduct = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
+  function ProductDetail({ product: p, onBack, viewD }) {
+    const _D = viewD || window.VDATA;
+    const _pg = p.monthly.length >= 2 && p.monthly[p.monthly.length - 2] ? +((p.monthly[p.monthly.length - 1] / p.monthly[p.monthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _kArr = prodKg(p);
+    const _kg = _kArr.length >= 2 && _kArr[_kArr.length - 2] ? +((_kArr[_kArr.length - 1] / _kArr[_kArr.length - 2] - 1) * 100).toFixed(1) : 0;
+    const _pp = p.priceMonthly.length >= 2 && p.priceMonthly[p.priceMonthly.length - 2] ? +((p.priceMonthly[p.priceMonthly.length - 1] / p.priceMonthly[p.priceMonthly.length - 2] - 1) * 100).toFixed(1) : 0;
+    const topCustForProduct = [..._D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -475,32 +480,32 @@ if (!window.__BWP_APP_LOADED) {
             <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-md)', background: 'var(--accent-subtle)', color: 'var(--accent-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="package" size={19} /></span>
             <div>
               <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>กลุ่ม {p.group} · อันดับ #{[...D.PRODUCTS].sort((a,b)=>b.val-a.val).indexOf(p) + 1}</div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>กลุ่ม {p.group} · อันดับ #{[..._D.PRODUCTS].sort((a,b)=>b.val-a.val).indexOf(p) + 1}</div>
             </div>
           </div>
           <div style={{ flex: 1 }} />
-          <DeltaBadge value={prodGrowth(p)} size="lg" suffix=" MoM" />
+          <DeltaBadge value={_pg} size="lg" suffix=" MoM" />
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="มูลค่าขาย 5 เดือน" value={fmt.dec1(p.val)} unit="ลบ." delta={prodGrowth(p)} accent />
-          <KpiCard label="ปริมาณขาย" value={fmt.int(p.kg)} unit="Kg" delta={prodGrowth(p) - 2} />
-          <KpiCard label="ราคาเฉลี่ย" value={fmt.dec1(p.avgPrice)} unit="฿/Kg" delta={3.1} />
+          <KpiCard label="มูลค่าขาย 5 เดือน" value={fmt.dec1(p.val)} unit="ลบ." delta={_pg} accent />
+          <KpiCard label="ปริมาณขาย" value={fmt.int(p.kg)} unit="Kg" delta={_kg} />
+          <KpiCard label="ราคาเฉลี่ย" value={fmt.dec1(p.avgPrice)} unit="฿/Kg" delta={_pp} />
           <KpiCard label="สัดส่วนพอร์ต" value={p.share} unit="%" />
         </Grid>
 
         <Grid cols={2} gap={16} style={{ marginBottom: 16 }}>
           <Card title="แนวโน้มมูลค่ารายเดือน · 2569" subtitle="มูลค่า (ลบ.) · ม.ค.–พ.ค.">
-            <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.dec1(v)}
+            <LineChart height={220} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.dec1(v)}
               series={[{ name: p.name, data: p.monthly, color: 'var(--viz-1)', type: 'area' }]} />
           </Card>
           <Card title="ราคาเฉลี่ยรายเดือน" subtitle="฿/Kg">
-            <LineChart height={220} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
+            <LineChart height={220} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.int(v)}
               series={[{ name: 'ราคา', data: p.priceMonthly, color: 'var(--viz-3)', type: 'line' }]} />
           </Card>
         </Grid>
 
-        <Card title="ลูกค้าที่ซื้อสินค้านี้มากที่สุด" subtitle="ประมาณการจากสัดส่วนปริมาณรวม" bodyStyle={{ padding: 'var(--space-2)' }}>
+        <Card title="ลูกค้าที่ซื้อสินค้านี้มากที่สุด" subtitle="ตัวอย่างการแสดงผล · ยังไม่มีข้อมูลสินค้า×ลูกค้าจริง" actions={<Badge tone="warning" variant="soft">ตัวอย่าง</Badge>} bodyStyle={{ padding: 'var(--space-2)' }}>
           {topCustForProduct.map((c, i) => {
             const portion = [0.3, 0.22, 0.18, 0.16, 0.14][i];
             return <RankBar key={c.id} rank={i + 1} label={c.name} sublabel={fmt.int(p.kg * portion) + ' Kg (ประมาณ)'}
@@ -592,8 +597,8 @@ if (!window.__BWP_APP_LOADED) {
       <div>
         <Grid min={200} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="ราคาเฉลี่ยต่อ Kg" value={D.totals.avgPrice} unit="฿/Kg" delta={((D.price69[NACT-1]/D.price69[0])-1)*100} deltaSuffix=" 5เดือน" accent icon={<Icon name="tag" size={15} />} />
-          <KpiCard label="ราคาเฉลี่ยต่อสินค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nSizes)} unit="ลบ./SKU" delta={6.9} icon={<Icon name="package" size={15} />} />
-          <KpiCard label="ราคาเฉลี่ยต่อลูกค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nCustomers)} unit="ลบ./ราย" delta={5.1} icon={<Icon name="users" size={15} />} />
+          <KpiCard label="ราคาเฉลี่ยต่อสินค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nSizes)} unit="ลบ./SKU" icon={<Icon name="package" size={15} />} />
+          <KpiCard label="ราคาเฉลี่ยต่อลูกค้า" value={fmt.dec1(D.totals.value / 1e6 / D.nCustomers)} unit="ลบ./ราย" icon={<Icon name="users" size={15} />} />
         </Grid>
 
         <Card title="ราคาขายเฉลี่ย (Average Selling Price)" subtitle="มูลค่าขาย ÷ ปริมาณขาย · ฿/Kg"
@@ -654,14 +659,14 @@ if (!window.__BWP_APP_LOADED) {
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
 
-    if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} />;
+    if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} viewD={D} />;
 
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="จำนวนลูกค้า" value={String(D.nCustomers)} unit="ราย" icon={<Icon name="users" size={15} />} />
           <KpiCard label="ปริมาณเฉลี่ย/ราย" value={fmt.int(D.custTotalKg / D.nCustomers)} unit="Kg" icon={<Icon name="box" size={15} />} />
-          <KpiCard label="Top 10 = สัดส่วน" value={(sorted.slice(0,10).reduce((s,c)=>s+c.kg,0)/D.custTotalKg*100).toFixed(0)} unit="%" delta={-1.2} />
+          <KpiCard label="Top 10 = สัดส่วน" value={(sorted.slice(0,10).reduce((s,c)=>s+c.kg,0)/D.custTotalKg*100).toFixed(0)} unit="%" />
           <KpiCard label="ลูกค้าโตเร็วสุด" value={fastest.name.split(' ')[0]} unit={fmt.pct(fastest.mom)} delta={fastest.mom} icon={<Icon name="trending-up" size={15} />} />
         </Grid>
 
@@ -697,9 +702,12 @@ if (!window.__BWP_APP_LOADED) {
     );
   }
 
-  function CustomerDetail({ customer: c, onBack }) {
-    const rank = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg).indexOf(c) + 1;
-    const avgPrice = D.totals.avgPrice;
+  function CustomerDetail({ customer: c, onBack, viewD }) {
+    const _detailD = viewD || window.VDATA;
+    const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
+    const _NACT = _detailD.NACT || 1;
+    const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex((x) => x.name === c.name) + 1;
+    const avgPrice = _detailD.totals.avgPrice;
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -719,14 +727,14 @@ if (!window.__BWP_APP_LOADED) {
           <KpiCard label="ปริมาณขายรวม" value={fmt.int(c.kg)} unit="Kg" delta={c.mom} accent />
           <KpiCard label="มูลค่าโดยประมาณ" value={fmt.dec1(c.kg * avgPrice / 1e6)} unit="ลบ." delta={c.mom} />
           <KpiCard label="สัดส่วนปริมาณ" value={c.share} unit="%" />
-          <KpiCard label="เฉลี่ย/เดือน" value={fmt.int(c.kg / NACT)} unit="Kg" delta={c.mom} />
+          <KpiCard label="เฉลี่ย/เดือน" value={fmt.int(c.kg / _NACT)} unit="Kg" delta={c.mom} />
         </Grid>
 
         <Grid cols={3} gap={16}>
           <div style={{ gridColumn: 'span 2' }}>
             <Card title="แนวโน้มการซื้อรายเดือน · 2569" subtitle="ปริมาณ (Kg) · ม.ค.–พ.ค.">
-              <LineChart height={240} labels={D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
-                series={[{ name: c.name, data: c.monthly, color: 'var(--viz-4)', type: 'area' }]} />
+              <LineChart height={240} labels={_detailD.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
+                series={[{ name: c.name, data: c.monthly.slice(0, _NACT), color: 'var(--viz-4)', type: 'area' }]} />
             </Card>
           </div>
           <Card title="สรุปพฤติกรรม" bodyStyle={{ padding: 'var(--space-3)' }}>
@@ -734,7 +742,7 @@ if (!window.__BWP_APP_LOADED) {
               <InsightCard tone={c.mom >= 0 ? 'positive' : 'negative'} icon={<Icon name={c.mom >= 0 ? 'trending-up' : 'trending-down'} size={15} />}
                 title="แนวโน้มล่าสุด" metric={fmt.pct(c.mom)} detail={`ปริมาณเดือน พ.ค. ${c.mom >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบ เม.ย.`} />
               <InsightCard tone="info" icon={<Icon name="box" size={15} />} title="ปริมาณสูงสุด"
-                metric={fmt.int(Math.max(...c.monthly)) + ' Kg'} detail={'เดือน ' + D.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]} />
+                metric={fmt.int(Math.max(...c.monthly)) + ' Kg'} detail={'เดือน ' + _detailD.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]} />
               <InsightCard tone={rank <= 3 ? 'warning' : 'info'} icon={<Icon name="users" size={15} />} title={'อันดับลูกค้า #' + rank}
                 detail={rank <= 3 ? 'ลูกค้ารายใหญ่ — มีผลต่อความเสี่ยงกระจุกตัว' : 'ลูกค้ากลุ่มกลาง'} />
             </div>
@@ -946,8 +954,8 @@ if (!window.__BWP_APP_LOADED) {
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.int(F.yearEndVal)} unit="ลบ." delta={13.8} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
-          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={9.2} icon={<Icon name="box" size={15} />} />
+          <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.int(F.yearEndVal)} unit="ลบ." delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
+          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.volumeByYear && (_vd.volumeByYear['2568'] || _vd.volumeByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndKg * 1000 / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" icon={<Icon name="box" size={15} />} />
           <KpiCard label="Confidence Level" value={F.confidence} unit="%" icon={<Icon name="target" size={15} />} />
           <KpiCard label="เดือนที่เหลือ" value={String(12 - NACT)} unit="เดือน" icon={<Icon name="clock" size={15} />} />
         </Grid>
