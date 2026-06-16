@@ -253,6 +253,7 @@ function LineChart({
     ref: ref,
     style: {
       width: '100%',
+      paddingBottom: 4,
       ...style
     }
   }, showLegend && series.length > 0 && /*#__PURE__*/React.createElement("div", {
@@ -478,6 +479,7 @@ function ParetoChart({
     ref: ref,
     style: {
       width: '100%',
+      paddingBottom: 4,
       ...style
     }
   }, /*#__PURE__*/React.createElement("svg", {
@@ -928,7 +930,6 @@ function Card({
       transition: 'border-color var(--dur-base) var(--ease-standard), box-shadow var(--dur-base), transform var(--dur-base)',
       transform: interactive && hover ? 'translateY(-1px)' : 'none',
       cursor: interactive ? 'pointer' : 'default',
-      overflow: 'hidden',
       ...style
     }
   }, rest), (title || actions) && /*#__PURE__*/React.createElement("header", {
