@@ -365,14 +365,11 @@ function LineChart({
     fill: s.color,
     stroke: "var(--surface-1)",
     strokeWidth: "1.5"
-  }))), labels.map((l, i) => (n <= 14 || i % Math.ceil(n / 12) === 0) && /*#__PURE__*/React.createElement("text", {
+  }))), null), labels.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: { display: 'flex', justifyContent: 'space-between', paddingLeft: p.left, paddingRight: p.right, marginTop: 2 }
+  }, labels.map((l, i) => /*#__PURE__*/React.createElement("span", {
     key: i,
-    x: series.some(s => s.type === 'bar') ? bxAt(i) : xAt(i),
-    y: height - 8,
-    textAnchor: "middle",
-    fontSize: "10",
-    fill: "var(--chart-axis)",
-    fontFamily: "var(--font-sans)"
+    style: { fontSize: 10, color: 'var(--chart-axis)', fontFamily: 'var(--font-sans)', textAlign: 'center', flex: '0 0 auto', visibility: (n <= 14 || i % Math.ceil(n / 12) === 0) ? 'visible' : 'hidden' }
   }, l))), hover !== null && labels[hover] && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
