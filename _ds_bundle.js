@@ -3708,9 +3708,9 @@ try { (() => {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13",
       value: fmt.dec1(c.kg * avgPrice / 1e6),
       unit: "\u0E25\u0E1A.",
-      delta: c.mom + 2
+      delta: c.mom
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E23\u0E32\u0E22\u0E44\u0E14\u0E49",
+      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
       value: c.share.toFixed(2),
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -6986,9 +6986,9 @@ try { (() => {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13",
       value: fmt.dec1(c.kg * avgPrice / 1e6),
       unit: "\u0E25\u0E1A.",
-      delta: c.mom + 2
+      delta: c.mom
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E23\u0E32\u0E22\u0E44\u0E14\u0E49",
+      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
       value: c.share.toFixed(2),
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {

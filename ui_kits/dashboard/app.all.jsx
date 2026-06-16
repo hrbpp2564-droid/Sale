@@ -717,8 +717,8 @@ if (!window.__BWP_APP_LOADED) {
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
           <KpiCard label="ปริมาณขายรวม" value={fmt.int(c.kg)} unit="Kg" delta={c.mom} accent />
-          <KpiCard label="มูลค่าโดยประมาณ" value={fmt.dec1(c.kg * avgPrice / 1e6)} unit="ลบ." delta={c.mom + 2} />
-          <KpiCard label="สัดส่วนรายได้" value={c.share} unit="%" />
+          <KpiCard label="มูลค่าโดยประมาณ" value={fmt.dec1(c.kg * avgPrice / 1e6)} unit="ลบ." delta={c.mom} />
+          <KpiCard label="สัดส่วนปริมาณ" value={c.share} unit="%" />
           <KpiCard label="เฉลี่ย/เดือน" value={fmt.int(c.kg / NACT)} unit="Kg" delta={c.mom} />
         </Grid>
 
