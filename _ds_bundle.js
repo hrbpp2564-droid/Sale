@@ -2498,7 +2498,7 @@ try { (() => {
       key: p.id,
       rank: i + 1,
       label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
-      ratio: p.val / prodByVal[0].val,
+      ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
       share: p.share + '%',
       delta: prodGrowth(p),
       color: "var(--viz-1)",
@@ -2516,7 +2516,7 @@ try { (() => {
       label: c.name,
       sublabel: fmt.int(c.kg) + ' Kg',
       value: c.share + '%',
-      ratio: c.kg / custByKg[0].kg,
+      ratio: custByKg.length ? c.kg / custByKg[0].kg : 0,
       delta: c.mom,
       color: "var(--viz-4)",
       onClick: () => onDrill('customer')
@@ -3054,7 +3054,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
-        flex: sorted[0].value,
+        flex: sorted.length ? sorted[0].value : 1,
         display: 'flex'
       }
     }, /*#__PURE__*/React.createElement(Cell, {
@@ -3300,7 +3300,7 @@ try { (() => {
       key: p.id,
       rank: i + 1,
       label: p.name,      value: fmt.dec1(p.avgPrice) + ' ฿/Kg',
-      ratio: p.avgPrice / prodByPrice[0].avgPrice,
+      ratio: prodByPrice.length ? p.avgPrice / prodByPrice[0].avgPrice : 0,
       color: "var(--viz-3)"
     }))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E23\u0E32\u0E04\u0E32",
@@ -3866,6 +3866,7 @@ try { (() => {
       detail: `Top 3 ลูกค้าสร้างยอดเกินครึ่ง — สูงกว่าเป้าหมาย 40% มาก ควรเร่งกระจายฐานลูกค้า`
     }), (() => {
       const drop = [...D.CUSTOMERS].sort((a, b) => a.mom - b.mom)[0];
+      if (!drop) return null;
       return /*#__PURE__*/React.createElement(InsightCard, {
         tone: "negative",
         icon: /*#__PURE__*/React.createElement(Icon, {
@@ -4416,7 +4417,7 @@ try { (() => {
         label: p.name,
         sublabel: `คาด ${fmt.dec1(proj)} ลบ.`,
         value: fmt.dec1(proj) + ' ลบ.',
-        ratio: proj / (prodByVal[0].val * (12 / NACT) * 1.02),
+        ratio: prodByVal.length ? proj / (prodByVal[0].val * (12 / NACT) * 1.02) : 0,
         color: `var(--viz-${i % 8 + 1})`
       });
     })), /*#__PURE__*/React.createElement(Card, {
@@ -4433,7 +4434,7 @@ try { (() => {
         label: c.name,
         sublabel: `คาด ${fmt.int(proj)} Kg`,
         value: fmt.int(proj) + ' Kg',
-        ratio: proj / (custByKg[0].kg * (12 / NACT) * 1.1),
+        ratio: custByKg.length ? proj / (custByKg[0].kg * (12 / NACT) * 1.1) : 0,
         delta: c.mom,
         color: "var(--viz-4)"
       });
@@ -5803,7 +5804,7 @@ try { (() => {
       key: p.id,
       rank: i + 1,
       label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
-      ratio: p.val / prodByVal[0].val,
+      ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
       share: p.share + '%',
       delta: prodGrowth(p),
       color: "var(--viz-1)",
@@ -5821,7 +5822,7 @@ try { (() => {
       label: c.name,
       sublabel: fmt.int(c.kg) + ' Kg',
       value: c.share + '%',
-      ratio: c.kg / custByKg[0].kg,
+      ratio: custByKg.length ? c.kg / custByKg[0].kg : 0,
       delta: c.mom,
       color: "var(--viz-4)",
       onClick: () => onDrill('customer')
@@ -6362,7 +6363,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
-        flex: sorted[0].value,
+        flex: sorted.length ? sorted[0].value : 1,
         display: 'flex'
       }
     }, /*#__PURE__*/React.createElement(Cell, {
@@ -6613,7 +6614,7 @@ try { (() => {
       key: p.id,
       rank: i + 1,
       label: p.name,      value: fmt.dec1(p.avgPrice) + ' ฿/Kg',
-      ratio: p.avgPrice / prodByPrice[0].avgPrice,
+      ratio: prodByPrice.length ? p.avgPrice / prodByPrice[0].avgPrice : 0,
       color: "var(--viz-3)"
     }))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E23\u0E32\u0E04\u0E32",
@@ -7182,6 +7183,7 @@ try { (() => {
       detail: `Top 3 ลูกค้าสร้างยอดเกินครึ่ง — สูงกว่าเป้าหมาย 40% มาก ควรเร่งกระจายฐานลูกค้า`
     }), (() => {
       const drop = [...D.CUSTOMERS].sort((a, b) => a.mom - b.mom)[0];
+      if (!drop) return null;
       return /*#__PURE__*/React.createElement(InsightCard, {
         tone: "negative",
         icon: /*#__PURE__*/React.createElement(Icon, {
@@ -7734,7 +7736,7 @@ try { (() => {
         label: p.name,
         sublabel: `คาด ${fmt.dec1(proj)} ลบ.`,
         value: fmt.dec1(proj) + ' ลบ.',
-        ratio: proj / (prodByVal[0].val * (12 / NACT) * 1.02),
+        ratio: prodByVal.length ? proj / (prodByVal[0].val * (12 / NACT) * 1.02) : 0,
         color: `var(--viz-${i % 8 + 1})`
       });
     })), /*#__PURE__*/React.createElement(Card, {
@@ -7751,7 +7753,7 @@ try { (() => {
         label: c.name,
         sublabel: `คาด ${fmt.int(proj)} Kg`,
         value: fmt.int(proj) + ' Kg',
-        ratio: proj / (custByKg[0].kg * (12 / NACT) * 1.1),
+        ratio: custByKg.length ? proj / (custByKg[0].kg * (12 / NACT) * 1.1) : 0,
         delta: c.mom,
         color: "var(--viz-4)"
       });
