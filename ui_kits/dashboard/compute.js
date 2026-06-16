@@ -23,7 +23,6 @@
   };
 
   function num(x) { var n = parseFloat(x); return isFinite(n) ? n : 0; }
-  function r1(x) { return Math.round(x * 10) / 10; }
   function r2(x) { return Math.round(x * 100) / 100; }
   function sum(a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); }
 
@@ -46,21 +45,21 @@
     var MONTHS_ACT = BASE.TH_MONTHS.slice(0, NACT);
 
     // ---- monthly arrays (ลบ. / พัน Kg) ----
-    var val69 = mVal.map(function (v) { return v == null || v === '' ? null : r1(num(v)); });
-    var vol69 = mVol.map(function (v) { return v == null || v === '' ? null : r1(num(v)); });
+    var val69 = mVal.map(function (v) { return v == null || v === '' ? null : r2(num(v)); });
+    var vol69 = mVol.map(function (v) { return v == null || v === '' ? null : r2(num(v)); });
 
     // price per month ฿/Kg  = value(ลบ.)*1e6 / volume(Kg)= value*1e6/(vol*1000)= value*1000/vol
     var price69 = [];
     for (var m = 0; m < NACT; m++) {
       var vv = num(val69[m]), kk = num(vol69[m]);
-      price69.push(kk > 0 ? r1(vv * 1000 / kk) : 0);
+      price69.push(kk > 0 ? r2(vv * 1000 / kk) : 0);
     }
 
     var totalValueLbn = 0, totalVolKKg = 0; // ลบ. / พัน Kg
     for (var i = 0; i < NACT; i++) { totalValueLbn += num(val69[i]); totalVolKKg += num(vol69[i]); }
     var totalVolKg = totalVolKKg * 1000;
     var totalValueBaht = totalValueLbn * 1e6;
-    var avgPrice = totalVolKg > 0 ? r1(totalValueBaht / totalVolKg) : 0;
+    var avgPrice = totalVolKg > 0 ? r2(totalValueBaht / totalVolKg) : 0;
 
     // ---- products ----
     var rprods = (raw.products || []).map(function (p) {
@@ -78,16 +77,16 @@
       for (var mo = 0; mo < NACT; mo++) {
         var kg = p.monthlyKg[mo];
         var v = SK[mo] > 0 ? num(val69[mo]) * (kg / SK[mo]) : 0;
-        monthlyVal.push(r1(v));
-        priceMonthly.push(kg > 0 ? r1(v * 1e6 / kg) : 0);
+        monthlyVal.push(r2(v));
+        priceMonthly.push(kg > 0 ? r2(v * 1e6 / kg) : 0);
       }
       var kgTot = sum(p.monthlyKg.slice(0, NACT));
       var valTot = sum(monthlyVal);
       return {
         id: 'p' + (idx + 1), name: p.name,
-        val: r1(valTot), kg: Math.round(kgTot),
-        avgPrice: kgTot > 0 ? r1(valTot * 1e6 / kgTot) : 0,
-        share: r1(kgTot / totalProdKg * 100),
+        val: r2(valTot), kg: Math.round(kgTot),
+        avgPrice: kgTot > 0 ? r2(valTot * 1e6 / kgTot) : 0,
+        share: r2(kgTot / totalProdKg * 100),
         monthly: monthlyVal, priceMonthly: priceMonthly
       };
     }).sort(function (a, b) { return b.val - a.val; });
@@ -104,8 +103,8 @@
       var kgTot = sum(c.monthlyKg.slice(0, NACT));
       var last = NACT >= 1 ? c.monthlyKg[NACT - 1] : 0;
       var prev = NACT >= 2 ? c.monthlyKg[NACT - 2] : 0;
-      var mom = prev > 0 ? r1((last / prev - 1) * 100) : (last > 0 ? 0 : 0);
-      return { name: c.name, kg: Math.round(kgTot), share: r1(kgTot / totalCustKg * 100), monthly: c.monthlyKg.slice(0, NACT), mom: mom };
+      var mom = prev > 0 ? r2((last / prev - 1) * 100) : (last > 0 ? 0 : 0);
+      return { name: c.name, kg: Math.round(kgTot), share: r2(kgTot / totalCustKg * 100), monthly: c.monthlyKg.slice(0, NACT), mom: mom };
     }).filter(function (c) { return c.kg > 0; })
       .sort(function (a, b) { return b.kg - a.kg; });
     var nCustomers = allCustomers.length;
@@ -113,22 +112,22 @@
 
     // contribution (Pareto) top3 / top5 share
     var cum = 0, top3 = 0, top5 = 0;
-    allCustomers.forEach(function (c, i) { cum += c.share; if (i === 2) top3 = r1(cum); if (i === 4) top5 = r1(cum); });
-    if (allCustomers.length < 3) top3 = r1(cum);
-    if (allCustomers.length < 5) top5 = r1(cum);
+    allCustomers.forEach(function (c, i) { cum += c.share; if (i === 2) top3 = r2(cum); if (i === 4) top5 = r2(cum); });
+    if (allCustomers.length < 3) top3 = r2(cum);
+    if (allCustomers.length < 5) top5 = r2(cum);
 
     // ---- KPIs (with MoM & YoY) ----
-    function momPct(arr) { return NACT >= 2 && num(arr[NACT - 2]) ? r1((num(arr[NACT - 1]) / num(arr[NACT - 2]) - 1) * 100) : 0; }
+    function momPct(arr) { return NACT >= 2 && num(arr[NACT - 2]) ? r2((num(arr[NACT - 1]) / num(arr[NACT - 2]) - 1) * 100) : 0; }
     var v68p = sum(BASE.value68.slice(0, NACT)), vol68p = sum(BASE.volume68.slice(0, NACT));
-    var yoyVal = v68p ? r1((totalValueLbn / v68p - 1) * 100) : 0;
-    var yoyKg = vol68p ? r1((totalVolKKg / vol68p - 1) * 100) : 0;
+    var yoyVal = v68p ? r2((totalValueLbn / v68p - 1) * 100) : 0;
+    var yoyKg = vol68p ? r2((totalVolKKg / vol68p - 1) * 100) : 0;
     var price68avg = vol68p ? (v68p * 1e6) / (vol68p * 1000) : 0;
-    var yoyPrice = price68avg ? r1((avgPrice / price68avg - 1) * 100) : 0;
+    var yoyPrice = price68avg ? r2((avgPrice / price68avg - 1) * 100) : 0;
 
     var KPIS = [
-      { id: 'value', label: 'มูลค่าขายรวม', value: totalValueLbn.toFixed(1), unit: 'ลบ.', delta: momPct(val69), yoy: yoyVal, accent: true, spark: val69.slice(0, NACT), color: 'var(--accent)' },
+      { id: 'value', label: 'มูลค่าขายรวม', value: totalValueLbn.toFixed(2), unit: 'ลบ.', delta: momPct(val69), yoy: yoyVal, accent: true, spark: val69.slice(0, NACT), color: 'var(--accent)' },
       { id: 'volume', label: 'ปริมาณขายรวม', value: Math.round(totalVolKg).toLocaleString('en-US'), unit: 'Kg', delta: momPct(vol69), yoy: yoyKg, spark: vol69.slice(0, NACT), color: 'var(--viz-2)' },
-      { id: 'price', label: 'ราคาเฉลี่ย/Kg', value: avgPrice.toFixed(1), unit: '฿/Kg', delta: momPct(price69), yoy: yoyPrice, spark: price69.slice(0, NACT), color: 'var(--viz-3)' },
+      { id: 'price', label: 'ราคาเฉลี่ย/Kg', value: avgPrice.toFixed(2), unit: '฿/Kg', delta: momPct(price69), yoy: yoyPrice, spark: price69.slice(0, NACT), color: 'var(--viz-3)' },
       { id: 'customers', label: 'จำนวนลูกค้า', value: String(nCustomers), unit: 'ราย', delta: 0, yoy: 0, spark: monthlyCustCounts(rcust, NACT), color: 'var(--viz-4)' },
       { id: 'products', label: 'จำนวนผลิตภัณฑ์', value: String(nProducts), unit: 'ประเภท', delta: 0, yoy: 0, spark: new Array(NACT).fill(nProducts), color: 'var(--viz-5)' }
     ];
@@ -137,7 +136,7 @@
     var avgMonthVal = NACT ? totalValueLbn / NACT : 0;
     var avgMonthKg = NACT ? totalVolKKg / NACT : 0;
     var projVal = [];
-    for (var f = 0; f < 12; f++) projVal.push(f < NACT ? num(val69[f]) : r1(avgMonthVal));
+    for (var f = 0; f < 12; f++) projVal.push(f < NACT ? num(val69[f]) : r2(avgMonthVal));
     var yearEndVal = Math.round(sum(projVal));
     var yearEndKg = r2((totalVolKKg + avgMonthKg * (12 - NACT)) / 1000);
 

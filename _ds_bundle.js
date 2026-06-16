@@ -111,7 +111,7 @@ function DonutChart({
       fontWeight: 'var(--weight-semibold)',
       color: 'var(--text-primary)'
     }
-  }, segs[active].pct.toFixed(1), "%"), /*#__PURE__*/React.createElement("span", {
+  }, segs[active].pct.toFixed(2), "%"), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 'var(--text-2xs)',
       color: 'var(--text-tertiary)',
@@ -173,7 +173,7 @@ function DonutChart({
       fontWeight: 'var(--weight-semibold)',
       color: 'var(--text-primary)'
     }
-  }, s.pct.toFixed(1), "%")))));
+  }, s.pct.toFixed(2), "%")))));
 }
 Object.assign(__ds_scope, { DonutChart });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/charts/DonutChart.jsx", error: String((e && e.message) || e) }); }
@@ -592,7 +592,7 @@ function ParetoChart({
       fontFamily: 'var(--font-numeric)',
       color: lineColor
     }
-  }, pts[hover].cumPct.toFixed(1), "%"))));
+  }, pts[hover].cumPct.toFixed(2), "%"))));
 }
 Object.assign(__ds_scope, { ParetoChart });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/charts/ParetoChart.jsx", error: String((e && e.message) || e) }); }
@@ -1890,7 +1890,7 @@ function RankBar({
       fontWeight: 'var(--weight-semibold)',
       color: delta >= 0 ? 'var(--positive)' : 'var(--negative)'
     }
-  }, delta >= 0 ? '+' : '−', Math.abs(delta).toFixed(1), "%"))));
+  }, delta >= 0 ? '+' : '−', Math.abs(delta).toFixed(2), "%"))));
 }
 Object.assign(__ds_scope, { RankBar });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/data/RankBar.jsx", error: String((e && e.message) || e) }); }
@@ -2108,20 +2108,22 @@ try { (() => {
   const Icon = window.Icon;
   const fmt = {
     int: n => Math.round(n).toLocaleString('en-US'),
-    dec1: n => (Math.round(n * 10) / 10).toLocaleString('en-US', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
+    dec1: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }),
-    money: n => (Math.round(n * 10) / 10).toLocaleString('en-US', {
-      maximumFractionDigits: 1
+    money: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }) + ' ลบ.',
-    m: n => (Math.round(n * 10) / 10).toLocaleString('en-US', {
-      maximumFractionDigits: 1
+    m: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }) + 'M',
     kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     kgM: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1) + '%'
+    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
   };
 
   // quarter aggregation of a 12-month series
@@ -2311,9 +2313,9 @@ try { (() => {
     if (allC.length < 3) top3 = rnd(cum, 1);
     if (allC.length < 5) top5 = rnd(cum, 1);
     const patch = {
-      value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
+      value: { value: sumVal.toFixed(2), delta: momVal, yoy: yoy(sumVal, sumValC) },
       volume: { value: Math.round(sumVol * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(sumVol, sumVolC) },
-      price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
+      price: { value: price.toFixed(2), yoy: yoy(price, priceC) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
@@ -2341,7 +2343,7 @@ try { (() => {
     products: 'product',
     orders: 'sales'
   };
-  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
 
   function KpiRow({
     onDrill,
@@ -2385,7 +2387,7 @@ try { (() => {
   }) {
     const D = viewFor(filters);
     const NACT = D.NACT;
-    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const labels = D.MONTHS_ACT;
     const val69 = D.valueByYear[2569].slice(0, NACT);
     const val68 = D.valueByYear[2568].slice(0, NACT);
@@ -2395,7 +2397,7 @@ try { (() => {
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
     const INSIGHTS = NACT === 0 ? [] : [
       {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1]||'-'} ฿/Kg (จาก ${D.price69[0]||'-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
-      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3 + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3}% ของปริมาณ`, time: 'เฝ้าระวัง'},
+      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3.toFixed(2) + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3.toFixed(2)}% ของปริมาณ`, time: 'เฝ้าระวัง'},
       {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
       {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice} ฿/Kg`, time: `${NACT} เดือน`}
     ];
@@ -2499,7 +2501,7 @@ try { (() => {
       rank: i + 1,
       label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
       ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
-      share: p.share + '%',
+      share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
       color: "var(--viz-1)",
       onClick: () => onDrill('product')
@@ -2515,7 +2517,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: fmt.int(c.kg) + ' Kg',
-      value: c.share + '%',
+      value: c.share.toFixed(2) + '%',
       ratio: custByKg.length ? c.kg / custByKg[0].kg : 0,
       delta: c.mom,
       color: "var(--viz-4)",
@@ -2647,7 +2649,7 @@ try { (() => {
       v68: D.valueByYear[2568][i],
       kg69: D.volumeByYear[2569][i],
       price: D.price69[i],
-      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(1)
+      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(2)
     }));
     return /*#__PURE__*/React.createElement(DataTable, {
       rows: rows,
@@ -2723,10 +2725,10 @@ try { (() => {
   } = window;
   const D = window.VDATA;
   const NACT = D.NACT;
-  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
   // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
-  const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(1)); // พัน Kg
+  const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(2)); // พัน Kg
 
 
   // ---------- Product Analysis ----------
@@ -2760,7 +2762,7 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
-      value: D.totals.avgPrice,
+      value: D.totals.avgPrice.toFixed(2),
       unit: "\u0E3F/Kg",
       delta: 3.6
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -2791,7 +2793,7 @@ try { (() => {
       rank: i + 1,
       label: p.name,      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
       ratio: p[metric] / max,
-      share: p.share + '%',
+      share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`,
       onClick: () => setSel(p)
@@ -2863,7 +2865,7 @@ try { (() => {
         key: 'share',
         header: 'สัดส่วน',
         numeric: true,
-        render: r => r.share + '%'
+        render: r => r.share.toFixed(2) + '%'
       }, {
         key: 'g',
         header: 'MoM',
@@ -3030,7 +3032,7 @@ try { (() => {
         rank: i + 1,
         label: c.name,
         sublabel: fmt.int(p.kg * portion) + ' Kg (ประมาณ)',
-        value: (portion * 100).toFixed(0) + '%',
+        value: (portion * 100).toFixed(2) + '%',
         ratio: [1, 0.73, 0.6, 0.53, 0.46][i],
         color: "var(--viz-4)"
       });
@@ -3144,7 +3146,7 @@ try { (() => {
         color: 'rgba(255,255,255,.85)',
         textShadow: '0 1px 2px rgba(0,0,0,.4)'
       }
-    }, (d.value / total * 100).toFixed(1), "%"));
+    }, (d.value / total * 100).toFixed(2), "%"));
   }
   function MixScreen() {
     const [view, setView] = React.useState('treemap');
@@ -3199,7 +3201,7 @@ try { (() => {
     }, sorted.map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,      value: p.share + '%',
+      label: p.name,      value: p.share.toFixed(2) + '%',
       ratio: sorted.length ? p.val / sorted[0].val : 0,
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`
@@ -3217,7 +3219,7 @@ try { (() => {
     const alerts = D.PRODUCTS.map(p => {
       const last = p.priceMonthly[NACT - 1],
         first = p.priceMonthly[0];
-      const change = first ? +((last / first - 1) * 100).toFixed(1) : 0;
+      const change = first ? +((last / first - 1) * 100).toFixed(2) : 0;
       return {
         name: p.name,
         change
@@ -3231,7 +3233,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D Kg",
-      value: D.totals.avgPrice,
+      value: D.totals.avgPrice.toFixed(2),
       unit: "\u0E3F/Kg",
       delta: (D.price69[NACT - 1] / D.price69[0] - 1) * 100,
       deltaSuffix: " 5\u0E40\u0E14\u0E37\u0E2D\u0E19",
@@ -3445,7 +3447,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "Top 10 = \u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19",
-      value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(0),
+      value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(2),
       unit: "%",
       delta: -1.2
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -3476,7 +3478,7 @@ try { (() => {
       key: c.id,
       rank: i + 1,
       label: c.name,
-      sublabel: c.share + '% ของยอดรวม',
+      sublabel: c.share.toFixed(2) + '% ของยอดรวม',
       value: fmt.int(c.kg) + ' Kg',
       ratio: c.kg / max,
       share: null,
@@ -3521,10 +3523,10 @@ try { (() => {
       key: c.id,
       rank: i + 1,
       label: c.name,
-      sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '% ของเดือน' : '—',
+      sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(2) + '% ของเดือน' : '—',
       value: fmt.int(Math.round(c.monthly[mon] || 0)) + ' Kg',
       ratio: (c.monthly[mon] || 0) / maxMon,
-      delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(1) : null,
+      delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(2) : null,
       color: "var(--viz-5)",
       onClick: () => setSel(c)
     }))), /*#__PURE__*/React.createElement(Card, {
@@ -3559,7 +3561,7 @@ try { (() => {
         key: 'share',
         header: 'สัดส่วน',
         numeric: true,
-        render: r => r.share + '%'
+        render: r => r.share.toFixed(2) + '%'
       }, {
         key: 'm5',
         header: 'พ.ค. (Kg)',
@@ -3604,7 +3606,7 @@ try { (() => {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
         numeric: true,
-        render: r => gAll ? ((r.share != null ? r.share : 0) + '%') : (monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014')
+        render: r => gAll ? ((r.share != null ? r.share : 0).toFixed(2) + '%') : (monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(2) + '%' : '\u2014')
       }, {
         key: 'monDelta',
         header: '% MoM',
@@ -3612,7 +3614,7 @@ try { (() => {
         render: r => gAll
           ? /*#__PURE__*/React.createElement(DeltaBadge, { value: r.mom, size: "sm" })
           : (mon > 0 && r.monthly[mon - 1]
-            ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
+            ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(2), size: "sm" })
             : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014'))
       }]
     })));
@@ -3695,7 +3697,7 @@ try { (() => {
       delta: c.mom + 2
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E23\u0E32\u0E22\u0E44\u0E14\u0E49",
-      value: c.share,
+      value: c.share.toFixed(2),
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
@@ -3860,7 +3862,7 @@ try { (() => {
         size: 15
       }),
       title: "\u0E01\u0E23\u0E30\u0E08\u0E38\u0E01\u0E15\u0E31\u0E27\u0E2A\u0E39\u0E07\u0E21\u0E32\u0E01",
-      metric: D.totals.top3 + '%',
+      metric: D.totals.top3.toFixed(2) + '%',
       detail: `Top 3 ลูกค้าสร้างยอดเกินครึ่ง — สูงกว่าเป้าหมาย 40% มาก ควรเร่งกระจายฐานลูกค้า`
     }), (() => {
       const drop = [...D.CUSTOMERS].sort((a, b) => a.mom - b.mom)[0];
@@ -3917,7 +3919,7 @@ try { (() => {
           key: 'share',
           header: 'สัดส่วน',
           numeric: true,
-          render: r => r.share + '%'
+          render: r => r.share.toFixed(2) + '%'
         }, {
           key: 'cum',
           header: 'สะสม',
@@ -3929,7 +3931,7 @@ try { (() => {
               style: {
                 color: pct <= 80 ? 'var(--negative)' : 'var(--text-tertiary)'
               }
-            }, pct.toFixed(1), "%");
+            }, pct.toFixed(2), "%");
           }
         }];
       })()
@@ -3998,7 +4000,7 @@ try { (() => {
     const sumFull = y => D.sum(src[y].map(v => v || 0));
     const tLatest = sumN(latest, cmp);
     const tPrev = prev ? sumN(prev, cmp) : 0;
-    const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(1) : 0;
+    const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(2) : 0;
 
     // palette: older years muted, latest highlighted
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
@@ -4017,7 +4019,7 @@ try { (() => {
       years.forEach(y => {
         row['y' + y] = src[y][i];
       });
-      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(1) : 0;
+      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : 0;
       return row;
     });
 
@@ -4027,7 +4029,7 @@ try { (() => {
         full = sumFull(y),
         nM = monthsOf(y);
       const py = years[i - 1];
-      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(1) : null;
+      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(2) : null;
       return {
         year: y,
         cmpT,
@@ -4185,8 +4187,8 @@ try { (() => {
     const proj = F.projVal; // 12 months, first A actual
     const actual = proj.map((v, i) => i < A ? v : null);
     const projected = proj.map((v, i) => i >= A - 1 ? v : null);
-    const upper = projected.map(v => v == null ? null : +(v * 1.09).toFixed(1));
-    const lower = projected.map(v => v == null ? null : +(v * 0.91).toFixed(1));
+    const upper = projected.map(v => v == null ? null : +(v * 1.09).toFixed(2));
+    const lower = projected.map(v => v == null ? null : +(v * 0.91).toFixed(2));
     const p = {
       top: 16,
       right: 16,
@@ -4408,7 +4410,7 @@ try { (() => {
         padding: 'var(--space-2)'
       }
     }, prodByVal.slice(0, 10).map((p, i) => {
-      const proj = +(p.val * (12 / NACT) * 1.02).toFixed(1);
+      const proj = +(p.val * (12 / NACT) * 1.02).toFixed(2);
       return /*#__PURE__*/React.createElement(RankBar, {
         key: p.id,
         rank: i + 1,
@@ -4914,20 +4916,22 @@ try { (() => {
   const Icon = window.Icon;
   const fmt = {
     int: n => Math.round(n).toLocaleString('en-US'),
-    dec1: n => (Math.round(n * 10) / 10).toLocaleString('en-US', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
+    dec1: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }),
-    money: n => (Math.round(n * 10) / 10).toLocaleString('en-US', {
-      maximumFractionDigits: 1
+    money: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }) + ' ลบ.',
-    m: n => (Math.round(n * 10) / 10).toLocaleString('en-US', {
-      maximumFractionDigits: 1
+    m: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }) + 'M',
     kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     kgM: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1) + '%'
+    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
   };
 
   // quarter aggregation of a 12-month series
@@ -5571,9 +5575,9 @@ try { (() => {
     if (allC.length < 3) top3 = rnd(cum, 1);
     if (allC.length < 5) top5 = rnd(cum, 1);
     const patch = {
-      value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
+      value: { value: sumVal.toFixed(2), delta: momVal, yoy: yoy(sumVal, sumValC) },
       volume: { value: Math.round(sumVol * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(sumVol, sumVolC) },
-      price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
+      price: { value: price.toFixed(2), yoy: yoy(price, priceC) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
@@ -5601,7 +5605,7 @@ try { (() => {
     products: 'product',
     orders: 'sales'
   };
-  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
 
   function KpiRow({
     onDrill,
@@ -5645,7 +5649,7 @@ try { (() => {
   }) {
     const D = viewFor(filters);
     const NACT = D.NACT;
-    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const labels = D.MONTHS_ACT;
     const val69 = D.valueByYear[2569].slice(0, NACT);
     const val68 = D.valueByYear[2568].slice(0, NACT);
@@ -5655,7 +5659,7 @@ try { (() => {
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
     const INSIGHTS = NACT === 0 ? [] : [
       {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1]||'-'} ฿/Kg (จาก ${D.price69[0]||'-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
-      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3 + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3}% ของปริมาณ`, time: 'เฝ้าระวัง'},
+      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3.toFixed(2) + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3.toFixed(2)}% ของปริมาณ`, time: 'เฝ้าระวัง'},
       {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
       {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice} ฿/Kg`, time: `${NACT} เดือน`}
     ];
@@ -5759,7 +5763,7 @@ try { (() => {
       rank: i + 1,
       label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
       ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
-      share: p.share + '%',
+      share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
       color: "var(--viz-1)",
       onClick: () => onDrill('product')
@@ -5775,7 +5779,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: fmt.int(c.kg) + ' Kg',
-      value: c.share + '%',
+      value: c.share.toFixed(2) + '%',
       ratio: custByKg.length ? c.kg / custByKg[0].kg : 0,
       delta: c.mom,
       color: "var(--viz-4)",
@@ -5907,7 +5911,7 @@ try { (() => {
       v68: D.valueByYear[2568][i],
       kg69: D.volumeByYear[2569][i],
       price: D.price69[i],
-      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(1)
+      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(2)
     }));
     return /*#__PURE__*/React.createElement(DataTable, {
       rows: rows,
@@ -5983,17 +5987,17 @@ try { (() => {
   const viewFor = window.viewFor || function(f){ return window.VDATA; };
   const D = window.VDATA;
   const NACT = D.NACT;
-  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+  const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
   // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
-  const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(1)); // พัน Kg
+  const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(2)); // พัน Kg
 
 
   // ---------- Product Analysis ----------
   function ProductScreen({ filters }) {
     const D = viewFor(filters);
     const NACT = D.NACT;
-    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
@@ -6023,7 +6027,7 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
-      value: D.totals.avgPrice,
+      value: D.totals.avgPrice.toFixed(2),
       unit: "\u0E3F/Kg",
       delta: 3.6
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -6054,7 +6058,7 @@ try { (() => {
       rank: i + 1,
       label: p.name,      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
       ratio: p[metric] / max,
-      share: p.share + '%',
+      share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`,
       onClick: () => setSel(p)
@@ -6126,7 +6130,7 @@ try { (() => {
         key: 'share',
         header: 'สัดส่วน',
         numeric: true,
-        render: r => r.share + '%'
+        render: r => r.share.toFixed(2) + '%'
       }, {
         key: 'g',
         header: 'MoM',
@@ -6293,7 +6297,7 @@ try { (() => {
         rank: i + 1,
         label: c.name,
         sublabel: fmt.int(p.kg * portion) + ' Kg (ประมาณ)',
-        value: (portion * 100).toFixed(0) + '%',
+        value: (portion * 100).toFixed(2) + '%',
         ratio: [1, 0.73, 0.6, 0.53, 0.46][i],
         color: "var(--viz-4)"
       });
@@ -6407,12 +6411,12 @@ try { (() => {
         color: 'rgba(255,255,255,.85)',
         textShadow: '0 1px 2px rgba(0,0,0,.4)'
       }
-    }, (d.value / total * 100).toFixed(1), "%"));
+    }, (d.value / total * 100).toFixed(2), "%"));
   }
   function MixScreen({ filters }) {
     const D = viewFor(filters);
     const NACT = D.NACT;
-    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
+    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const [view, setView] = React.useState('treemap');
     const sorted = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const segs = sorted.map((p, i) => ({
@@ -6465,7 +6469,7 @@ try { (() => {
     }, sorted.map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,      value: p.share + '%',
+      label: p.name,      value: p.share.toFixed(2) + '%',
       ratio: sorted.length ? p.val / sorted[0].val : 0,
       delta: prodGrowth(p),
       color: `var(--viz-${i % 8 + 1})`
@@ -6485,7 +6489,7 @@ try { (() => {
     const alerts = D.PRODUCTS.map(p => {
       const last = p.priceMonthly[NACT - 1],
         first = p.priceMonthly[0];
-      const change = first ? +((last / first - 1) * 100).toFixed(1) : 0;
+      const change = first ? +((last / first - 1) * 100).toFixed(2) : 0;
       return {
         name: p.name,
         change
@@ -6499,7 +6503,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D Kg",
-      value: D.totals.avgPrice,
+      value: D.totals.avgPrice.toFixed(2),
       unit: "\u0E3F/Kg",
       delta: (D.price69[NACT - 1] / D.price69[0] - 1) * 100,
       deltaSuffix: " 5\u0E40\u0E14\u0E37\u0E2D\u0E19",
@@ -6714,7 +6718,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "Top 10 = \u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19",
-      value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(0),
+      value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(2),
       unit: "%",
       delta: -1.2
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -6745,7 +6749,7 @@ try { (() => {
       key: c.id,
       rank: i + 1,
       label: c.name,
-      sublabel: c.share + '% ของยอดรวม',
+      sublabel: c.share.toFixed(2) + '% ของยอดรวม',
       value: fmt.int(c.kg) + ' Kg',
       ratio: c.kg / max,
       share: null,
@@ -6790,10 +6794,10 @@ try { (() => {
       key: c.id,
       rank: i + 1,
       label: c.name,
-      sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '% ของเดือน' : '—',
+      sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(2) + '% ของเดือน' : '—',
       value: fmt.int(Math.round(c.monthly[mon] || 0)) + ' Kg',
       ratio: (c.monthly[mon] || 0) / maxMon,
-      delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(1) : null,
+      delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(2) : null,
       color: "var(--viz-5)",
       onClick: () => setSel(c)
     }))), /*#__PURE__*/React.createElement(Card, {
@@ -6828,7 +6832,7 @@ try { (() => {
         key: 'share',
         header: 'สัดส่วน',
         numeric: true,
-        render: r => r.share + '%'
+        render: r => r.share.toFixed(2) + '%'
       }, {
         key: 'm5',
         header: 'พ.ค. (Kg)',
@@ -6873,7 +6877,7 @@ try { (() => {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
         numeric: true,
-        render: r => gAll ? ((r.share != null ? r.share : 0) + '%') : (monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(1) + '%' : '\u2014')
+        render: r => gAll ? ((r.share != null ? r.share : 0).toFixed(2) + '%') : (monTotal ? ((r.monthly[mon] || 0) / monTotal * 100).toFixed(2) + '%' : '\u2014')
       }, {
         key: 'monDelta',
         header: '% MoM',
@@ -6881,7 +6885,7 @@ try { (() => {
         render: r => gAll
           ? /*#__PURE__*/React.createElement(DeltaBadge, { value: r.mom, size: "sm" })
           : (mon > 0 && r.monthly[mon - 1]
-            ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(1), size: "sm" })
+            ? /*#__PURE__*/React.createElement(DeltaBadge, { value: +(((r.monthly[mon] || 0) / r.monthly[mon - 1] - 1) * 100).toFixed(2), size: "sm" })
             : /*#__PURE__*/React.createElement("span", { style: { color: 'var(--text-tertiary)' } }, '\u2014'))
       }]
     })));
@@ -6964,7 +6968,7 @@ try { (() => {
       delta: c.mom + 2
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E23\u0E32\u0E22\u0E44\u0E14\u0E49",
-      value: c.share,
+      value: c.share.toFixed(2),
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
@@ -7131,7 +7135,7 @@ try { (() => {
         size: 15
       }),
       title: "\u0E01\u0E23\u0E30\u0E08\u0E38\u0E01\u0E15\u0E31\u0E27\u0E2A\u0E39\u0E07\u0E21\u0E32\u0E01",
-      metric: D.totals.top3 + '%',
+      metric: D.totals.top3.toFixed(2) + '%',
       detail: `Top 3 ลูกค้าสร้างยอดเกินครึ่ง — สูงกว่าเป้าหมาย 40% มาก ควรเร่งกระจายฐานลูกค้า`
     }), (() => {
       const drop = [...D.CUSTOMERS].sort((a, b) => a.mom - b.mom)[0];
@@ -7188,7 +7192,7 @@ try { (() => {
           key: 'share',
           header: 'สัดส่วน',
           numeric: true,
-          render: r => r.share + '%'
+          render: r => r.share.toFixed(2) + '%'
         }, {
           key: 'cum',
           header: 'สะสม',
@@ -7200,7 +7204,7 @@ try { (() => {
               style: {
                 color: pct <= 80 ? 'var(--negative)' : 'var(--text-tertiary)'
               }
-            }, pct.toFixed(1), "%");
+            }, pct.toFixed(2), "%");
           }
         }];
       })()
@@ -7269,7 +7273,7 @@ try { (() => {
     const sumFull = y => D.sum(src[y].map(v => v || 0));
     const tLatest = sumN(latest, cmp);
     const tPrev = prev ? sumN(prev, cmp) : 0;
-    const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(1) : 0;
+    const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(2) : 0;
 
     // palette: older years muted, latest highlighted
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
@@ -7288,7 +7292,7 @@ try { (() => {
       years.forEach(y => {
         row['y' + y] = src[y][i];
       });
-      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(1) : 0;
+      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : 0;
       return row;
     });
 
@@ -7298,7 +7302,7 @@ try { (() => {
         full = sumFull(y),
         nM = monthsOf(y);
       const py = years[i - 1];
-      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(1) : null;
+      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(2) : null;
       return {
         year: y,
         cmpT,
@@ -7456,8 +7460,8 @@ try { (() => {
     const proj = F.projVal; // 12 months, first A actual
     const actual = proj.map((v, i) => i < A ? v : null);
     const projected = proj.map((v, i) => i >= A - 1 ? v : null);
-    const upper = projected.map(v => v == null ? null : +(v * 1.09).toFixed(1));
-    const lower = projected.map(v => v == null ? null : +(v * 0.91).toFixed(1));
+    const upper = projected.map(v => v == null ? null : +(v * 1.09).toFixed(2));
+    const lower = projected.map(v => v == null ? null : +(v * 0.91).toFixed(2));
     const p = {
       top: 16,
       right: 16,
@@ -7681,7 +7685,7 @@ try { (() => {
         padding: 'var(--space-2)'
       }
     }, prodByVal.slice(0, 10).map((p, i) => {
-      const proj = +(p.val * (12 / NACT) * 1.02).toFixed(1);
+      const proj = +(p.val * (12 / NACT) * 1.02).toFixed(2);
       return /*#__PURE__*/React.createElement(RankBar, {
         key: p.id,
         rank: i + 1,
