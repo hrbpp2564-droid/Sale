@@ -2288,8 +2288,14 @@ try { (() => {
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
-    // products: filter by product, re-slice monthly to selected months, recompute val/share
-    let prods = D.PRODUCTS;
+    // products: merge duplicate names → 1 ประเภท, filter, re-slice monthly, recompute val/share
+    const _pByName = {};
+    (D.PRODUCTS || []).forEach((p) => {
+      const key = (p.name || '').trim();
+      if (!_pByName[key]) { _pByName[key] = Object.assign({}, p, { monthly: (p.monthly || []).slice(), kg: p.kg || 0 }); }
+      else { const t = _pByName[key].monthly, s = p.monthly || []; for (let i = 0; i < s.length; i++) t[i] = (t[i] || 0) + (s[i] || 0); _pByName[key].kg += (p.kg || 0); }
+    });
+    let prods = Object.keys(_pByName).map((k) => _pByName[k]);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
     const totP = sum(prods.map((p) => p.val));
@@ -5603,8 +5609,14 @@ try { (() => {
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
-    // products: filter by product, re-slice monthly to selected months, recompute val/share
-    let prods = D.PRODUCTS;
+    // products: merge duplicate names → 1 ประเภท, filter, re-slice monthly, recompute val/share
+    const _pByName = {};
+    (D.PRODUCTS || []).forEach((p) => {
+      const key = (p.name || '').trim();
+      if (!_pByName[key]) { _pByName[key] = Object.assign({}, p, { monthly: (p.monthly || []).slice(), kg: p.kg || 0 }); }
+      else { const t = _pByName[key].monthly, s = p.monthly || []; for (let i = 0; i < s.length; i++) t[i] = (t[i] || 0) + (s[i] || 0); _pByName[key].kg += (p.kg || 0); }
+    });
+    let prods = Object.keys(_pByName).map((k) => _pByName[k]);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
     prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
     const totP = sum(prods.map((p) => p.val));

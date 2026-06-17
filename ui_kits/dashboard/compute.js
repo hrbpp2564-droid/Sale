@@ -62,11 +62,15 @@
     var avgPrice = totalVolKg > 0 ? r2(totalValueBaht / totalVolKg) : 0;
 
     // ---- products ----
-    var rprods = (raw.products || []).map(function (p) {
+    var _prodByName = {};
+    (raw.products || []).forEach(function (p) {
       var mk = (p.monthlyKg || []).slice(0, 12).map(num);
       while (mk.length < 12) mk.push(0);
-      return { name: p.name, monthlyKg: mk };
+      var key = (p.name || '').trim();
+      if (!_prodByName[key]) { _prodByName[key] = { name: p.name, monthlyKg: mk }; }
+      else { var t = _prodByName[key].monthlyKg; for (var z = 0; z < 12; z++) t[z] += mk[z]; }
     });
+    var rprods = Object.keys(_prodByName).map(function (k) { return _prodByName[k]; });
     // monthly sum of product kg (for proportional value allocation)
     var SK = [];
     for (var mm = 0; mm < NACT; mm++) { var s = 0; rprods.forEach(function (p) { s += p.monthlyKg[mm]; }); SK.push(s); }
