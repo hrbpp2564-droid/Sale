@@ -2296,7 +2296,14 @@ try { (() => {
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
     // customers: re-slice monthly to selected months, recompute kg/share/mom; filter by selected customer
     const remapCust = (list) => {
-      let out = (list || []).map((c) => {
+      // merge duplicate customer names (same buyer entered as multiple rows) → 1 ราย
+      const byName = {};
+      (list || []).forEach((c) => {
+        const key = (c.name || '').trim();
+        if (!byName[key]) { byName[key] = Object.assign({}, c, { monthly: (c.monthly || []).slice() }); }
+        else { const t = byName[key].monthly, s = c.monthly || []; for (let i = 0; i < s.length; i++) t[i] = (t[i] || 0) + (s[i] || 0); }
+      });
+      let out = Object.keys(byName).map((k) => byName[k]).map((c) => {
         const m = reslice(c.monthly);
         const kg = Math.round(sum(m));
         const L = m.length;
@@ -5604,7 +5611,14 @@ try { (() => {
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
     // customers: re-slice monthly to selected months, recompute kg/share/mom; filter by selected customer
     const remapCust = (list) => {
-      let out = (list || []).map((c) => {
+      // merge duplicate customer names (same buyer entered as multiple rows) → 1 ราย
+      const byName = {};
+      (list || []).forEach((c) => {
+        const key = (c.name || '').trim();
+        if (!byName[key]) { byName[key] = Object.assign({}, c, { monthly: (c.monthly || []).slice() }); }
+        else { const t = byName[key].monthly, s = c.monthly || []; for (let i = 0; i < s.length; i++) t[i] = (t[i] || 0) + (s[i] || 0); }
+      });
+      let out = Object.keys(byName).map((k) => byName[k]).map((c) => {
         const m = reslice(c.monthly);
         const kg = Math.round(sum(m));
         const L = m.length;

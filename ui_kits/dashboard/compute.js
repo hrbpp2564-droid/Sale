@@ -93,11 +93,15 @@
     var nProducts = PRODUCTS.filter(function (p) { return p.kg > 0; }).length;
 
     // ---- customers ----
-    var rcust = (raw.customers || []).map(function (c) {
+    var _custByName = {};
+    (raw.customers || []).forEach(function (c) {
       var mk = (c.monthlyKg || []).slice(0, 12).map(num);
       while (mk.length < 12) mk.push(0);
-      return { name: c.name, monthlyKg: mk };
+      var key = (c.name || '').trim();
+      if (!_custByName[key]) { _custByName[key] = { name: c.name, monthlyKg: mk }; }
+      else { var t = _custByName[key].monthlyKg; for (var z = 0; z < 12; z++) t[z] += mk[z]; }
     });
+    var rcust = Object.keys(_custByName).map(function (k) { return _custByName[k]; });
     var totalCustKg = rcust.reduce(function (s, c) { return s + sum(c.monthlyKg.slice(0, NACT)); }, 0) || 1;
     var allCustomers = rcust.map(function (c) {
       var kgTot = sum(c.monthlyKg.slice(0, NACT));
