@@ -11,10 +11,14 @@
   const NACT = D.NACT;
 
   function CustomerScreen({ filters }) {
-    const D = viewFor(filters);
+    // keep full months so the trend chart, ranking and segmented control work;
+    // the global month dropdown drives the internal `mon` selection instead of slicing data
+    const D = viewFor(Object.assign({}, filters, { month: 'all' }));
     const NACT = D.NACT;
     const [sel, setSel] = React.useState(null);
-    const [mon, setMon] = React.useState(NACT - 1); // selected month index for monthly ranking
+    const _gMon = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? +filters.month : null;
+    const [mon, setMon] = React.useState(_gMon != null ? _gMon : (NACT - 1)); // selected month index, synced with global filter
+    React.useEffect(() => { setMon(_gMon != null ? _gMon : (NACT - 1)); }, [_gMon, NACT]);
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const max = sorted[0].kg;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0];
