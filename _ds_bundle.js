@@ -239,7 +239,7 @@ function LineChart({
   const n = labels.length || (series[0]?.data.length ?? 0);
   const xAt = i => p.left + (n <= 1 ? iw / 2 : i / (n - 1) * iw);
   const yAt = (v, axis) => p.top + ih - v / (axis === 'right' ? rMax : lMax) * ih;
-  const bxAt = i => p.left + (i + 0.5) / n * iw; // bar centers
+  const bxAt = i => xAt(i); // bar centers aligned with line/label x positions
 
   const gridLines = 4;
   function pathFor(data, axis) {
