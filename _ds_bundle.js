@@ -237,7 +237,8 @@ function LineChart({
   const lMax = maxOf(leftSeries.length ? leftSeries : series) * 1.12;
   const rMax = maxOf(rightSeries.length ? rightSeries : series) * 1.12;
   const n = labels.length || (series[0]?.data.length ?? 0);
-  const xAt = i => p.left + (n <= 1 ? iw / 2 : i / (n - 1) * iw);
+  const hasBar = series.some(s => s.type === 'bar');
+  const xAt = i => p.left + (hasBar ? (i + 0.5) / n * iw : (n <= 1 ? iw / 2 : i / (n - 1) * iw));
   const yAt = (v, axis) => p.top + ih - v / (axis === 'right' ? rMax : lMax) * ih;
   const bxAt = i => xAt(i); // bar centers aligned with line/label x positions
 
@@ -366,7 +367,7 @@ function LineChart({
     stroke: "var(--surface-1)",
     strokeWidth: "1.5"
   }))), null), labels.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: { display: 'flex', justifyContent: n <= 1 ? 'center' : 'space-between', paddingLeft: p.left, paddingRight: p.right, marginTop: 2 }
+    style: { display: 'flex', justifyContent: hasBar ? 'space-around' : (n <= 1 ? 'center' : 'space-between'), paddingLeft: p.left, paddingRight: p.right, marginTop: 2 }
   }, labels.map((l, i) => /*#__PURE__*/React.createElement("span", {
     key: i,
     style: { fontSize: 10, color: 'var(--chart-axis)', fontFamily: 'var(--font-sans)', textAlign: 'center', flex: '0 0 auto', visibility: (n <= 14 || i % Math.ceil(n / 12) === 0) ? 'visible' : 'hidden' }
