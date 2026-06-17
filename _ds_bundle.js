@@ -2339,7 +2339,7 @@ try { (() => {
       allCustomers: allC,
       custTotalKg: custTotalKg,
       nCustomers: allC.length,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5 }),
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5, yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
     });
   }
   const KPI_DRILL = {
@@ -5645,7 +5645,7 @@ try { (() => {
       allCustomers: allC,
       custTotalKg: custTotalKg,
       nCustomers: allC.length,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5 }),
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5, yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
     });
   }
   const KPI_DRILL = {

@@ -77,7 +77,7 @@
       KPIS: KPIS,
       PRODUCTS: prods,
       CUSTOMERS: custs,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1) }),
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
     });
   }
 
