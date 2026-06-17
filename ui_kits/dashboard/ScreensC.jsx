@@ -122,9 +122,9 @@
 
         <Grid cols={3} gap={16}>
           <div style={{ gridColumn: 'span 2' }}>
-            <Card title="แนวโน้มการซื้อรายเดือน · 2569" subtitle="ปริมาณ (Kg) · ม.ค.–พ.ค.">
-              <LineChart height={240} labels={_detailD.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
-                series={[{ name: c.name, data: c.monthly.slice(0, _NACT), color: 'var(--viz-4)', type: 'area' }]} />
+            <Card title="แนวโน้มการซื้อรายเดือน · 2569" subtitle={"ปริมาณ (Kg) · " + (_single ? _mName : "ม.ค.–พ.ค.")}>
+              <LineChart height={240} labels={_detailD.MONTHS_ACT.slice(0, _single ? _mi + 1 : _NACT)} yFormat={(v) => fmt.int(v)} showDots
+                series={[{ name: c.name, data: c.monthly.slice(0, _single ? _mi + 1 : _NACT), color: 'var(--viz-4)', type: 'area' }]} />
             </Card>
           </div>
           <Card title="สรุปพฤติกรรม" bodyStyle={{ padding: 'var(--space-3)' }}>

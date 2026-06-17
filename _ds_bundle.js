@@ -3009,7 +3009,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
+      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_single ? _mName : "\u0E21.\u0E04.\u2013\u0E1E.\u0E04.")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
       labels: _D.MONTHS_ACT,
@@ -3756,15 +3756,15 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E01\u0E32\u0E23\u0E0B\u0E37\u0E49\u0E2D\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
+      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_single ? _mName : "\u0E21.\u0E04.\u2013\u0E1E.\u0E04.")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: _detailD.MONTHS_ACT,
+      labels: _detailD.MONTHS_ACT.slice(0, _single ? _mi + 1 : _NACT),
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
         name: c.name,
-        data: c.monthly.slice(0, _NACT),
+        data: c.monthly.slice(0, _single ? _mi + 1 : _NACT),
         color: 'var(--viz-4)',
         type: 'area'
       }]
@@ -6311,7 +6311,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
+      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_single ? _mName : "\u0E21.\u0E04.\u2013\u0E1E.\u0E04.")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
       labels: _D.MONTHS_ACT,
@@ -7061,15 +7061,15 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E01\u0E32\u0E23\u0E0B\u0E37\u0E49\u0E2D\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04."
+      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_single ? _mName : "\u0E21.\u0E04.\u2013\u0E1E.\u0E04.")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: _detailD.MONTHS_ACT,
+      labels: _detailD.MONTHS_ACT.slice(0, _single ? _mi + 1 : _NACT),
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
         name: c.name,
-        data: c.monthly.slice(0, _NACT),
+        data: c.monthly.slice(0, _single ? _mi + 1 : _NACT),
         color: 'var(--viz-4)',
         type: 'area'
       }]
