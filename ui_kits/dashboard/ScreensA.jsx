@@ -64,6 +64,8 @@
       value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
       volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
       price: { value: price.toFixed(1), yoy: yoy(price, priceC) },
+      customers: { value: String(allC.length) },
+      products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
