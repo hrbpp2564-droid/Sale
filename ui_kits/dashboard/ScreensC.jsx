@@ -28,7 +28,7 @@
     const maxMon = byMonth[0] ? (byMonth[0].monthly[mon] || 1) : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
 
-    if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} viewD={D} />;
+    if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} viewD={D} monIdx={mon} monAll={_gMon == null} />;
 
     return (
       <div>
@@ -84,12 +84,20 @@
     );
   }
 
-  function CustomerDetail({ customer: c, onBack, viewD }) {
+  function CustomerDetail({ customer: c, onBack, viewD, monIdx, monAll }) {
     const _detailD = viewD || window.VDATA;
     const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
     const _NACT = _detailD.NACT || 1;
     const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex((x) => x.name === c.name) + 1;
     const avgPrice = _detailD.totals.avgPrice;
+    // month-aware: when a specific month is selected in the global filter, KPIs reflect that month
+    const _single = !monAll && monIdx != null && monIdx >= 0 && monIdx < _NACT;
+    const _mi = _single ? monIdx : _NACT - 1;
+    const _mName = _detailD.MONTHS_ACT[_mi] || '';
+    const _curKg = _single ? (c.monthly[_mi] || 0) : c.kg;
+    const _momM = _mi >= 1 && c.monthly[_mi - 1] ? +((c.monthly[_mi] / c.monthly[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : c.mom);
+    const _monTot = _single ? _allC.reduce((s, x) => s + (x.monthly[_mi] || 0), 0) : 0;
+    const _curShare = _single ? (_monTot ? _curKg / _monTot * 100 : 0) : c.share;
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -102,14 +110,14 @@
             </div>
           </div>
           <div style={{ flex: 1 }} />
-          <DeltaBadge value={c.mom} size="lg" suffix=" MoM" />
+          <DeltaBadge value={_momM} size="lg" suffix=" MoM" />
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="ปริมาณขายรวม" value={fmt.int(c.kg)} unit="Kg" delta={c.mom} accent />
-          <KpiCard label="มูลค่าโดยประมาณ" value={fmt.dec1(c.kg * avgPrice / 1e6)} unit="ลบ." delta={c.mom} />
-          <KpiCard label="สัดส่วนปริมาณ" value={c.share} unit="%" />
-          <KpiCard label="เฉลี่ย/เดือน" value={fmt.int(c.kg / _NACT)} unit="Kg" delta={c.mom} />
+          <KpiCard label={_single ? ('ปริมาณเดือน ' + _mName) : 'ปริมาณขายรวม'} value={fmt.int(_curKg)} unit="Kg" delta={_momM} accent />
+          <KpiCard label="มูลค่าโดยประมาณ" value={fmt.dec1(_curKg * avgPrice / 1e6)} unit="ลบ." delta={_momM} />
+          <KpiCard label={_single ? 'สัดส่วนเดือนนี้' : 'สัดส่วนปริมาณ'} value={_curShare.toFixed(2)} unit="%" />
+          <KpiCard label={_single ? 'ปริมาณรวม 5 เดือน' : 'เฉลี่ย/เดือน'} value={_single ? fmt.int(c.kg) : fmt.int(c.kg / _NACT)} unit="Kg" delta={_single ? undefined : c.mom} />
         </Grid>
 
         <Grid cols={3} gap={16}>
@@ -121,8 +129,8 @@
           </div>
           <Card title="สรุปพฤติกรรม" bodyStyle={{ padding: 'var(--space-3)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <InsightCard tone={c.mom >= 0 ? 'positive' : 'negative'} icon={<Icon name={c.mom >= 0 ? 'trending-up' : 'trending-down'} size={15} />}
-                title="แนวโน้มล่าสุด" metric={fmt.pct(c.mom)} detail={`ปริมาณเดือน พ.ค. ${c.mom >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบ เม.ย.`} />
+              <InsightCard tone={_momM >= 0 ? 'positive' : 'negative'} icon={<Icon name={_momM >= 0 ? 'trending-up' : 'trending-down'} size={15} />}
+                title={_single ? ('แนวโน้มเดือน ' + _mName) : 'แนวโน้มล่าสุด'} metric={fmt.pct(_momM)} detail={`ปริมาณเดือน ${_single ? _mName : (_detailD.MONTHS_ACT[_NACT - 1] || 'ล่าสุด')} ${_momM >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบเดือนก่อน`} />
               <InsightCard tone="info" icon={<Icon name="box" size={15} />} title="ปริมาณสูงสุด"
                 metric={fmt.int(Math.max(...c.monthly)) + ' Kg'} detail={'เดือน ' + _detailD.MONTHS_ACT[c.monthly.indexOf(Math.max(...c.monthly))]} />
               <InsightCard tone={rank <= 3 ? 'warning' : 'info'} icon={<Icon name="users" size={15} />} title={'อันดับลูกค้า #' + rank}

@@ -3448,7 +3448,9 @@ try { (() => {
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null),
-      viewD: D
+      viewD: D,
+      monIdx: mon,
+      monAll: _gMon == null
     });
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
@@ -3649,13 +3651,23 @@ try { (() => {
   function CustomerDetail({
     customer: c,
     onBack,
-    viewD
+    viewD,
+    monIdx,
+    monAll
   }) {
     const _detailD = viewD || window.VDATA;
     const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
     const _NACT = _detailD.NACT || 1;
     const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
     const avgPrice = _detailD.totals.avgPrice;
+    // month-aware: when a specific month is selected in the global filter, KPIs reflect that month
+    const _single = !monAll && monIdx != null && monIdx >= 0 && monIdx < _NACT;
+    const _mi = _single ? monIdx : _NACT - 1;
+    const _mName = _detailD.MONTHS_ACT[_mi] || '';
+    const _curKg = _single ? (c.monthly[_mi] || 0) : c.kg;
+    const _momM = _mi >= 1 && c.monthly[_mi - 1] ? +((c.monthly[_mi] / c.monthly[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : c.mom);
+    const _monTot = _single ? _allC.reduce((s, x) => s + (x.monthly[_mi] || 0), 0) : 0;
+    const _curShare = _single ? (_monTot ? _curKg / _monTot * 100 : 0) : c.share;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -3706,7 +3718,7 @@ try { (() => {
         flex: 1
       }
     }), /*#__PURE__*/React.createElement(DeltaBadge, {
-      value: c.mom,
+      value: _momM,
       size: "lg",
       suffix: " MoM"
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -3716,25 +3728,25 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
-      value: fmt.int(c.kg),
+      label: _single ? ("\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E40\u0E14\u0E37\u0E2D\u0E19 " + _mName) : "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
+      value: fmt.int(_curKg),
       unit: "Kg",
-      delta: c.mom,
+      delta: _momM,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13",
-      value: fmt.dec1(c.kg * avgPrice / 1e6),
+      value: fmt.dec1(_curKg * avgPrice / 1e6),
       unit: "\u0E25\u0E1A.",
-      delta: c.mom
+      delta: _momM
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
-      value: c.share.toFixed(2),
+      label: _single ? "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49" : "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
+      value: _curShare.toFixed(2),
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.int(c.kg / (_NACT || 1)),
+      label: _single ? "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E27\u0E21 5 \u0E40\u0E14\u0E37\u0E2D\u0E19" : "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
+      value: _single ? fmt.int(c.kg) : fmt.int(c.kg / (_NACT || 1)),
       unit: "Kg",
-      delta: c.mom
+      delta: _single ? undefined : c.mom
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 3,
       gap: 16
@@ -3768,14 +3780,14 @@ try { (() => {
         gap: 8
       }
     }, /*#__PURE__*/React.createElement(InsightCard, {
-      tone: c.mom >= 0 ? 'positive' : 'negative',
+      tone: _momM >= 0 ? 'positive' : 'negative',
       icon: /*#__PURE__*/React.createElement(Icon, {
-        name: c.mom >= 0 ? 'trending-up' : 'trending-down',
+        name: _momM >= 0 ? 'trending-up' : 'trending-down',
         size: 15
       }),
-      title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
-      metric: fmt.pct(c.mom),
-      detail: `ปริมาณเดือน พ.ค. ${c.mom >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบ เม.ย.`
+      title: _single ? ("\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E40\u0E14\u0E37\u0E2D\u0E19 " + _mName) : "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
+      metric: fmt.pct(_momM),
+      detail: `ปริมาณเดือน ${_single ? _mName : (_detailD.MONTHS_ACT[_NACT - 1] || 'ล่าสุด')} ${_momM >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบเดือนก่อน`
     }), /*#__PURE__*/React.createElement(InsightCard, {
       tone: "info",
       icon: /*#__PURE__*/React.createElement(Icon, {
@@ -6741,7 +6753,9 @@ try { (() => {
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null),
-      viewD: D
+      viewD: D,
+      monIdx: mon,
+      monAll: _gMon == null
     });
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
@@ -6942,13 +6956,23 @@ try { (() => {
   function CustomerDetail({
     customer: c,
     onBack,
-    viewD
+    viewD,
+    monIdx,
+    monAll
   }) {
     const _detailD = viewD || window.VDATA;
     const _allC = _detailD.allCustomers || _detailD.CUSTOMERS || [];
     const _NACT = _detailD.NACT || 1;
     const rank = [..._allC].sort((a, b) => b.kg - a.kg).findIndex(x => x.name === c.name) + 1;
     const avgPrice = _detailD.totals.avgPrice;
+    // month-aware: when a specific month is selected in the global filter, KPIs reflect that month
+    const _single = !monAll && monIdx != null && monIdx >= 0 && monIdx < _NACT;
+    const _mi = _single ? monIdx : _NACT - 1;
+    const _mName = _detailD.MONTHS_ACT[_mi] || '';
+    const _curKg = _single ? (c.monthly[_mi] || 0) : c.kg;
+    const _momM = _mi >= 1 && c.monthly[_mi - 1] ? +((c.monthly[_mi] / c.monthly[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : c.mom);
+    const _monTot = _single ? _allC.reduce((s, x) => s + (x.monthly[_mi] || 0), 0) : 0;
+    const _curShare = _single ? (_monTot ? _curKg / _monTot * 100 : 0) : c.share;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -6999,7 +7023,7 @@ try { (() => {
         flex: 1
       }
     }), /*#__PURE__*/React.createElement(DeltaBadge, {
-      value: c.mom,
+      value: _momM,
       size: "lg",
       suffix: " MoM"
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -7009,25 +7033,25 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
-      value: fmt.int(c.kg),
+      label: _single ? ("\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E40\u0E14\u0E37\u0E2D\u0E19 " + _mName) : "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
+      value: fmt.int(_curKg),
       unit: "Kg",
-      delta: c.mom,
+      delta: _momM,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13",
-      value: fmt.dec1(c.kg * avgPrice / 1e6),
+      value: fmt.dec1(_curKg * avgPrice / 1e6),
       unit: "\u0E25\u0E1A.",
-      delta: c.mom
+      delta: _momM
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
-      value: c.share.toFixed(2),
+      label: _single ? "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49" : "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
+      value: _curShare.toFixed(2),
       unit: "%"
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.int(c.kg / (_NACT || 1)),
+      label: _single ? "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E27\u0E21 5 \u0E40\u0E14\u0E37\u0E2D\u0E19" : "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
+      value: _single ? fmt.int(c.kg) : fmt.int(c.kg / (_NACT || 1)),
       unit: "Kg",
-      delta: c.mom
+      delta: _single ? undefined : c.mom
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 3,
       gap: 16
@@ -7061,14 +7085,14 @@ try { (() => {
         gap: 8
       }
     }, /*#__PURE__*/React.createElement(InsightCard, {
-      tone: c.mom >= 0 ? 'positive' : 'negative',
+      tone: _momM >= 0 ? 'positive' : 'negative',
       icon: /*#__PURE__*/React.createElement(Icon, {
-        name: c.mom >= 0 ? 'trending-up' : 'trending-down',
+        name: _momM >= 0 ? 'trending-up' : 'trending-down',
         size: 15
       }),
-      title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
-      metric: fmt.pct(c.mom),
-      detail: `ปริมาณเดือน พ.ค. ${c.mom >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบ เม.ย.`
+      title: _single ? ("\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E40\u0E14\u0E37\u0E2D\u0E19 " + _mName) : "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
+      metric: fmt.pct(_momM),
+      detail: `ปริมาณเดือน ${_single ? _mName : (_detailD.MONTHS_ACT[_NACT - 1] || 'ล่าสุด')} ${_momM >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}เทียบเดือนก่อน`
     }), /*#__PURE__*/React.createElement(InsightCard, {
       tone: "info",
       icon: /*#__PURE__*/React.createElement(Icon, {
