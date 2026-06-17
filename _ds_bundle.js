@@ -366,7 +366,7 @@ function LineChart({
     stroke: "var(--surface-1)",
     strokeWidth: "1.5"
   }))), null), labels.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: { display: 'flex', justifyContent: 'space-between', paddingLeft: p.left, paddingRight: p.right, marginTop: 2 }
+    style: { display: 'flex', justifyContent: n <= 1 ? 'center' : 'space-between', paddingLeft: p.left, paddingRight: p.right, marginTop: 2 }
   }, labels.map((l, i) => /*#__PURE__*/React.createElement("span", {
     key: i,
     style: { fontSize: 10, color: 'var(--chart-axis)', fontFamily: 'var(--font-sans)', textAlign: 'center', flex: '0 0 auto', visibility: (n <= 14 || i % Math.ceil(n / 12) === 0) ? 'visible' : 'hidden' }
