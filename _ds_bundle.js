@@ -3467,6 +3467,11 @@ try { (() => {
     const _kTop10 = gAll
       ? (D.custTotalKg ? sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100 : 0)
       : (monTotal ? byMonth.reduce((s, c) => s + (c.monthly[mon] || 0), 0) / monTotal * 100 : 0);
+    // ลูกค้าประจำ = ซื้อครบทุกเดือน (monthly[i] > 0 ทุกเดือน)
+    const regulars = baseAll.filter(c => { for (let i = 0; i < NACT; i++) { if (!((c.monthly[i] || 0) > 0)) return false; } return NACT > 0; }).sort((a, b) => b.kg - a.kg);
+    // ลูกค้าใหม่ในเดือนที่เลือก = ซื้อครั้งแรกในเดือนนั้น (ไม่เคยซื้อในเดือนก่อนหน้า)
+    const _firstMonthOf = (c) => { for (let i = 0; i < NACT; i++) { if ((c.monthly[i] || 0) > 0) return i; } return -1; };
+    const newInMon = baseAll.filter(c => _firstMonthOf(c) === mon).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null),
@@ -3628,7 +3633,36 @@ try { (() => {
           size: "sm"
         })
       }]
-    })), /*#__PURE__*/React.createElement(Card, {
+    })), /*#__PURE__*/React.createElement(Grid, {
+      cols: 2, gap: 16, style: { marginTop: 16 }
+    }, /*#__PURE__*/React.createElement(Card, {
+      title: "ลูกค้าประจำ (ซื้อครบทุกเดือน)",
+      subtitle: regulars.length + " ราย · ซื้อต่อเนื่องทั้ง " + NACT + " เดือน",
+      padding: "none"
+    }, regulars.length ? /*#__PURE__*/React.createElement(DataTable, {
+      rows: regulars, onRowClick: setSel, rowKey: r => r.name,
+      columns: [
+        { key: '_r', header: '#', width: 48, numeric: true, sortable: false, render: (r, i) => i + 1 },
+        { key: 'name', header: 'ลูกค้า', render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name) },
+        { key: 'kg', header: 'ปริมาณรวม (Kg)', numeric: true, render: r => fmt.int(r.kg) },
+        { key: 'mom', header: '% MoM', numeric: true, render: r => /*#__PURE__*/React.createElement(DeltaBadge, { value: r.mom, size: "sm" }) }
+      ]
+    }) : /*#__PURE__*/React.createElement("div", { style: { padding: 24, color: 'var(--text-tertiary)', textAlign: 'center' } }, "ไม่มีลูกค้าที่ซื้อครบทุกเดือน")), /*#__PURE__*/React.createElement(Card, {
+      title: "ลูกค้าใหม่ — เดือน " + D.MONTHS_ACT[mon],
+      subtitle: mon === 0 ? "เดือนแรก — ใช้เป็นฐานเริ่มต้น" : (newInMon.length + " ราย · ซื้อครั้งแรกในเดือนนี้"),
+      actions: /*#__PURE__*/React.createElement(SegmentedControl, {
+        size: "sm", value: String(mon), onChange: v => setMon(+v),
+        options: D.MONTHS_ACT.map((m, i) => ({ value: String(i), label: m }))
+      }),
+      padding: "none"
+    }, newInMon.length ? /*#__PURE__*/React.createElement(DataTable, {
+      rows: newInMon, onRowClick: setSel, rowKey: r => r.name,
+      columns: [
+        { key: '_r', header: '#', width: 48, numeric: true, sortable: false, render: (r, i) => i + 1 },
+        { key: 'name', header: 'ลูกค้า', render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name) },
+        { key: 'monKg', header: 'ปริมาณ (Kg)', numeric: true, render: r => fmt.int(Math.round(r.monthly[mon] || 0)) }
+      ]
+    }) : /*#__PURE__*/React.createElement("div", { style: { padding: 24, color: 'var(--text-tertiary)', textAlign: 'center' } }, mon === 0 ? "เดือนแรก ยังไม่มีฐานให้เทียบ" : "ไม่มีลูกค้าใหม่ในเดือนนี้"))), /*#__PURE__*/React.createElement(Card, {
       title: gAll ? "ลูกค้าทั้งหมด (ทุกเดือน)" : ("ลูกค้าทั้งหมดในเดือน " + D.MONTHS_ACT[mon]),
       subtitle: "\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E21\u0E35\u0E22\u0E2D\u0E14\u0E0B\u0E37\u0E49\u0E2D · " + allByMonth.length + " \u0E23\u0E32\u0E22",
       padding: "none",
@@ -6794,6 +6828,11 @@ try { (() => {
     const _kTop10 = gAll
       ? (D.custTotalKg ? sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100 : 0)
       : (monTotal ? byMonth.reduce((s, c) => s + (c.monthly[mon] || 0), 0) / monTotal * 100 : 0);
+    // ลูกค้าประจำ = ซื้อครบทุกเดือน (monthly[i] > 0 ทุกเดือน)
+    const regulars = baseAll.filter(c => { for (let i = 0; i < NACT; i++) { if (!((c.monthly[i] || 0) > 0)) return false; } return NACT > 0; }).sort((a, b) => b.kg - a.kg);
+    // ลูกค้าใหม่ในเดือนที่เลือก = ซื้อครั้งแรกในเดือนนั้น (ไม่เคยซื้อในเดือนก่อนหน้า)
+    const _firstMonthOf = (c) => { for (let i = 0; i < NACT; i++) { if ((c.monthly[i] || 0) > 0) return i; } return -1; };
+    const newInMon = baseAll.filter(c => _firstMonthOf(c) === mon).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null),
@@ -6955,7 +6994,36 @@ try { (() => {
           size: "sm"
         })
       }]
-    })), /*#__PURE__*/React.createElement(Card, {
+    })), /*#__PURE__*/React.createElement(Grid, {
+      cols: 2, gap: 16, style: { marginTop: 16 }
+    }, /*#__PURE__*/React.createElement(Card, {
+      title: "ลูกค้าประจำ (ซื้อครบทุกเดือน)",
+      subtitle: regulars.length + " ราย · ซื้อต่อเนื่องทั้ง " + NACT + " เดือน",
+      padding: "none"
+    }, regulars.length ? /*#__PURE__*/React.createElement(DataTable, {
+      rows: regulars, onRowClick: setSel, rowKey: r => r.name,
+      columns: [
+        { key: '_r', header: '#', width: 48, numeric: true, sortable: false, render: (r, i) => i + 1 },
+        { key: 'name', header: 'ลูกค้า', render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name) },
+        { key: 'kg', header: 'ปริมาณรวม (Kg)', numeric: true, render: r => fmt.int(r.kg) },
+        { key: 'mom', header: '% MoM', numeric: true, render: r => /*#__PURE__*/React.createElement(DeltaBadge, { value: r.mom, size: "sm" }) }
+      ]
+    }) : /*#__PURE__*/React.createElement("div", { style: { padding: 24, color: 'var(--text-tertiary)', textAlign: 'center' } }, "ไม่มีลูกค้าที่ซื้อครบทุกเดือน")), /*#__PURE__*/React.createElement(Card, {
+      title: "ลูกค้าใหม่ — เดือน " + D.MONTHS_ACT[mon],
+      subtitle: mon === 0 ? "เดือนแรก — ใช้เป็นฐานเริ่มต้น" : (newInMon.length + " ราย · ซื้อครั้งแรกในเดือนนี้"),
+      actions: /*#__PURE__*/React.createElement(SegmentedControl, {
+        size: "sm", value: String(mon), onChange: v => setMon(+v),
+        options: D.MONTHS_ACT.map((m, i) => ({ value: String(i), label: m }))
+      }),
+      padding: "none"
+    }, newInMon.length ? /*#__PURE__*/React.createElement(DataTable, {
+      rows: newInMon, onRowClick: setSel, rowKey: r => r.name,
+      columns: [
+        { key: '_r', header: '#', width: 48, numeric: true, sortable: false, render: (r, i) => i + 1 },
+        { key: 'name', header: 'ลูกค้า', render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name) },
+        { key: 'monKg', header: 'ปริมาณ (Kg)', numeric: true, render: r => fmt.int(Math.round(r.monthly[mon] || 0)) }
+      ]
+    }) : /*#__PURE__*/React.createElement("div", { style: { padding: 24, color: 'var(--text-tertiary)', textAlign: 'center' } }, mon === 0 ? "เดือนแรก ยังไม่มีฐานให้เทียบ" : "ไม่มีลูกค้าใหม่ในเดือนนี้"))), /*#__PURE__*/React.createElement(Card, {
       title: gAll ? "ลูกค้าทั้งหมด (ทุกเดือน)" : ("ลูกค้าทั้งหมดในเดือน " + D.MONTHS_ACT[mon]),
       subtitle: "\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E35\u0E48\u0E21\u0E35\u0E22\u0E2D\u0E14\u0E0B\u0E37\u0E49\u0E2D · " + allByMonth.length + " \u0E23\u0E32\u0E22",
       padding: "none",
