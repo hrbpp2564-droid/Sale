@@ -3445,6 +3445,13 @@ try { (() => {
     const allByMonth = gAll
       ? [...baseAll].filter(cx => (cx.kg || 0) > 0).sort((a, b) => (b.kg || 0) - (a.kg || 0))
       : [...baseAll].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
+    // month-aware list KPIs: reflect the selected month when one is chosen
+    const _kCount = gAll ? D.nCustomers : baseAll.filter(cx => (cx.monthly[mon] || 0) > 0).length;
+    const _kTotalKg = gAll ? D.custTotalKg : monTotal;
+    const _kAvg = _kCount ? _kTotalKg / _kCount : 0;
+    const _kTop10 = gAll
+      ? (D.custTotalKg ? sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100 : 0)
+      : (monTotal ? byMonth.reduce((s, c) => s + (c.monthly[mon] || 0), 0) / monTotal * 100 : 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null),
@@ -3459,8 +3466,8 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
-      value: String(D.nCustomers),
+      label: gAll ? "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32" : "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 (\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49)",
+      value: String(_kCount),
       unit: "\u0E23\u0E32\u0E22",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "users",
@@ -3468,7 +3475,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E23\u0E32\u0E22",
-      value: fmt.int(D.custTotalKg / D.nCustomers),
+      value: fmt.int(_kAvg),
       unit: "Kg",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "box",
@@ -3476,7 +3483,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "Top 10 = \u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19",
-      value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(2),
+      value: _kTop10.toFixed(2),
       unit: "%"
     }),/*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E42\u0E15\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E38\u0E14",
@@ -6750,6 +6757,13 @@ try { (() => {
     const allByMonth = gAll
       ? [...baseAll].filter(cx => (cx.kg || 0) > 0).sort((a, b) => (b.kg || 0) - (a.kg || 0))
       : [...baseAll].filter(cx => (cx.monthly[mon] || 0) > 0).sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0));
+    // month-aware list KPIs: reflect the selected month when one is chosen
+    const _kCount = gAll ? D.nCustomers : baseAll.filter(cx => (cx.monthly[mon] || 0) > 0).length;
+    const _kTotalKg = gAll ? D.custTotalKg : monTotal;
+    const _kAvg = _kCount ? _kTotalKg / _kCount : 0;
+    const _kTop10 = gAll
+      ? (D.custTotalKg ? sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100 : 0)
+      : (monTotal ? byMonth.reduce((s, c) => s + (c.monthly[mon] || 0), 0) / monTotal * 100 : 0);
     if (sel) return /*#__PURE__*/React.createElement(CustomerDetail, {
       customer: sel,
       onBack: () => setSel(null),
@@ -6764,8 +6778,8 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
-      value: String(D.nCustomers),
+      label: gAll ? "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32" : "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 (\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49)",
+      value: String(_kCount),
       unit: "\u0E23\u0E32\u0E22",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "users",
@@ -6773,7 +6787,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E23\u0E32\u0E22",
-      value: fmt.int(D.custTotalKg / D.nCustomers),
+      value: fmt.int(_kAvg),
       unit: "Kg",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "box",
@@ -6781,7 +6795,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "Top 10 = \u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19",
-      value: (sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100).toFixed(2),
+      value: _kTop10.toFixed(2),
       unit: "%"
     }),/*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E42\u0E15\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E38\u0E14",

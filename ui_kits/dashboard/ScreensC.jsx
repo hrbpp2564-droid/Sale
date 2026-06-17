@@ -28,14 +28,25 @@
     const maxMon = byMonth[0] ? (byMonth[0].monthly[mon] || 1) : 1;
     const monTotal = D.CUSTOMERS.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
 
+    // month-aware list KPIs: reflect the selected month when one is chosen
+    const _gAll = _gMon == null;
+    const _baseAll = D.allCustomers || D.CUSTOMERS;
+    const _monTotAll = _baseAll.reduce((s, c) => s + (c.monthly[mon] || 0), 0);
+    const _kCount = _gAll ? D.nCustomers : _baseAll.filter(cx => (cx.monthly[mon] || 0) > 0).length;
+    const _kTotalKg = _gAll ? D.custTotalKg : _monTotAll;
+    const _kAvg = _kCount ? _kTotalKg / _kCount : 0;
+    const _kTop10 = _gAll
+      ? (D.custTotalKg ? sorted.slice(0, 10).reduce((s, c) => s + c.kg, 0) / D.custTotalKg * 100 : 0)
+      : (_monTotAll ? byMonth.reduce((s, c) => s + (c.monthly[mon] || 0), 0) / _monTotAll * 100 : 0);
+
     if (sel) return <CustomerDetail customer={sel} onBack={() => setSel(null)} viewD={D} monIdx={mon} monAll={_gMon == null} />;
 
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="จำนวนลูกค้า" value={String(D.nCustomers)} unit="ราย" icon={<Icon name="users" size={15} />} />
-          <KpiCard label="ปริมาณเฉลี่ย/ราย" value={fmt.int(D.custTotalKg / D.nCustomers)} unit="Kg" icon={<Icon name="box" size={15} />} />
-          <KpiCard label="Top 10 = สัดส่วน" value={(sorted.slice(0,10).reduce((s,c)=>s+c.kg,0)/D.custTotalKg*100).toFixed(0)} unit="%" />
+          <KpiCard label={_gAll ? "จำนวนลูกค้า" : "จำนวนลูกค้า (เดือนนี้)"} value={String(_kCount)} unit="ราย" icon={<Icon name="users" size={15} />} />
+          <KpiCard label="ปริมาณเฉลี่ย/ราย" value={fmt.int(_kAvg)} unit="Kg" icon={<Icon name="box" size={15} />} />
+          <KpiCard label="Top 10 = สัดส่วน" value={_kTop10.toFixed(0)} unit="%" />
           <KpiCard label="ลูกค้าโตเร็วสุด" value={fastest.name.split(' ')[0]} unit={fmt.pct(fastest.mom)} delta={fastest.mom} icon={<Icon name="trending-up" size={15} />} />
         </Grid>
 
