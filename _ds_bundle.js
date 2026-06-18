@@ -2457,7 +2457,11 @@ try { (() => {
     const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
     const _mi = _single ? +filters.month : -1;
     const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
-    const _canMoM = (_single ? (_mi >= 1) : (NACT >= 2)) && momVal != null;
+    const _vArr = (D.valueByYear || {})[String((filters && filters.year) || '2569')] || [];
+    const _momVal = _single
+      ? (_mi >= 1 && _vArr[_mi - 1] != null && _vArr[_mi - 1] !== 0 ? D.totals.momVal : null)
+      : D.totals.momVal;
+    const _canMoM = (_single ? (_mi >= 1) : (NACT >= 2)) && _momVal != null;
     const _canTrend = NACT >= 2;  // มุมมองเดือนเดียว NACT=1 → ดูแนวโน้มไม่ได้โดยอัตโนมัติ
     // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
     const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
@@ -2479,7 +2483,7 @@ try { (() => {
       ((_diffBaht >= 0 ? 'เพิ่มขึ้น ' : 'ลดลง ') + fmt.int(Math.abs(_diffBaht)) + ' บาท จากเดือนก่อน');
 
     // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
-    const _mom = momVal;
+    const _mom = _momVal;
     const _i1 = _canMoM
       ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
@@ -5939,7 +5943,11 @@ try { (() => {
     const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
     const _mi = _single ? +filters.month : -1;
     const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
-    const _canMoM = (_single ? (_mi >= 1) : (NACT >= 2)) && momVal != null;
+    const _vArr = (D.valueByYear || {})[String((filters && filters.year) || '2569')] || [];
+    const _momVal = _single
+      ? (_mi >= 1 && _vArr[_mi - 1] != null && _vArr[_mi - 1] !== 0 ? D.totals.momVal : null)
+      : D.totals.momVal;
+    const _canMoM = (_single ? (_mi >= 1) : (NACT >= 2)) && _momVal != null;
     const _canTrend = NACT >= 2;  // มุมมองเดือนเดียว NACT=1 → ดูแนวโน้มไม่ได้โดยอัตโนมัติ
     // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
     const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
@@ -5961,7 +5969,7 @@ try { (() => {
       ((_diffBaht >= 0 ? 'เพิ่มขึ้น ' : 'ลดลง ') + fmt.int(Math.abs(_diffBaht)) + ' บาท จากเดือนก่อน');
 
     // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
-    const _mom = momVal;
+    const _mom = _momVal;
     const _i1 = _canMoM
       ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
