@@ -135,6 +135,7 @@
             <thead>
               <tr>
                 <th style="width:40px"></th>
+                <th style="width:52px;text-align:center">รหัส</th>
                 <th style="min-width:150px">ลูกค้า</th>
                 <th class="num">ม้วนใส<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
                 <th class="num">ม้วนพิมพ์<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
@@ -199,6 +200,7 @@ const DEFAULT_CUSTOMERS_DB = [
   'คาราบาว','ไทยเบฟ','ดอยคำ','มาลี','ดอลฟิน','ไทยยูเนี่ยน',
 ];
 let CUSTOMERS_DB = [...DEFAULT_CUSTOMERS_DB];
+let CUSTOMERS_ID_MAP = {}; // name → id
 
 const PRODUCTS_STD = [
   { key: 'p0', name: 'ม้วนใส' },
@@ -328,8 +330,10 @@ function toComputeRaw() {
 function boot(payload) {
   // โหลด customersDB จาก Supabase
   if (payload._raw && payload._raw.customersDB && payload._raw.customersDB.length > 0) {
-    const fromDB = payload._raw.customersDB.map(c => typeof c === 'string' ? c : c.name).filter(Boolean);
-    CUSTOMERS_DB = [...new Set([...fromDB, ...DEFAULT_CUSTOMERS_DB])];
+    const fromDB = payload._raw.customersDB.map(c => typeof c === 'string' ? { name: c } : c).filter(c => c.name);
+    fromDB.forEach(c => { if (c.id) CUSTOMERS_ID_MAP[c.name] = c.id; });
+    const names = fromDB.map(c => c.name);
+    CUSTOMERS_DB = [...new Set([...names, ...DEFAULT_CUSTOMERS_DB])];
   }
   raw = deriveRaw(payload);
   curYear = CUR_YEAR;
@@ -406,8 +410,10 @@ function renderCustTable() {
     const mp = c.monthlyProd[curMonth];
     const tot = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
     const tr = document.createElement('tr');
+    const _cid = CUSTOMERS_ID_MAP[c.name] || '';
     tr.innerHTML = `
       <td><button class="del-btn" data-del="${idx}" title="ลบแถวนี้">×</button></td>
+      <td style="text-align:center;font-family:var(--font-numeric);font-size:12px;color:var(--text-tertiary)" data-cidcell="${idx}">${_cid}</td>
       <td><select class="cust-name" data-cname="${idx}" style="width:100%;min-width:150px">${buildCustOptions(c.name)}</select></td>
       <td class="num"><input class="kg" data-ckg="${idx}" data-key="p0" value="${valOr(mp.p0)}" placeholder="0"></td>
       <td class="num"><input class="kg" data-ckg="${idx}" data-key="p1" value="${valOr(mp.p1)}" placeholder="0"></td>
@@ -431,7 +437,7 @@ function renderCustTable() {
   const tr = document.createElement('tr');
   tr.style.cssText = 'font-weight:700;background:var(--surface-2)';
   tr.innerHTML = `
-    <td></td><td style="font-size:12px;color:var(--text-tertiary)">รวมทั้งหมด</td>
+    <td></td><td></td><td style="font-size:12px;color:var(--text-tertiary)">รวมทั้งหมด</td>
     ${PRODUCTS_STD.map(std => `<td class="num" style="font-family:var(--font-numeric)">${sums[std.key] > 0 ? sums[std.key].toLocaleString('en-US') : '—'}</td>`).join('')}
     <td class="num" style="font-family:var(--font-numeric)">${sums.tot > 0 ? sums.tot.toLocaleString('en-US') : '—'}</td>
     <td class="num" style="font-family:var(--font-numeric)">${sums.val > 0 ? sums.val.toFixed(2) : '—'}</td>
@@ -549,6 +555,15 @@ $('custBody').addEventListener('input', (e) => {
   renderProdSummary();
   renderMonthSummary();
   if (e.target.dataset.ckg !== undefined || e.target.dataset.cval !== undefined) renderPreview();
+});
+
+$('custBody').addEventListener('change', (e) => {
+  if (e.target.dataset.cname !== undefined) {
+    const idx = +e.target.dataset.cname;
+    const name = e.target.value;
+    const cidCell = $('custBody').querySelector(`[data-cidcell="${idx}"]`);
+    if (cidCell) cidCell.textContent = CUSTOMERS_ID_MAP[name] || '';
+  }
 });
 
 ['mValue','mVolume'].forEach(id => $(id) && $(id).addEventListener('input', renderPreview));
