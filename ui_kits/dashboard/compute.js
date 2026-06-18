@@ -48,17 +48,17 @@
     var val69 = mVal.map(function (v) { return v == null || v === '' ? null : r2(num(v)); });
     var vol69 = mVol.map(function (v) { return v == null || v === '' ? null : r2(num(v)); });
 
-    // price per month ฿/Kg  = value(ลบ.)*1e6 / volume(Kg)= value*1e6/(vol*1000)= value*1000/vol
+    // price per month ฿/Kg  = value(บาท) / volume(Kg) = value / (vol(พัน Kg) * 1000)
     var price69 = [];
     for (var m = 0; m < NACT; m++) {
       var vv = num(val69[m]), kk = num(vol69[m]);
-      price69.push(kk > 0 ? r2(vv * 1000 / kk) : 0);
+      price69.push(kk > 0 ? r2(vv / (kk * 1000)) : 0);  // บาท / (พัน Kg × 1000) = ฿/Kg
     }
 
-    var totalValueLbn = 0, totalVolKKg = 0; // ลบ. / พัน Kg
-    for (var i = 0; i < NACT; i++) { totalValueLbn += num(val69[i]); totalVolKKg += num(vol69[i]); }
+    var totalValueBaht = 0, totalVolKKg = 0; // บาท / พัน Kg
+    for (var i = 0; i < NACT; i++) { totalValueBaht += num(val69[i]); totalVolKKg += num(vol69[i]); }
+    var totalValueLbn = totalValueBaht / 1e6;
     var totalVolKg = totalVolKKg * 1000;
-    var totalValueBaht = totalValueLbn * 1e6;
     var avgPrice = totalVolKg > 0 ? r2(totalValueBaht / totalVolKg) : 0;
 
     // ---- products ----
@@ -82,14 +82,14 @@
         var kg = p.monthlyKg[mo];
         var v = SK[mo] > 0 ? num(val69[mo]) * (kg / SK[mo]) : 0;
         monthlyVal.push(r2(v));
-        priceMonthly.push(kg > 0 ? r2(v * 1e6 / kg) : 0);
+        priceMonthly.push(kg > 0 ? r2(v / kg) : 0);
       }
       var kgTot = sum(p.monthlyKg.slice(0, NACT));
       var valTot = sum(monthlyVal);
       return {
         id: 'p' + (idx + 1), name: p.name,
         val: r2(valTot), kg: Math.round(kgTot),
-        avgPrice: kgTot > 0 ? r2(valTot * 1e6 / kgTot) : 0,
+        avgPrice: kgTot > 0 ? r2(valTot / kgTot) : 0,
         share: r2(kgTot / totalProdKg * 100),
         monthly: monthlyVal, priceMonthly: priceMonthly
       };
@@ -144,7 +144,7 @@
     var avgMonthVal = NACT ? totalValueLbn / NACT : 0;
     var avgMonthKg = NACT ? totalVolKKg / NACT : 0;
     var projVal = [];
-    for (var f = 0; f < 12; f++) projVal.push(f < NACT ? num(val69[f]) : r2(avgMonthVal));
+    for (var f = 0; f < 12; f++) projVal.push(f < NACT ? r2(num(val69[f]) / 1e6) : r2(avgMonthVal));
     var yearEndVal = Math.round(sum(projVal));
     var yearEndKg = r2((totalVolKKg + avgMonthKg * (12 - NACT)) / 1000);
 

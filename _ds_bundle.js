@@ -2348,8 +2348,8 @@ try { (() => {
     let _sv = sumVal, _sk = sumVol, _pr = price;
     if (cg && cg !== 'all' && allC.length > 0 && sumVol > 0) {
       _sk = allC.reduce((s, c) => s + c.kg, 0) / 1000; // Kg → พัน Kg
-      _sv = rnd(sumVal * (_sk / sumVol), 2);
-      _pr = _sk ? _sv * 1000 / _sk : 0;
+      _sv = rnd(sumVal / 1e6 * (_sk / sumVol), 4);
+      _pr = _sk ? r2(_sv * 1000 / _sk) : 0;
     }
     const patch = {
       value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
@@ -5742,8 +5742,8 @@ try { (() => {
     let _sv = sumVal, _sk = sumVol, _pr = price;
     if (cg && cg !== 'all' && allC.length > 0 && sumVol > 0) {
       _sk = allC.reduce((s, c) => s + c.kg, 0) / 1000; // Kg → พัน Kg
-      _sv = rnd(sumVal * (_sk / sumVol), 2);
-      _pr = _sk ? _sv * 1000 / _sk : 0;
+      _sv = rnd(sumVal / 1e6 * (_sk / sumVol), 4);
+      _pr = _sk ? r2(_sv * 1000 / _sk) : 0;
     }
     const patch = {
       value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },

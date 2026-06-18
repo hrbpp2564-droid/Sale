@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618f" />
+<link rel="stylesheet" href="../styles.css?v=20260618j" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -143,7 +143,7 @@
                 <th class="num">ฟิล์มยืด<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
                 <th class="num">ถุงหลอด<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
                 <th class="num" style="background:var(--surface-2)">ยอดรวม<br><small style="font-weight:400;text-transform:none">(กก.)</small></th>
-                <th class="num">มูลค่า<br><small style="font-weight:400;text-transform:none">(ลบ.)</small></th>
+                <th class="num">มูลค่า<br><small style="font-weight:400;text-transform:none">(บาท)</small></th>
               </tr>
             </thead>
             <tbody id="custBody"></tbody>
@@ -187,9 +187,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618f"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618f"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618f"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618j"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618j"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618j"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -496,13 +496,13 @@ function renderMonthSummary() {
   const custs = curCustomers();
   const totalKg = custs.reduce((s, c) => s + PRODUCTS_STD.reduce((s2, std) => s2 + n((c.monthlyProd[curMonth]||{})[std.key]), 0), 0);
   const vol_pK = totalKg / 1000;
-  const val_lbn = custs.reduce((s, c) => s + n((c.monthlyProd[curMonth]||{}).value), 0);
+  const val_baht = custs.reduce((s, c) => s + n((c.monthlyProd[curMonth]||{}).value), 0);
   const kg = vol_pK * 1000;
-  const price = (kg > 0 && val_lbn > 0) ? (val_lbn * 1e6 / kg).toLocaleString('en-US', {minimumFractionDigits:1,maximumFractionDigits:1}) : '—';
+  const price = (kg > 0 && val_baht > 0) ? (val_baht / kg).toLocaleString('en-US', {minimumFractionDigits:1,maximumFractionDigits:1}) : '—';
   const box = $('monthSummary'); box.innerHTML = '';
   [
     { l: 'ปริมาณรวม',    v: kg > 0 ? Math.round(kg).toLocaleString('en-US') : '—', u: 'Kg' },
-    { l: 'มูลค่ารวม',    v: val_lbn > 0 ? val_lbn.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—', u: 'ลบ.' },
+    { l: 'มูลค่ารวม',    v: val_baht > 0 ? (val_baht / 1e6).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—', u: 'ลบ.' },
     { l: 'ราคาเฉลี่ย',   v: price, u: '฿/Kg' },
   ].forEach(k => {
     const d = document.createElement('div'); d.className='kpi';
@@ -674,7 +674,7 @@ $('saveBtn').addEventListener('click', () => {
 function buildSalesSheet(wb, sheetName, custList, months) {
   const TH12 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const mNames = months ? months.map(i => TH12[i]) : TH12;
-  const headers = ['เดือน','รหัสลูกค้า','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (ลบ.)'];
+  const headers = ['เดือน','รหัสลูกค้า','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (บาท)'];
   const dataRows = [];
   mNames.forEach(m => {
     custList.forEach(c => {
