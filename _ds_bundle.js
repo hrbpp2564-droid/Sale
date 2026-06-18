@@ -2539,38 +2539,40 @@ try { (() => {
       gap: 16
     }, /*#__PURE__*/React.createElement(Card, {
       title: "Top \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      subtitle: "\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17)",
-      actions: /*#__PURE__*/React.createElement(DrillHint, null),
-      bodyStyle: {
-        padding: 'var(--space-2)'
-      }
-    }, prodByVal.slice(0, 5).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
-      key: p.id,
-      rank: i + 1,
-      label: p.name,      value: fmt.int(p.val * 1e6) + ' บาท',
-      ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
-      share: p.share.toFixed(2) + '%',
-      delta: prodGrowth(p),
-      color: "var(--viz-1)",
-      onClick: () => onDrill('product')
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "Top \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
       subtitle: "\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 (Kg)",
       actions: /*#__PURE__*/React.createElement(DrillHint, null),
       bodyStyle: {
         padding: 'var(--space-2)'
       }
-    }, custByKg.slice(0, 5).map((c, i) => /*#__PURE__*/React.createElement(RankBar, {
-      key: c.id,
+    }, [...D.PRODUCTS].sort((a,b)=>b.kg-a.kg).map((p, i, _sp) => /*#__PURE__*/React.createElement(RankBar, {
+      key: p.id,
       rank: i + 1,
-      label: c.name,
-      sublabel: fmt.int(c.kg) + ' Kg',
-      value: c.share.toFixed(2) + '%',
-      ratio: custByKg.length ? c.kg / custByKg[0].kg : 0,
-      delta: c.mom,
-      color: "var(--viz-4)",
-      onClick: () => onDrill('customer')
-    })))));
+      label: p.name,
+      value: fmt.int(p.kg) + ' Kg',
+      ratio: _sp.length ? p.kg / _sp[0].kg : 0,
+      share: p.share.toFixed(2) + '%',
+      delta: prodGrowth(p),
+      color: "var(--viz-1)",
+      onClick: () => onDrill('product')
+    }))), /*#__PURE__*/React.createElement("div", { style: { gridColumn: 'span 2' } }, /*#__PURE__*/React.createElement(Card, {
+      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
+      subtitle: "\u0E08\u0E31\u0E14\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u00B7 \u0E41\u0E2A\u0E14\u0E07\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17)",
+      actions: /*#__PURE__*/React.createElement(DrillHint, null),
+      bodyStyle: {
+        padding: 'var(--space-2)'
+      }
+    }, [...(D.allCustomers||D.CUSTOMERS)].sort((a,b)=>b.kg-a.kg).slice(0,10).map((c, i, _sc) => /*#__PURE__*/React.createElement(RankBar, {
+        key: c.name + i,
+        rank: i + 1,
+        label: c.name,
+        sublabel: fmt.int(Math.round(c.kg * (D.totals.avgPrice || 0))) + ' \u0E1A\u0E32\u0E17',
+        value: fmt.int(c.kg) + ' Kg',
+        ratio: _sc.length ? c.kg / _sc[0].kg : 0,
+        share: c.share.toFixed(2) + '%',
+        delta: c.mom,
+        color: "var(--viz-4)",
+        onClick: () => onDrill('customer')
+      }))))));
   }
   function SalesScreen({ filters }) {
     const D = viewFor(filters);
@@ -5936,38 +5938,40 @@ try { (() => {
       gap: 16
     }, /*#__PURE__*/React.createElement(Card, {
       title: "Top \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      subtitle: "\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17)",
-      actions: /*#__PURE__*/React.createElement(DrillHint, null),
-      bodyStyle: {
-        padding: 'var(--space-2)'
-      }
-    }, prodByVal.slice(0, 5).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
-      key: p.id,
-      rank: i + 1,
-      label: p.name,      value: fmt.int(p.val * 1e6) + ' บาท',
-      ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
-      share: p.share.toFixed(2) + '%',
-      delta: prodGrowth(p),
-      color: "var(--viz-1)",
-      onClick: () => onDrill('product')
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "Top \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
       subtitle: "\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 (Kg)",
       actions: /*#__PURE__*/React.createElement(DrillHint, null),
       bodyStyle: {
         padding: 'var(--space-2)'
       }
-    }, custByKg.slice(0, 5).map((c, i) => /*#__PURE__*/React.createElement(RankBar, {
-      key: c.id,
+    }, [...D.PRODUCTS].sort((a,b)=>b.kg-a.kg).map((p, i, _sp) => /*#__PURE__*/React.createElement(RankBar, {
+      key: p.id,
       rank: i + 1,
-      label: c.name,
-      sublabel: fmt.int(c.kg) + ' Kg',
-      value: c.share.toFixed(2) + '%',
-      ratio: custByKg.length ? c.kg / custByKg[0].kg : 0,
-      delta: c.mom,
-      color: "var(--viz-4)",
-      onClick: () => onDrill('customer')
-    })))));
+      label: p.name,
+      value: fmt.int(p.kg) + ' Kg',
+      ratio: _sp.length ? p.kg / _sp[0].kg : 0,
+      share: p.share.toFixed(2) + '%',
+      delta: prodGrowth(p),
+      color: "var(--viz-1)",
+      onClick: () => onDrill('product')
+    }))), /*#__PURE__*/React.createElement("div", { style: { gridColumn: 'span 2' } }, /*#__PURE__*/React.createElement(Card, {
+      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
+      subtitle: "\u0E08\u0E31\u0E14\u0E2D\u0E31\u0E19\u0E14\u0E31\u0E1A\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u00B7 \u0E41\u0E2A\u0E14\u0E07\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17)",
+      actions: /*#__PURE__*/React.createElement(DrillHint, null),
+      bodyStyle: {
+        padding: 'var(--space-2)'
+      }
+    }, [...(D.allCustomers||D.CUSTOMERS)].sort((a,b)=>b.kg-a.kg).slice(0,10).map((c, i, _sc) => /*#__PURE__*/React.createElement(RankBar, {
+        key: c.name + i,
+        rank: i + 1,
+        label: c.name,
+        sublabel: fmt.int(Math.round(c.kg * (D.totals.avgPrice || 0))) + ' \u0E1A\u0E32\u0E17',
+        value: fmt.int(c.kg) + ' Kg',
+        ratio: _sc.length ? c.kg / _sc[0].kg : 0,
+        share: c.share.toFixed(2) + '%',
+        delta: c.mom,
+        color: "var(--viz-4)",
+        onClick: () => onDrill('customer')
+      }))))));
   }
   function SalesScreen({ filters }) {
     const D = viewFor(filters);
