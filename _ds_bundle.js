@@ -2905,14 +2905,29 @@ try { (() => {
   function ProductDetail({
     product: p,
     onBack,
-    viewD
+    viewD,
+    monIdx,
+    monAll
   }) {
     const _D = viewD || window.VDATA;
+    const _NACTp = _D.NACT || p.monthly.length || 1;
+    const _single = !monAll && monIdx != null && monIdx >= 0 && monIdx < _NACTp;
+    const _mi = _single ? monIdx : _NACTp - 1;
+    const _mName = _D.MONTHS_ACT[_mi] || '';
+    const _chartLen = _single ? _mi + 1 : _NACTp;
     const _pg = p.monthly.length >= 2 && p.monthly[p.monthly.length - 2] ? +((p.monthly[p.monthly.length - 1] / p.monthly[p.monthly.length - 2] - 1) * 100).toFixed(1) : 0;
     const _kArr = prodKg(p);
     const _kg = _kArr.length >= 2 && _kArr[_kArr.length - 2] ? +((_kArr[_kArr.length - 1] / _kArr[_kArr.length - 2] - 1) * 100).toFixed(1) : 0;
     const _pp = p.priceMonthly.length >= 2 && p.priceMonthly[p.priceMonthly.length - 2] ? +((p.priceMonthly[p.priceMonthly.length - 1] / p.priceMonthly[p.priceMonthly.length - 2] - 1) * 100).toFixed(1) : 0;
     const topCustForProduct = [..._D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
+    const _kgArrM = prodKg(p);
+    const _curVal = _single ? (p.monthly[_mi] || 0) : p.val;
+    const _curKgM = _single ? (_kgArrM[_mi] || 0) : p.kg;
+    const _curPrice = _single ? (p.priceMonthly[_mi] || 0) : p.avgPrice;
+    const _curMom = _mi >= 1 && p.monthly[_mi - 1] ? +((p.monthly[_mi] / p.monthly[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : _pg);
+    const _kgMom = _mi >= 1 && _kgArrM[_mi - 1] ? +((_kgArrM[_mi] / _kgArrM[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : _kg);
+    const _monValTot = _single ? _D.PRODUCTS.reduce((s, x) => s + ((x.monthly || [])[_mi] || 0), 0) : 0;
+    const _curShare = _single ? (_monValTot ? +(_curVal / _monValTot * 100).toFixed(1) : 0) : p.share;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -2975,44 +2990,44 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(p.val),
+      label: _single ? ("\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 " + _mName) : "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
+      value: fmt.dec1(_curVal),
       unit: "\u0E25\u0E1A.",
-      delta: _pg,
+      delta: _curMom,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22",
-      value: fmt.int(p.kg),
+      label: _single ? ("\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 " + _mName) : "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22",
+      value: fmt.int(_curKgM),
       unit: "Kg",
-      delta: _kg
+      delta: _kgMom
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
-      value: fmt.dec1(p.avgPrice),
+      value: fmt.dec1(_curPrice),
       unit: "\u0E3F/Kg",
       delta: _pp
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15",
-      value: p.share,
+      label: _single ? ("\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15 " + _mName) : "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15",
+      value: _curShare,
       unit: "%"
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 + \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 \u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04.",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 " + ((_D.MONTHS_ACT[0] || '') + (_chartLen > 1 ? "\u2013" + (_D.MONTHS_ACT[_chartLen - 1] || '') : '')),
       style: {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: _D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT.slice(0, _chartLen),
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
         name: 'มูลค่า (ลบ.)',
-        data: p.monthly,
+        data: p.monthly.slice(0, _chartLen),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
         name: 'ปริมาณ (Kg)',
-        data: prodKg(p),
+        data: prodKg(p).slice(0, _chartLen),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
@@ -3028,11 +3043,11 @@ try { (() => {
       subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_D.MONTHS_ACT.length ? (_D.MONTHS_ACT[0] + "\u2013" + _D.MONTHS_ACT[_D.MONTHS_ACT.length - 1]) : "")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: _D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT.slice(0, _chartLen),
       yFormat: v => fmt.int(v),
       series: [{
         name: p.name,
-        data: prodKg(p),
+        data: prodKg(p).slice(0, _chartLen),
         color: 'var(--viz-2)',
         type: 'area'
       }]
@@ -3041,11 +3056,11 @@ try { (() => {
       subtitle: "\u0E3F/Kg"
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: _D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT.slice(0, _chartLen),
       yFormat: v => fmt.int(v),
       series: [{
         name: 'ราคา',
-        data: p.priceMonthly,
+        data: p.priceMonthly.slice(0, _chartLen),
         color: 'var(--viz-3)',
         type: 'line'
       }]
@@ -6112,17 +6127,24 @@ try { (() => {
   // ---------- Product Analysis ----------
   function ProductScreen({ filters }) {
     const D = viewFor(filters);
+    const _Dfull = viewFor(Object.assign({}, filters, { month: 'all' }));
+    const _gMon = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? +filters.month : null;
     const NACT = D.NACT;
     const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
     const max = sorted.length ? sorted[0][metric] : 1;
-    if (sel) return /*#__PURE__*/React.createElement(ProductDetail, {
-      product: sel,
-      onBack: () => setSel(null),
-      viewD: D
-    });
+    if (sel) {
+      const _live = _Dfull.PRODUCTS.find(x => x.id === sel.id) || _Dfull.PRODUCTS.find(x => x.name === sel.name) || sel;
+      return /*#__PURE__*/React.createElement(ProductDetail, {
+        product: _live,
+        onBack: () => setSel(null),
+        viewD: _Dfull,
+        monIdx: _gMon,
+        monAll: _gMon == null
+      });
+    }
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
       gap: 12,
@@ -6263,14 +6285,29 @@ try { (() => {
   function ProductDetail({
     product: p,
     onBack,
-    viewD
+    viewD,
+    monIdx,
+    monAll
   }) {
     const _D = viewD || window.VDATA;
+    const _NACTp = _D.NACT || p.monthly.length || 1;
+    const _single = !monAll && monIdx != null && monIdx >= 0 && monIdx < _NACTp;
+    const _mi = _single ? monIdx : _NACTp - 1;
+    const _mName = _D.MONTHS_ACT[_mi] || '';
+    const _chartLen = _single ? _mi + 1 : _NACTp;
     const _pg = p.monthly.length >= 2 && p.monthly[p.monthly.length - 2] ? +((p.monthly[p.monthly.length - 1] / p.monthly[p.monthly.length - 2] - 1) * 100).toFixed(1) : 0;
     const _kArr = prodKg(p);
     const _kg = _kArr.length >= 2 && _kArr[_kArr.length - 2] ? +((_kArr[_kArr.length - 1] / _kArr[_kArr.length - 2] - 1) * 100).toFixed(1) : 0;
     const _pp = p.priceMonthly.length >= 2 && p.priceMonthly[p.priceMonthly.length - 2] ? +((p.priceMonthly[p.priceMonthly.length - 1] / p.priceMonthly[p.priceMonthly.length - 2] - 1) * 100).toFixed(1) : 0;
     const topCustForProduct = [..._D.CUSTOMERS].sort((a, b) => b.kg - a.kg).slice(0, 5);
+    const _kgArrM = prodKg(p);
+    const _curVal = _single ? (p.monthly[_mi] || 0) : p.val;
+    const _curKgM = _single ? (_kgArrM[_mi] || 0) : p.kg;
+    const _curPrice = _single ? (p.priceMonthly[_mi] || 0) : p.avgPrice;
+    const _curMom = _mi >= 1 && p.monthly[_mi - 1] ? +((p.monthly[_mi] / p.monthly[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : _pg);
+    const _kgMom = _mi >= 1 && _kgArrM[_mi - 1] ? +((_kgArrM[_mi] / _kgArrM[_mi - 1] - 1) * 100).toFixed(1) : (_single ? 0 : _kg);
+    const _monValTot = _single ? _D.PRODUCTS.reduce((s, x) => s + ((x.monthly || [])[_mi] || 0), 0) : 0;
+    const _curShare = _single ? (_monValTot ? +(_curVal / _monValTot * 100).toFixed(1) : 0) : p.share;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -6333,44 +6370,44 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(p.val),
+      label: _single ? ("\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 " + _mName) : "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
+      value: fmt.dec1(_curVal),
       unit: "\u0E25\u0E1A.",
-      delta: _pg,
+      delta: _curMom,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22",
-      value: fmt.int(p.kg),
+      label: _single ? ("\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 " + _mName) : "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22",
+      value: fmt.int(_curKgM),
       unit: "Kg",
-      delta: _kg
+      delta: _kgMom
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
-      value: fmt.dec1(p.avgPrice),
+      value: fmt.dec1(_curPrice),
       unit: "\u0E3F/Kg",
       delta: _pp
     }), /*#__PURE__*/React.createElement(KpiCard, {
-      label: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15",
-      value: p.share,
+      label: _single ? ("\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15 " + _mName) : "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1E\u0E2D\u0E23\u0E4C\u0E15",
+      value: _curShare,
       unit: "%"
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 + \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 \u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04.",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 " + ((_D.MONTHS_ACT[0] || '') + (_chartLen > 1 ? "\u2013" + (_D.MONTHS_ACT[_chartLen - 1] || '') : '')),
       style: {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 240,
-      labels: _D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT.slice(0, _chartLen),
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
         name: 'มูลค่า (ลบ.)',
-        data: p.monthly,
+        data: p.monthly.slice(0, _chartLen),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
         name: 'ปริมาณ (Kg)',
-        data: prodKg(p),
+        data: prodKg(p).slice(0, _chartLen),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
@@ -6386,11 +6423,11 @@ try { (() => {
       subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_D.MONTHS_ACT.length ? (_D.MONTHS_ACT[0] + "\u2013" + _D.MONTHS_ACT[_D.MONTHS_ACT.length - 1]) : "")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: _D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT.slice(0, _chartLen),
       yFormat: v => fmt.int(v),
       series: [{
         name: p.name,
-        data: prodKg(p),
+        data: prodKg(p).slice(0, _chartLen),
         color: 'var(--viz-2)',
         type: 'area'
       }]
@@ -6399,11 +6436,11 @@ try { (() => {
       subtitle: "\u0E3F/Kg"
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
-      labels: _D.MONTHS_ACT,
+      labels: _D.MONTHS_ACT.slice(0, _chartLen),
       yFormat: v => fmt.int(v),
       series: [{
         name: 'ราคา',
-        data: p.priceMonthly,
+        data: p.priceMonthly.slice(0, _chartLen),
         color: 'var(--viz-3)',
         type: 'line'
       }]
