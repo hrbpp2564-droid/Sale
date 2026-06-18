@@ -22,6 +22,13 @@
       cur.MONTHS_ACT = cur.TH_MONTHS.slice(0, nA || 0);
       if (!cur.NACT) cur.NACT = cur.MONTHS_ACT.length;
     }
+    // recompute from _raw if available so KPIs always reflect latest formula
+    if (cur._raw && typeof window.BWP_compute === 'function') {
+      try {
+        var recomputed = window.BWP_compute(cur._raw);
+        Object.assign(cur, recomputed);
+      } catch (e) {}
+    }
     window.VDATA = cur;
     window.BWP_AUTHED = true;
     window.__BWP_SOURCE = 'supabase';
