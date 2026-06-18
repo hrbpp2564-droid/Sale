@@ -2298,7 +2298,13 @@ try { (() => {
     });
     let prods = Object.keys(_pByName).map((k) => _pByName[k]);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
-    prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
+    prods = prods.map((p) => {
+      const m = reslice(p.monthly);
+      const mPr = reslice(p.priceMonthly || []);
+      const kgSlice = m.map((v, i) => mPr[i] ? Math.round(v * 1e6 / mPr[i]) : 0);
+      const kg = kgSlice.reduce((s, k) => s + k, 0);
+      return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1), kg: kg });
+    });
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
     // customers: re-slice monthly to selected months, recompute kg/share/mom; filter by selected customer
@@ -5681,7 +5687,13 @@ try { (() => {
     });
     let prods = Object.keys(_pByName).map((k) => _pByName[k]);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
-    prods = prods.map((p) => { const m = reslice(p.monthly); return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1) }); });
+    prods = prods.map((p) => {
+      const m = reslice(p.monthly);
+      const mPr = reslice(p.priceMonthly || []);
+      const kgSlice = m.map((v, i) => mPr[i] ? Math.round(v * 1e6 / mPr[i]) : 0);
+      const kg = kgSlice.reduce((s, k) => s + k, 0);
+      return Object.assign({}, p, { monthly: m, val: rnd(sum(m), 1), kg: kg });
+    });
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
     // customers: re-slice monthly to selected months, recompute kg/share/mom; filter by selected customer
@@ -6156,7 +6168,15 @@ try { (() => {
     const _Dfull = viewFor(Object.assign({}, filters, { month: 'all' }));
     const _gMon = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? +filters.month : null;
     const NACT = D.NACT;
-    const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
+    const prodGrowth = (p) => {
+      if (_gMon != null && _gMon >= 1) {
+        const fp = _Dfull.PRODUCTS.find(x => x.name === p.name) || p;
+        const cur = (fp.monthly || [])[_gMon] || 0;
+        const prev = (fp.monthly || [])[_gMon - 1];
+        return prev ? +((cur / prev - 1) * 100).toFixed(2) : 0;
+      }
+      return p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
+    };
     const [metric, setMetric] = React.useState('val'); // val | kg
     const [sel, setSel] = React.useState(null);
     const sorted = [...D.PRODUCTS].sort((a, b) => b[metric] - a[metric]);
