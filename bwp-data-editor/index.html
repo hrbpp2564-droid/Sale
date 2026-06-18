@@ -218,6 +218,8 @@ let PASS = null, raw = null, curMonth = 0, curYear = CUR_YEAR;
 
 const isCur = () => curYear === CUR_YEAR;
 function curArr() { return isCur() ? raw.monthly : (raw.history[String(curYear)] || { value: Array(12).fill(null), volume: Array(12).fill(null) }); }
+function curCustomers() { return isCur() ? raw.customers : (raw.histCustomers[String(curYear)] || []); }
+function setCurCustomers(arr) { if (isCur()) raw.customers = arr; else raw.histCustomers[String(curYear)] = arr; }
 
 function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show '+(kind||''); setTimeout(() => { t.className='toast '+(kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
@@ -276,6 +278,13 @@ function deriveRaw(payload) {
     });
     const h = s.history || {};
     Object.keys(h).forEach(y => { r.history[y] = { value: pad12(h[y] && h[y].value), volume: pad12(h[y] && h[y].volume) }; });
+    const hc = s.histCustomers || {};
+    r.histCustomers = {};
+    HIST_YEARS.forEach(y => {
+      const key = String(y);
+      const arr = hc[key] || [];
+      r.histCustomers[key] = arr.map(c => ({ name: c.name, monthlyProd: padProd12(c.monthlyProd) }));
+    });
   } else {
     // back-calc from derived payload
     const val = pad12((payload.valueByYear && payload.valueByYear['2569']) || []);
@@ -284,7 +293,8 @@ function deriveRaw(payload) {
       name: c.name,
       monthlyProd: padProd12((c.monthly||[]).map((kg,i) => ({ p0: kg||0, value: 0 })))
     }));
-    r = { monthly: { value: val, volume: vol }, customers, history: {} };
+    r = { monthly: { value: val, volume: vol }, customers, history: {}, histCustomers: {} };
+    HIST_YEARS.forEach(y => { r.histCustomers[String(y)] = []; });
   }
   HIST_YEARS.forEach(y => {
     const key = String(y);
@@ -293,6 +303,8 @@ function deriveRaw(payload) {
       const k = (payload.volumeByYear && payload.volumeByYear[key]) || [];
       r.history[key] = { value: pad12(v), volume: pad12(k) };
     }
+    if (!r.histCustomers) r.histCustomers = {};
+    if (!r.histCustomers[key]) r.histCustomers[key] = [];
   });
   // collect known customer names
   r.customers.forEach(c => { if (c.name && !CUSTOMERS_DB.includes(c.name)) CUSTOMERS_DB.push(c.name); });
@@ -323,7 +335,26 @@ function toComputeRaw() {
       PRODUCTS_STD.reduce((s, std) => s + n((c.monthlyProd[m]||{})[std.key]), 0)
     )
   }));
-  return { monthly, products, customers, history: raw.history };
+  const history = {};
+  HIST_YEARS.forEach(y => {
+    const key = String(y);
+    const hc = (raw.histCustomers && raw.histCustomers[key]) || [];
+    if (hc.length > 0) {
+      history[key] = {
+        value: Array(12).fill(0).map((_, m) => {
+          const v = hc.reduce((s, c) => s + n((c.monthlyProd[m]||{}).value), 0);
+          return v > 0 ? v : null;
+        }),
+        volume: Array(12).fill(0).map((_, m) => {
+          const kg = hc.reduce((s, c) => s + PRODUCTS_STD.reduce((s2, std) => s2 + n((c.monthlyProd[m]||{})[std.key]), 0), 0);
+          return kg > 0 ? kg / 1000 : null;
+        })
+      };
+    } else {
+      history[key] = raw.history[key] || { value: Array(12).fill(null), volume: Array(12).fill(null) };
+    }
+  });
+  return { monthly, products, customers, history };
 }
 
 // ---------- boot ----------
@@ -354,7 +385,8 @@ function boot(payload) {
 function buildYearSelect() {
   const sel = $('yearSel'); sel.innerHTML = '';
   ALL_YEARS.forEach(y => {
-    const a = y === CUR_YEAR ? toComputeRaw().monthly.value : (raw.history[String(y)] || {}).value;
+    const cRaw = toComputeRaw();
+    const a = y === CUR_YEAR ? cRaw.monthly.value : (cRaw.history[String(y)] || {}).value;
     const has = (a||[]).some(v => v != null && n(v) > 0);
     const o = document.createElement('option'); o.value = y;
     o.textContent = y + (y === CUR_YEAR ? ' (ปัจจุบัน)' : '') + (has ? ' ✓' : '');
@@ -365,7 +397,8 @@ function buildYearSelect() {
 
 function buildMonthSelect() {
   const sel = $('monthSel'); sel.innerHTML = '';
-  const arr = isCur() ? toComputeRaw().monthly.value : curArr().value;
+  const cRaw = toComputeRaw();
+  const arr = isCur() ? cRaw.monthly.value : (cRaw.history[String(curYear)] || {}).value || Array(12).fill(null);
   TH.forEach((m,i) => {
     const has = arr[i]!=null && n(arr[i])>0;
     const o = document.createElement('option'); o.value=i;
@@ -377,16 +410,9 @@ function buildMonthSelect() {
 
 // ---------- render ----------
 function renderMonth() {
-  const cur = isCur();
-  $('histCard').style.display   = cur ? 'none' : 'block';
-  $('detailCards').style.display = cur ? 'block' : 'none';
+  $('histCard').style.display   = 'none';  // always hidden
+  $('detailCards').style.display = 'block'; // always shown
   $('mLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
-  if (!cur) {
-    const arr = curArr();
-    $('mValue').value = valOr(arr.value[curMonth]);
-    $('mVolume').value = valOr(arr.volume[curMonth]);
-    renderPreview(); return;
-  }
   renderCustTable();
   renderProdSummary();
   renderMonthSummary();
@@ -406,7 +432,7 @@ function buildCustOptions(selected) {
 function renderCustTable() {
   $('custMonLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
   const tb = $('custBody'); tb.innerHTML = '';
-  raw.customers.forEach((c, idx) => {
+  curCustomers().forEach((c, idx) => {
     const mp = c.monthlyProd[curMonth];
     const tot = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
     const tr = document.createElement('tr');
@@ -428,7 +454,7 @@ function renderCustTable() {
   // footer totals
   const ft = $('custFoot'); ft.innerHTML = '';
   const sums = { p0:0, p1:0, p2:0, p3:0, p4:0, tot:0, val:0 };
-  raw.customers.forEach(c => {
+  curCustomers().forEach(c => {
     const mp = c.monthlyProd[curMonth];
     PRODUCTS_STD.forEach(std => { sums[std.key] += n(mp[std.key]); });
     sums.tot += PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
@@ -446,11 +472,11 @@ function renderCustTable() {
 }
 
 function renderProdSummary() {
-  const cRaw = toComputeRaw();
   const tbody = $('prodSumTable').querySelector('tbody'); tbody.innerHTML = '';
+  const custs = curCustomers();
   let grandKg = 0;
   PRODUCTS_STD.forEach(std => {
-    const kg = cRaw.products.find(p => p.name === std.name)?.monthlyKg[curMonth] || 0;
+    const kg = custs.reduce((s, c) => s + n((c.monthlyProd[curMonth]||{})[std.key]), 0);
     grandKg += kg;
     const tr = document.createElement('tr');
     tr.innerHTML = `<td class="lbl">${std.name}</td><td class="val">${kg > 0 ? kg.toLocaleString('en-US') + ' Kg' : '—'}</td>`;
@@ -462,9 +488,10 @@ function renderProdSummary() {
 }
 
 function renderMonthSummary() {
-  const cRaw = toComputeRaw();
-  const vol_pK = cRaw.monthly.volume[curMonth] || 0;    // พัน Kg
-  const val_lbn = cRaw.monthly.value[curMonth] || 0;    // ลบ.
+  const custs = curCustomers();
+  const totalKg = custs.reduce((s, c) => s + PRODUCTS_STD.reduce((s2, std) => s2 + n((c.monthlyProd[curMonth]||{})[std.key]), 0), 0);
+  const vol_pK = totalKg / 1000;
+  const val_lbn = custs.reduce((s, c) => s + n((c.monthlyProd[curMonth]||{}).value), 0);
   const kg = vol_pK * 1000;
   const price = (kg > 0 && val_lbn > 0) ? (val_lbn * 1e6 / kg).toFixed(1) : '—';
   const box = $('monthSummary'); box.innerHTML = '';
@@ -494,31 +521,26 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;
 
 // ---------- collect current month inputs back into raw ----------
 function collectMonth() {
-  if (!isCur()) {
-    const arr = curArr();
-    arr.value[curMonth]  = $('mValue').value.trim()===''  ? null : n($('mValue').value);
-    arr.volume[curMonth] = $('mVolume').value.trim()==='' ? null : n($('mVolume').value);
-    return;
-  }
+  const custs = curCustomers();
   // collect customer names from select dropdowns
   document.querySelectorAll('[data-cname]').forEach(sel => {
-    raw.customers[+sel.dataset.cname].name = sel.value;
+    custs[+sel.dataset.cname].name = sel.value;
   });
   // collect product kg per customer
   document.querySelectorAll('[data-ckg]').forEach(inp => {
     const idx = +inp.dataset.ckg;
     const key = inp.dataset.key;
-    raw.customers[idx].monthlyProd[curMonth][key] = inp.value.trim()==='' ? 0 : n(inp.value);
+    custs[idx].monthlyProd[curMonth][key] = inp.value.trim()==='' ? 0 : n(inp.value);
   });
   // collect customer values
   document.querySelectorAll('[data-cval]').forEach(inp => {
     const idx = +inp.dataset.cval;
-    raw.customers[idx].monthlyProd[curMonth].value = inp.value.trim()==='' ? 0 : n(inp.value);
+    custs[idx].monthlyProd[curMonth].value = inp.value.trim()==='' ? 0 : n(inp.value);
   });
   // update row totals
   document.querySelectorAll('[data-ctot]').forEach(inp => {
     const idx = +inp.dataset.ctot;
-    const mp = raw.customers[idx].monthlyProd[curMonth];
+    const mp = custs[idx].monthlyProd[curMonth];
     const tot = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
     inp.value = tot > 0 ? tot.toLocaleString('en-US') : '';
   });
@@ -530,7 +552,7 @@ $('monthSel').addEventListener('change', (e) => { collectMonth(); curMonth = +e.
 
 $('addCust').addEventListener('click', () => {
   collectMonth();
-  raw.customers.push({ name:'', monthlyProd: padProd12([]) });
+  curCustomers().push({ name:'', monthlyProd: padProd12([]) });
   renderCustTable();
   // focus new row name input
   const rows = $('custBody').querySelectorAll('tr');
@@ -542,7 +564,7 @@ $('custBody').addEventListener('click', (e) => {
   if (e.target.dataset.del !== undefined) {
     const idx = +e.target.dataset.del;
     collectMonth();
-    raw.customers.splice(idx, 1);
+    curCustomers().splice(idx, 1);
     renderCustTable();
     renderProdSummary();
     renderMonthSummary();
@@ -581,22 +603,38 @@ $('reloadBtn').addEventListener('click', () => {
 
 $('saveBtn').addEventListener('click', () => {
   collectMonth();
-  // clean empty rows
+  // clean empty rows for current year
   raw.customers = raw.customers.filter(c => {
     if (!c.name || !c.name.trim()) {
       return c.monthlyProd.some(mp => PRODUCTS_STD.some(std => n(mp[std.key]) > 0));
     }
     return true;
   });
+  // clean empty rows for historical years
+  HIST_YEARS.forEach(y => {
+    const key = String(y);
+    if (raw.histCustomers[key]) {
+      raw.histCustomers[key] = raw.histCustomers[key].filter(c => {
+        if (!c.name || !c.name.trim()) {
+          return c.monthlyProd.some(mp => PRODUCTS_STD.some(std => n(mp[std.key]) > 0));
+        }
+        return true;
+      });
+    }
+  });
   // build _raw to save (new format)
+  const _computed = toComputeRaw();
   const saveRaw = {
-    monthly: toComputeRaw().monthly,
-    products: toComputeRaw().products,
+    monthly: _computed.monthly,
+    products: _computed.products,
     customers: raw.customers.map(c => ({ name: c.name, monthlyProd: c.monthlyProd })),
-    history: raw.history,
+    history: _computed.history,  // computed totals for backward compat
+    histCustomers: Object.fromEntries(
+      HIST_YEARS.map(y => [String(y), (raw.histCustomers[String(y)] || []).map(c => ({ name: c.name, monthlyProd: c.monthlyProd }))])
+    ),
     customersDB: raw.customersDB || []
   };
-  const payload = window.BWP_compute(toComputeRaw());
+  const payload = window.BWP_compute(_computed);
   payload._raw = saveRaw;
   $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
   window.BWP_DB.saveDashboard(PASS, payload).then(() => {
@@ -696,6 +734,7 @@ function importHistoryWorkbook(wb) {
   const TH_IDX = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
   const PROD_KEY = {'ม้วนใส':'p0','ม้วนพิมพ์':'p1','ถุงคลุม/ชีท':'p2','ฟิล์มยืด':'p3','ถุงหลอด':'p4'};
   if (!raw.history) raw.history = {};
+  if (!raw.histCustomers) raw.histCustomers = {};
   let imported = 0;
 
   wb.SheetNames.forEach(sheetName => {
@@ -709,6 +748,7 @@ function importHistoryWorkbook(wb) {
 
     const hdr = rows[0].map(h => String(h||'').trim());
     const monCol = hdr.findIndex(h => h === 'เดือน');
+    const custCol = hdr.findIndex(h => h === 'ลูกค้า');
     const valCol = hdr.findIndex(h => h.includes('มูลค่า'));
     const prodCols = {};
     hdr.forEach((h, i) => {
@@ -717,19 +757,43 @@ function importHistoryWorkbook(wb) {
     });
     if (monCol < 0) return;
 
-    const val12 = Array(12).fill(0);
-    const vol12 = Array(12).fill(0);
-    rows.slice(1).forEach(row => {
-      const mi = TH_IDX[String(row[monCol]||'').trim()];
-      if (mi === undefined) return;
-      if (valCol >= 0) val12[mi] += n(row[valCol]);
-      Object.values(prodCols).forEach(col => { vol12[mi] += n(row[col]); });
-    });
-
-    raw.history[yr] = {
-      value: val12.map(v => v || null),
-      volume: vol12.map(v => v ? +(v / 1000).toFixed(3) : null)
-    };
+    // If we have a customer column, import per-customer data into histCustomers
+    if (custCol >= 0) {
+      raw.histCustomers[yr] = [];
+      let added = 0, skipped = 0;
+      rows.slice(1).forEach(row => {
+        const mon = String(row[monCol]||'').trim();
+        const custName = String(row[custCol]||'').trim();
+        const mi = TH_IDX[mon];
+        if (!custName || mi === undefined) return;
+        const prodKgTotal = Object.values(prodCols).reduce((s, col) => s + n(row[col]), 0);
+        const rowVal = valCol >= 0 ? n(row[valCol]) : 0;
+        if (prodKgTotal === 0 && rowVal === 0) { skipped++; return; }
+        let cust = raw.histCustomers[yr].find(c => c.name === custName);
+        if (!cust) {
+          cust = { name: custName, monthlyProd: padProd12([]) };
+          raw.histCustomers[yr].push(cust);
+          added++;
+        }
+        const mp = cust.monthlyProd[mi];
+        Object.entries(prodCols).forEach(([key, col]) => { mp[key] = n(row[col]); });
+        if (valCol >= 0) mp.value = rowVal;
+      });
+    } else {
+      // Fallback: no customer column, store as totals in history only
+      const val12 = Array(12).fill(0);
+      const vol12 = Array(12).fill(0);
+      rows.slice(1).forEach(row => {
+        const mi = TH_IDX[String(row[monCol]||'').trim()];
+        if (mi === undefined) return;
+        if (valCol >= 0) val12[mi] += n(row[valCol]);
+        Object.values(prodCols).forEach(col => { vol12[mi] += n(row[col]); });
+      });
+      raw.history[yr] = {
+        value: val12.map(v => v || null),
+        volume: vol12.map(v => v ? +(v / 1000).toFixed(3) : null)
+      };
+    }
     imported++;
   });
 
