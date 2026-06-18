@@ -84,19 +84,22 @@
     var totalProdKg = rprods.reduce(function (s, p) { return s + sum(p.monthlyKg.slice(0, NACT)); }, 0) || 1;
 
     var PRODUCTS = rprods.map(function (p, idx) {
-      var monthlyVal = [], priceMonthly = [];
+      // monthlyVal/val are stored in ลบ. (the dashboard bundle multiplies by 1e6
+      // when displaying baht). priceMonthly/avgPrice stay in ฿/Kg (computed from baht).
+      var monthlyVal = [], priceMonthly = [], valTotBaht = 0;
       for (var mo = 0; mo < NACT; mo++) {
         var kg = p.monthlyKg[mo];
-        var v = SK[mo] > 0 ? num(val69[mo]) * (kg / SK[mo]) : 0;
-        monthlyVal.push(r2(v));
-        priceMonthly.push(kg > 0 ? r2(v / kg) : 0);
+        var vBaht = SK[mo] > 0 ? num(val69[mo]) * (kg / SK[mo]) : 0;  // บาท
+        valTotBaht += vBaht;
+        monthlyVal.push(vBaht / 1e6);  // → ลบ. (full precision)
+        priceMonthly.push(kg > 0 ? r2(vBaht / kg) : 0);  // ฿/Kg
       }
       var kgTot = sum(p.monthlyKg.slice(0, NACT));
       var valTot = sum(monthlyVal);
       return {
         id: 'p' + (idx + 1), name: p.name,
         val: r2(valTot), kg: Math.round(kgTot),
-        avgPrice: kgTot > 0 ? r2(valTot / kgTot) : 0,
+        avgPrice: kgTot > 0 ? r2(valTotBaht / kgTot) : 0,
         share: r2(kgTot / totalProdKg * 100),
         monthly: monthlyVal, priceMonthly: priceMonthly
       };
