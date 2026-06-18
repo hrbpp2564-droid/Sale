@@ -2121,7 +2121,7 @@ try { (() => {
   const Icon = window.Icon;
   const fmt = {
     int: n => Math.round(n).toLocaleString('en-US'),
-    dec1: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+    dec1: n => (!n || n <= 0) ? '—' : (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }),
@@ -2259,7 +2259,7 @@ try { (() => {
     const rnd = (x, d) => { const p = Math.pow(10, d); return Math.round(x * p) / p; };
     const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
     const curY = String(f.year || '2569');
-    const cmpY = curY === '2569' ? '2568' : '2568';
+    const cmpY = String(parseInt(curY) - 1);
     let vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
     let kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
     let vCmp = D.valueByYear[cmpY] || [];
@@ -2286,8 +2286,8 @@ try { (() => {
     const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
     const price = sumVol ? sumVal * 1000 / sumVol : 0;
     const priceC = sumVolC ? sumValC * 1000 / sumVolC : 0;
-    const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
-    const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
+    const momVal = single ? (mi >= 1 && vCur[mi - 1] != null && vCur[mi - 1] !== 0 ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : null) : D.totals.momVal;
+    const momVol = single ? (mi >= 1 && kCur[mi - 1] != null && kCur[mi - 1] !== 0 ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : null) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
@@ -2457,7 +2457,7 @@ try { (() => {
     const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
     const _mi = _single ? +filters.month : -1;
     const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
-    const _canMoM = _single ? (_mi >= 1) : (NACT >= 2);
+    const _canMoM = (_single ? (_mi >= 1) : (NACT >= 2)) && momVal != null;
     const _canTrend = NACT >= 2;  // มุมมองเดือนเดียว NACT=1 → ดูแนวโน้มไม่ได้โดยอัตโนมัติ
     // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
     const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
@@ -2479,7 +2479,7 @@ try { (() => {
       ((_diffBaht >= 0 ? 'เพิ่มขึ้น ' : 'ลดลง ') + fmt.int(Math.abs(_diffBaht)) + ' บาท จากเดือนก่อน');
 
     // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
-    const _mom = D.totals.momVal;
+    const _mom = momVal;
     const _i1 = _canMoM
       ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
@@ -5147,7 +5147,7 @@ try { (() => {
   const Icon = window.Icon;
   const fmt = {
     int: n => Math.round(n).toLocaleString('en-US'),
-    dec1: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
+    dec1: n => (!n || n <= 0) ? '—' : (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }),
@@ -5741,7 +5741,7 @@ try { (() => {
     const rnd = (x, d) => { const p = Math.pow(10, d); return Math.round(x * p) / p; };
     const sum = (a) => a.reduce((s, x) => s + (x || 0), 0);
     const curY = String(f.year || '2569');
-    const cmpY = curY === '2569' ? '2568' : '2568';
+    const cmpY = String(parseInt(curY) - 1);
     let vCur = D.valueByYear[curY] || D.valueByYear['2569'] || [];
     let kCur = D.volumeByYear[curY] || D.volumeByYear['2569'] || [];
     let vCmp = D.valueByYear[cmpY] || [];
@@ -5768,8 +5768,8 @@ try { (() => {
     const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
     const price = sumVol ? sumVal * 1000 / sumVol : 0;
     const priceC = sumVolC ? sumValC * 1000 / sumVolC : 0;
-    const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
-    const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
+    const momVal = single ? (mi >= 1 && vCur[mi - 1] != null && vCur[mi - 1] !== 0 ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : null) : D.totals.momVal;
+    const momVol = single ? (mi >= 1 && kCur[mi - 1] != null && kCur[mi - 1] !== 0 ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : null) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
@@ -5939,7 +5939,7 @@ try { (() => {
     const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
     const _mi = _single ? +filters.month : -1;
     const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
-    const _canMoM = _single ? (_mi >= 1) : (NACT >= 2);
+    const _canMoM = (_single ? (_mi >= 1) : (NACT >= 2)) && momVal != null;
     const _canTrend = NACT >= 2;  // มุมมองเดือนเดียว NACT=1 → ดูแนวโน้มไม่ได้โดยอัตโนมัติ
     // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
     const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
@@ -5961,7 +5961,7 @@ try { (() => {
       ((_diffBaht >= 0 ? 'เพิ่มขึ้น ' : 'ลดลง ') + fmt.int(Math.abs(_diffBaht)) + ' บาท จากเดือนก่อน');
 
     // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
-    const _mom = D.totals.momVal;
+    const _mom = momVal;
     const _i1 = _canMoM
       ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',

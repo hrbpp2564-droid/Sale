@@ -157,7 +157,19 @@
   function fatal(msg) {
     var d = document.createElement('div');
     d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#07101f;color:#cbd5e1;font-family:system-ui,sans-serif;text-align:center;padding:24px');
-    d.innerHTML = '<div><div style="font-size:16px;font-weight:600;color:#fff">โหลดไม่สำเร็จ</div><div style="font-size:13px;margin-top:8px;color:#94a3b8">' + msg + '</div><button onclick="location.reload()" style="margin-top:16px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:10px 18px;cursor:pointer">ลองใหม่</button></div>';
+    var wrap = document.createElement('div');
+    var title = document.createElement('div');
+    title.setAttribute('style', 'font-size:16px;font-weight:600;color:#fff');
+    title.textContent = 'โหลดไม่สำเร็จ';
+    var detail = document.createElement('div');
+    detail.setAttribute('style', 'font-size:13px;margin-top:8px;color:#94a3b8');
+    detail.textContent = msg;
+    var btn = document.createElement('button');
+    btn.setAttribute('style', 'margin-top:16px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:10px 18px;cursor:pointer');
+    btn.textContent = 'ลองใหม่';
+    btn.onclick = function () { location.reload(); };
+    wrap.appendChild(title); wrap.appendChild(detail); wrap.appendChild(btn);
+    d.appendChild(wrap);
     document.body.appendChild(d);
   }
 

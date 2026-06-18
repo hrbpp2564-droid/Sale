@@ -81,7 +81,7 @@
     // monthly sum of product kg (for proportional value allocation)
     var SK = [];
     for (var mm = 0; mm < NACT; mm++) { var s = 0; rprods.forEach(function (p) { s += p.monthlyKg[mm]; }); SK.push(s); }
-    var totalProdKg = rprods.reduce(function (s, p) { return s + sum(p.monthlyKg.slice(0, NACT)); }, 0) || 1;
+    var totalProdKg = rprods.reduce(function (s, p) { return s + sum(p.monthlyKg.slice(0, NACT)); }, 0);
 
     var PRODUCTS = rprods.map(function (p, idx) {
       // monthlyVal/val are stored in ลบ. (the dashboard bundle multiplies by 1e6
@@ -100,7 +100,7 @@
         id: 'p' + (idx + 1), name: p.name,
         val: r2(valTot), kg: Math.round(kgTot),
         avgPrice: kgTot > 0 ? r2(valTotBaht / kgTot) : 0,
-        share: r2(kgTot / totalProdKg * 100),
+        share: totalProdKg > 0 ? r2(kgTot / totalProdKg * 100) : null,
         monthly: monthlyVal, priceMonthly: priceMonthly
       };
     }).sort(function (a, b) { return b.val - a.val; });
@@ -130,13 +130,13 @@
       else { var t = _custByName[key].monthlyKg; for (var z = 0; z < 12; z++) t[z] += mk[z]; }
     });
     var rcust = Object.keys(_custByName).map(function (k) { return _custByName[k]; });
-    var totalCustKg = rcust.reduce(function (s, c) { return s + sum(c.monthlyKg.slice(0, NACT)); }, 0) || 1;
+    var totalCustKg = rcust.reduce(function (s, c) { return s + sum(c.monthlyKg.slice(0, NACT)); }, 0);
     var allCustomers = rcust.map(function (c) {
       var kgTot = sum(c.monthlyKg.slice(0, NACT));
       var last = NACT >= 1 ? c.monthlyKg[NACT - 1] : 0;
       var prev = NACT >= 2 ? c.monthlyKg[NACT - 2] : 0;
       var mom = prev > 0 ? r2((last / prev - 1) * 100) : (last > 0 ? 0 : 0);
-      return { name: c.name, kg: Math.round(kgTot), share: r2(kgTot / totalCustKg * 100), monthly: c.monthlyKg.slice(0, NACT), mom: mom };
+      return { name: c.name, kg: Math.round(kgTot), share: totalCustKg > 0 ? r2(kgTot / totalCustKg * 100) : null, monthly: c.monthlyKg.slice(0, NACT), mom: mom };
     }).filter(function (c) { return c.kg > 0; })
       .sort(function (a, b) { return b.kg - a.kg; });
     var nCustomers = allCustomers.length;
