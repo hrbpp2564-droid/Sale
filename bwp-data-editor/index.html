@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618a" />
+<link rel="stylesheet" href="../styles.css?v=20260618e" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -187,9 +187,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618a"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618a"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618a"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618e"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618e"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618e"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -498,11 +498,11 @@ function renderMonthSummary() {
   const vol_pK = totalKg / 1000;
   const val_lbn = custs.reduce((s, c) => s + n((c.monthlyProd[curMonth]||{}).value), 0);
   const kg = vol_pK * 1000;
-  const price = (kg > 0 && val_lbn > 0) ? (val_lbn * 1e6 / kg).toFixed(1) : '—';
+  const price = (kg > 0 && val_lbn > 0) ? (val_lbn * 1e6 / kg).toLocaleString('en-US', {minimumFractionDigits:1,maximumFractionDigits:1}) : '—';
   const box = $('monthSummary'); box.innerHTML = '';
   [
     { l: 'ปริมาณรวม',    v: kg > 0 ? Math.round(kg).toLocaleString('en-US') : '—', u: 'Kg' },
-    { l: 'มูลค่ารวม',    v: val_lbn > 0 ? val_lbn.toFixed(2) : '—', u: 'ลบ.' },
+    { l: 'มูลค่ารวม',    v: val_lbn > 0 ? val_lbn.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—', u: 'ลบ.' },
     { l: 'ราคาเฉลี่ย',   v: price, u: '฿/Kg' },
   ].forEach(k => {
     const d = document.createElement('div'); d.className='kpi';
