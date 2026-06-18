@@ -229,14 +229,17 @@ function LineChart({
 }) {
   const [ref, width] = useMeasure();
   const [hover, setHover] = React.useState(null);
-  const p = padding;
-  const iw = Math.max(10, width - p.left - p.right);
-  const ih = Math.max(10, height - p.top - p.bottom);
   const leftSeries = series.filter(s => (s.axis || 'left') === 'left');
   const rightSeries = series.filter(s => s.axis === 'right');
   const maxOf = arr => Math.max(1, ...arr.flatMap(s => s.data));
   const lMax = maxOf(leftSeries.length ? leftSeries : series) * 1.12;
   const rMax = maxOf(rightSeries.length ? rightSeries : series) * 1.12;
+  // auto-compute left padding to fit Y-axis label
+  const _yLabelLen = String(yFormat(Math.round(lMax))).length;
+  const _autoLeft = Math.max(padding.left, _yLabelLen * 7 + 10);
+  const p = { ...padding, left: _autoLeft };
+  const iw = Math.max(10, width - p.left - p.right);
+  const ih = Math.max(10, height - p.top - p.bottom);
   const n = labels.length || (series[0]?.data.length ?? 0);
   const hasBar = series.some(s => s.type === 'bar');
   const xAt = i => p.left + (hasBar ? (i + 0.5) / n * iw : (n <= 1 ? iw / 2 : i / (n - 1) * iw));
