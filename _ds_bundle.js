@@ -2333,21 +2333,34 @@ try { (() => {
     allC.forEach((c, i) => { cum += c.share; if (i === 2) top3 = rnd(cum, 1); if (i === 4) top5 = rnd(cum, 1); });
     if (allC.length < 3) top3 = rnd(cum, 1);
     if (allC.length < 5) top5 = rnd(cum, 1);
+    // when customer filter active: rescale value/volume proportionally from customer Kg
+    let _sv = sumVal, _sk = sumVol, _pr = price;
+    if (cg && cg !== 'all' && allC.length > 0 && sumVol > 0) {
+      _sk = allC.reduce((s, c) => s + c.kg, 0) / 1000; // Kg → พัน Kg
+      _sv = rnd(sumVal * (_sk / sumVol), 2);
+      _pr = _sk ? _sv * 1000 / _sk : 0;
+    }
     const patch = {
-      value: { value: sumVal.toFixed(2), delta: momVal, yoy: yoy(sumVal, sumValC) },
-      volume: { value: Math.round(sumVol * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(sumVol, sumVolC) },
-      price: { value: price.toFixed(2), yoy: yoy(price, priceC) },
+      value: { value: _sv.toFixed(2), delta: momVal, yoy: yoy(_sv, sumValC) },
+      volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
+      price: { value: _pr.toFixed(2), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
       products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
     const priceArr = idxs.map((i) => kCur[i] ? rnd(vCur[i] * 1000 / kCur[i], 1) : 0);
+    // per-month customer series for charts when customer filter is active
+    const _custMonKg = (cg && cg !== 'all' && allC.length > 0)
+      ? idxs.map((_, j) => allC.reduce((s, c) => s + ((c.monthly || [])[j] || 0), 0) / 1000)
+      : null;
+    const _vCur69 = _custMonKg ? _custMonKg.map((k, j) => kCur[idxs[j]] ? rnd(pick(vCur)[j] * (k / kCur[idxs[j]]), 2) : 0) : pick(vCur);
+    const _kCur69 = _custMonKg ? _custMonKg : pick(kCur);
     return Object.assign({}, D, {
       NACT: idxs.length,
       MONTHS_ACT: labels,
-      valueByYear: Object.assign({}, D.valueByYear, { 2569: pick(vCur), 2568: pick(vCmp) }),
-      volumeByYear: Object.assign({}, D.volumeByYear, { 2569: pick(kCur), 2568: pick(kCmp) }),
+      valueByYear: Object.assign({}, D.valueByYear, { 2569: _vCur69, 2568: pick(vCmp) }),
+      volumeByYear: Object.assign({}, D.volumeByYear, { 2569: _kCur69, 2568: pick(kCmp) }),
       price69: priceArr,
       KPIS: KPIS,
       PRODUCTS: prods,
@@ -2355,7 +2368,7 @@ try { (() => {
       allCustomers: allC,
       custTotalKg: custTotalKg,
       nCustomers: allC.length,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5, yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
+      totals: Object.assign({}, D.totals, { value: Math.round(_sv * 1e6), volume: Math.round(_sk * 1e3), avgPrice: rnd(_pr, 1), top3: top3, top5: top5, yoyVal: yoy(_sv, sumValC), yoyKg: yoy(_sk, sumVolC), momVal: momVal, momKg: momVol }),
     });
   }
   const KPI_DRILL = {
@@ -5703,21 +5716,34 @@ try { (() => {
     allC.forEach((c, i) => { cum += c.share; if (i === 2) top3 = rnd(cum, 1); if (i === 4) top5 = rnd(cum, 1); });
     if (allC.length < 3) top3 = rnd(cum, 1);
     if (allC.length < 5) top5 = rnd(cum, 1);
+    // when customer filter active: rescale value/volume proportionally from customer Kg
+    let _sv = sumVal, _sk = sumVol, _pr = price;
+    if (cg && cg !== 'all' && allC.length > 0 && sumVol > 0) {
+      _sk = allC.reduce((s, c) => s + c.kg, 0) / 1000; // Kg → พัน Kg
+      _sv = rnd(sumVal * (_sk / sumVol), 2);
+      _pr = _sk ? _sv * 1000 / _sk : 0;
+    }
     const patch = {
-      value: { value: sumVal.toFixed(2), delta: momVal, yoy: yoy(sumVal, sumValC) },
-      volume: { value: Math.round(sumVol * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(sumVol, sumVolC) },
-      price: { value: price.toFixed(2), yoy: yoy(price, priceC) },
+      value: { value: _sv.toFixed(2), delta: momVal, yoy: yoy(_sv, sumValC) },
+      volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
+      price: { value: _pr.toFixed(2), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
       products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
     const priceArr = idxs.map((i) => kCur[i] ? rnd(vCur[i] * 1000 / kCur[i], 1) : 0);
+    // per-month customer series for charts when customer filter is active
+    const _custMonKg = (cg && cg !== 'all' && allC.length > 0)
+      ? idxs.map((_, j) => allC.reduce((s, c) => s + ((c.monthly || [])[j] || 0), 0) / 1000)
+      : null;
+    const _vCur69 = _custMonKg ? _custMonKg.map((k, j) => kCur[idxs[j]] ? rnd(pick(vCur)[j] * (k / kCur[idxs[j]]), 2) : 0) : pick(vCur);
+    const _kCur69 = _custMonKg ? _custMonKg : pick(kCur);
     return Object.assign({}, D, {
       NACT: idxs.length,
       MONTHS_ACT: labels,
-      valueByYear: Object.assign({}, D.valueByYear, { 2569: pick(vCur), 2568: pick(vCmp) }),
-      volumeByYear: Object.assign({}, D.volumeByYear, { 2569: pick(kCur), 2568: pick(kCmp) }),
+      valueByYear: Object.assign({}, D.valueByYear, { 2569: _vCur69, 2568: pick(vCmp) }),
+      volumeByYear: Object.assign({}, D.volumeByYear, { 2569: _kCur69, 2568: pick(kCmp) }),
       price69: priceArr,
       KPIS: KPIS,
       PRODUCTS: prods,
@@ -5725,7 +5751,7 @@ try { (() => {
       allCustomers: allC,
       custTotalKg: custTotalKg,
       nCustomers: allC.length,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), top3: top3, top5: top5, yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
+      totals: Object.assign({}, D.totals, { value: Math.round(_sv * 1e6), volume: Math.round(_sk * 1e3), avgPrice: rnd(_pr, 1), top3: top3, top5: top5, yoyVal: yoy(_sv, sumValC), yoyKg: yoy(_sk, sumVolC), momVal: momVal, momKg: momVol }),
     });
   }
   const KPI_DRILL = {
