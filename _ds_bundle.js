@@ -2346,7 +2346,7 @@ try { (() => {
     if (cg && cg !== 'all' && allC.length > 0 && sumVol > 0) {
       _sk = allC.reduce((s, c) => s + c.kg, 0) / 1000; // Kg → พัน Kg
       _sv = rnd(sumVal * (_sk / sumVol), 4);
-      _pr = _sk ? r2(_sv * 1000 / _sk) : 0;
+      _pr = _sk ? rnd(_sv * 1000 / _sk, 2) : 0;
     }
     var _tgt = 0, _hasT = false;
     (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
@@ -5801,7 +5801,7 @@ try { (() => {
     if (cg && cg !== 'all' && allC.length > 0 && sumVol > 0) {
       _sk = allC.reduce((s, c) => s + c.kg, 0) / 1000; // Kg → พัน Kg
       _sv = rnd(sumVal * (_sk / sumVol), 4);
-      _pr = _sk ? r2(_sv * 1000 / _sk) : 0;
+      _pr = _sk ? rnd(_sv * 1000 / _sk, 2) : 0;
     }
     var _tgt = 0, _hasT = false;
     (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
