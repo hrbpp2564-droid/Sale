@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618b" />
+<link rel="stylesheet" href="../styles.css?v=20260618c" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -187,9 +187,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618b"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618b"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618b"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618c"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618c"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618c"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -623,6 +623,23 @@ $('saveBtn').addEventListener('click', () => {
       });
     }
   });
+  // sync ลูกค้าใหม่จากยอดขายเข้า customersDB อัตโนมัติ
+  const allSalesNames = new Set([
+    ...raw.customers.map(c => c.name),
+    ...HIST_YEARS.flatMap(y => (raw.histCustomers[String(y)] || []).map(c => c.name))
+  ]);
+  const dbNames = new Set((raw.customersDB || []).map(c => c.name));
+  let newCustCount = 0;
+  allSalesNames.forEach(name => {
+    if (name && name.trim() && !dbNames.has(name)) {
+      raw.customersDB = raw.customersDB || [];
+      raw.customersDB.push({ name: name.trim(), type: '', note: '', id: null });
+      CUSTOMERS_DB.push(name.trim());
+      dbNames.add(name);
+      newCustCount++;
+    }
+  });
+
   // build _raw to save (new format)
   const _computed = toComputeRaw();
   const saveRaw = {
@@ -640,7 +657,8 @@ $('saveBtn').addEventListener('click', () => {
   $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
   window.BWP_DB.saveDashboard(PASS, payload).then(() => {
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
-    toast('✓ บันทึกสำเร็จ! เปิดหน้า Dashboard แล้วรีเฟรชเพื่อดูผล', 'ok');
+    const newCustMsg = newCustCount > 0 ? ` · เพิ่มลูกค้าใหม่ ${newCustCount} รายเข้าฐานข้อมูล` : '';
+    toast('✓ บันทึกสำเร็จ!' + newCustMsg + ' เปิดหน้า Dashboard แล้วรีเฟรชเพื่อดูผล', 'ok');
     buildYearSelect(); buildMonthSelect(); renderMonth();
   }).catch((e) => {
     setStatus('บันทึกไม่สำเร็จ','var(--negative)');
