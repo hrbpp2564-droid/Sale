@@ -2125,10 +2125,7 @@ try { (() => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }),
-    money: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) + ' ลบ.',
+    money: n => Math.round(n * 1e6).toLocaleString('en-US') + ' บาท',
     m: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -2272,7 +2269,7 @@ try { (() => {
     if (prodId && prodId !== 'all') {
       const P = (D.PRODUCTS || []).find((p) => p.id === prodId);
       if (P) {
-        vCur = (P.monthly || []).map((v) => (v == null ? null : v));          // value (ลบ.) per month
+        vCur = (P.monthly || []).map((v) => (v == null ? null : v));          // value (บาท) per month
         kCur = (P.monthly || []).map((v, i) => {                              // volume (พัน Kg) per month
           const pr = (P.priceMonthly || [])[i];
           return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0);
@@ -2355,7 +2352,7 @@ try { (() => {
     (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
     var _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
     const patch = {
-      value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
+      value: { value: Math.round(_sv * 1e6).toLocaleString('en-US'), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
       price: { value: _pr.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
@@ -2467,7 +2464,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21\u0E15\u0E48\u0E2D\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E40\u0E17\u0E35\u0E22\u0E1A\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (\u0E1E\u0E31\u0E19 Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17) \u0E40\u0E17\u0E35\u0E22\u0E1A\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (\u0E1E\u0E31\u0E19 Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
       actions: /*#__PURE__*/React.createElement("button", {
         onClick: () => onDrill('sales'),
         style: {
@@ -2492,8 +2489,8 @@ try { (() => {
       labels: labels,
       yFormat: v => fmt.int(v),
       series: [{
-        name: 'มูลค่า 2569 (ลบ.)',
-        data: val69,
+        name: 'มูลค่า 2569 (บาท)',
+        data: val69.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
@@ -2503,8 +2500,8 @@ try { (() => {
         type: 'line',
         axis: 'right'
       }, {
-        name: 'มูลค่า 2568 (ลบ.)',
-        data: val68,
+        name: 'มูลค่า 2568 (บาท)',
+        data: val68.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--slate-400)',
         type: 'line'
       }]
@@ -2542,7 +2539,7 @@ try { (() => {
       gap: 16
     }, /*#__PURE__*/React.createElement(Card, {
       title: "Top \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      subtitle: "\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E25\u0E1A.)",
+      subtitle: "\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17)",
       actions: /*#__PURE__*/React.createElement(DrillHint, null),
       bodyStyle: {
         padding: 'var(--space-2)'
@@ -2550,7 +2547,7 @@ try { (() => {
     }, prodByVal.slice(0, 5).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
+      label: p.name,      value: fmt.int(p.val * 1e6) + ' บาท',
       ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
       share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
@@ -2586,15 +2583,15 @@ try { (() => {
       // 5-month comparable totals per year
       const v = D.YEARS.map(y => D.sum(D.valueByYear[y].slice(0, NACT)));
       series = [{
-        name: 'มูลค่า 5 เดือน (ลบ.)',
-        data: v,
+        name: 'มูลค่า 5 เดือน (บาท)',
+        data: v.map(x => x == null ? null : Math.round(x * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }];
     } else if (type === 'combo') {
       series = [{
-        name: 'มูลค่า (ลบ.)',
-        data: D.valueByYear[2569].slice(0, NACT),
+        name: 'มูลค่า (บาท)',
+        data: D.valueByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
@@ -2606,8 +2603,8 @@ try { (() => {
       }];
     } else {
       series = D.YEARS.map((y, i) => ({
-        name: 'มูลค่า ' + y + ' (ลบ.)',
-        data: D.valueByYear[y].slice(0, NACT),
+        name: 'มูลค่า ' + y + ' (บาท)',
+        data: D.valueByYear[y].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1e6)),
         color: i === D.YEARS.length - 1 ? 'var(--viz-1)' : 'var(--slate-400)',
         type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line'
       }));
@@ -2620,8 +2617,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(D.totals.value / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(D.totals.value),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.yoyVal,
       deltaSuffix: " YoY",
       accent: true
@@ -2633,13 +2630,13 @@ try { (() => {
       deltaSuffix: " YoY"
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(D.totals.value / 1e6 / NACT),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(D.totals.value / NACT),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
       value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const mx = arr.length ? Math.max(...arr) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
-      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.dec1(Math.max(0, ...arr)) + ' \u0E25\u0E1A.' : '\u2014 \u0E25\u0E1A.'; })(),
+      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.int(Math.max(0, ...arr) * 1e6) + ' \u0E1A\u0E32\u0E17' : '\u2014 \u0E1A\u0E32\u0E17'; })(),
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
@@ -2716,14 +2713,14 @@ try { (() => {
         }, r.month)
       }, {
         key: 'v68',
-        header: 'มูลค่า 2568 (ลบ.)',
+        header: 'มูลค่า 2568 (บาท)',
         numeric: true,
-        render: r => fmt.dec1(r.v68)
+        render: r => fmt.int(r.v68 * 1e6)
       }, {
         key: 'v69',
-        header: 'มูลค่า 2569 (ลบ.)',
+        header: 'มูลค่า 2569 (บาท)',
         numeric: true,
-        render: r => fmt.dec1(r.v69)
+        render: r => fmt.int(r.v69 * 1e6)
       }, {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
@@ -2777,7 +2774,7 @@ try { (() => {
   const D = window.VDATA;
   const NACT = D.NACT;
   const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
-  // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
+  // per-product monthly volume (Kg) derived from monthly value (บาท) ÷ monthly price (฿/Kg)
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
   const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(2)); // พัน Kg
 
@@ -2809,8 +2806,8 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
-      value: fmt.dec1(D.totals.value / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(D.totals.value),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
@@ -2843,7 +2840,7 @@ try { (() => {
     }, sorted.slice(0, 10).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
+      label: p.name,      value: metric === 'val' ? fmt.int(p.val * 1e6) + ' บาท' : fmt.int(p.kg) + ' Kg',
       ratio: p[metric] / max,
       share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
@@ -2905,9 +2902,9 @@ try { (() => {
         render: r => fmt.int(r.kg)
       }, {
         key: 'val',
-        header: 'มูลค่า (ลบ.)',
+        header: 'มูลค่า (บาท)',
         numeric: true,
-        render: r => fmt.dec1(r.val)
+        render: r => fmt.int(r.val * 1e6)
       }, {
         key: 'avgPrice',
         header: 'ราคาเฉลี่ย (฿/Kg)',
@@ -3019,8 +3016,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: _single ? ("\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 " + _mName) : "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(_curVal),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(_curVal * 1e6),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: _curMom,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -3039,7 +3036,7 @@ try { (() => {
       unit: "%"
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 + \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 \u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 " + ((_D.MONTHS_ACT[0] || '') + (_chartLen > 1 ? "\u2013" + (_D.MONTHS_ACT[_chartLen - 1] || '') : '')),
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 " + ((_D.MONTHS_ACT[0] || '') + (_chartLen > 1 ? "\u2013" + (_D.MONTHS_ACT[_chartLen - 1] || '') : '')),
       style: {
         marginBottom: 16
       }
@@ -3049,8 +3046,8 @@ try { (() => {
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
-        name: 'มูลค่า (ลบ.)',
-        data: p.monthly.slice(0, _chartLen),
+        name: 'มูลค่า (บาท)',
+        data: p.monthly.slice(0, _chartLen).map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
@@ -3230,12 +3227,12 @@ try { (() => {
     const sorted = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const segs = sorted.map((p, i) => ({
       label: p.name,
-      value: p.val,
+      value: Math.round(p.val * 1e6),
       color: `var(--viz-${i % 8 + 1})`
     }));
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E41\u0E15\u0E48\u0E25\u0E30\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Product Mix)",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E25\u0E1A.) \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 2569",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17) \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 2569",
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: view,
@@ -3260,9 +3257,9 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(DonutChart, {
       size: 260,
       thickness: 40,
-      centerValue: fmt.m(D.totals.value / 1e6),
-      centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E25\u0E1A.)",
-      valueFormat: v => (v / 1e6).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ลบ.',
+      centerValue: fmt.int(D.totals.value),
+      centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E1A\u0E32\u0E17)",
+      valueFormat: v => fmt.int(v) + ' บาท',
       data: segs
     }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -3322,16 +3319,16 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / (D.PRODUCTS.filter(p => p.kg > 0).length || 1)),
-      unit: "\u0E25\u0E1A./SKU",
+      value: fmt.int(D.totals.value / (D.PRODUCTS.filter(p => p.kg > 0).length || 1)),
+      unit: "\u0E1A\u0E32\u0E17/SKU",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "package",
         size: 15
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / (D.nCustomers || 1)),
-      unit: "\u0E25\u0E1A./\u0E23\u0E32\u0E22",
+      value: fmt.int(D.totals.value / (D.nCustomers || 1)),
+      unit: "\u0E1A\u0E32\u0E17/\u0E23\u0E32\u0E22",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "users",
         size: 15
@@ -3835,8 +3832,8 @@ try { (() => {
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13",
-      value: fmt.dec1(_curKg * avgPrice / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(_curKg * avgPrice),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: _momM
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: _single ? "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49" : "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
@@ -4131,7 +4128,9 @@ try { (() => {
   function YearScreen() {
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
-    const unit = metric === 'value' ? 'ลบ.' : 'Kg';
+    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const _vmul = metric === 'value' ? 1e6 : 1;
+    const _vfmt = metric === 'value' ? (n => fmt.int(n * _vmul)) : (n => fmt.dec1(n));
     const years = D.YEARS.filter(y => Array.isArray(src[y])); // only years with data
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
@@ -4150,7 +4149,7 @@ try { (() => {
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
       name: 'ปี ' + y,
-      data: src[y].slice(0, cmp),
+      data: src[y].slice(0, cmp).map(v => v == null ? null : (metric === 'value' ? Math.round(v * 1e6) : v)),
       color: yearColor(i),
       type: i === years.length - 1 ? 'area' : 'line'
     }));
@@ -4190,14 +4189,14 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${latest}`,
-      value: fmt.dec1(tLatest),
+      value: _vfmt(tLatest),
       unit: unit,
       delta: yoy,
       deltaSuffix: " YoY",
       accent: true
     }), prev && /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${prev}`,
-      value: fmt.dec1(tPrev),
+      value: _vfmt(tPrev),
       unit: unit
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "YoY Growth",
@@ -4218,7 +4217,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -4263,12 +4262,12 @@ try { (() => {
         key: 'cmpT',
         header: `รวม ${cmp} เดือน`,
         numeric: true,
-        render: r => fmt.dec1(r.cmpT)
+        render: r => _vfmt(r.cmpT)
       }, {
         key: 'full',
         header: 'ทั้งปี',
         numeric: true,
-        render: r => /*#__PURE__*/React.createElement("span", null, fmt.dec1(r.full), /*#__PURE__*/React.createElement("span", {
+        render: r => /*#__PURE__*/React.createElement("span", null, _vfmt(r.full), /*#__PURE__*/React.createElement("span", {
           style: {
             color: 'var(--text-disabled)',
             fontSize: 'var(--text-2xs)'
@@ -4308,7 +4307,7 @@ try { (() => {
         key: 'y' + y,
         header: String(y),
         numeric: true,
-        render: r => fmt.dec1(r['y' + y])
+        render: r => _vfmt(r['y' + y])
       })), {
         key: 'yoy',
         header: '% YoY',
@@ -4498,8 +4497,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      value: fmt.int(F.yearEndVal),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(F.yearEndVal * 1e6),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })(),
       deltaSuffix: " vs 2568",
       accent: true,
@@ -4535,7 +4534,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35 2569",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \xB7 \u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 + \u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E0A\u0E48\u0E27\u0E07\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17) \xB7 \u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 + \u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E0A\u0E48\u0E27\u0E07\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19",
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "positive",
         dot: true
@@ -4550,7 +4549,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "Top 10 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.)",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17)",
       bodyStyle: {
         padding: 'var(--space-2)'
       }
@@ -4560,8 +4559,8 @@ try { (() => {
         key: p.id,
         rank: i + 1,
         label: p.name,
-        sublabel: `คาด ${fmt.dec1(proj)} ลบ.`,
-        value: fmt.dec1(proj) + ' ลบ.',
+        sublabel: `คาด ${fmt.int(proj * 1e6)} บาท`,
+        value: fmt.int(proj * 1e6) + ' บาท',
         ratio: prodByVal.length ? proj / (prodByVal[0].val * (12 / NACT) * 1.02) : 0,
         color: `var(--viz-${i % 8 + 1})`
       });
@@ -5067,10 +5066,7 @@ try { (() => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }),
-    money: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) + ' ลบ.',
+    money: n => Math.round(n * 1e6).toLocaleString('en-US') + ' บาท',
     m: n => (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -5670,7 +5666,7 @@ try { (() => {
     if (prodId && prodId !== 'all') {
       const P = (D.PRODUCTS || []).find((p) => p.id === prodId);
       if (P) {
-        vCur = (P.monthly || []).map((v) => (v == null ? null : v));          // value (ลบ.) per month
+        vCur = (P.monthly || []).map((v) => (v == null ? null : v));          // value (บาท) per month
         kCur = (P.monthly || []).map((v, i) => {                              // volume (พัน Kg) per month
           const pr = (P.priceMonthly || [])[i];
           return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0);
@@ -5753,7 +5749,7 @@ try { (() => {
     (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
     var _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
     const patch = {
-      value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
+      value: { value: Math.round(_sv * 1e6).toLocaleString('en-US'), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
       price: { value: _pr.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
@@ -5865,7 +5861,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21\u0E15\u0E48\u0E2D\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E40\u0E17\u0E35\u0E22\u0E1A\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (\u0E1E\u0E31\u0E19 Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17) \u0E40\u0E17\u0E35\u0E22\u0E1A\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (\u0E1E\u0E31\u0E19 Kg) \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
       actions: /*#__PURE__*/React.createElement("button", {
         onClick: () => onDrill('sales'),
         style: {
@@ -5890,8 +5886,8 @@ try { (() => {
       labels: labels,
       yFormat: v => fmt.int(v),
       series: [{
-        name: 'มูลค่า 2569 (ลบ.)',
-        data: val69,
+        name: 'มูลค่า 2569 (บาท)',
+        data: val69.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
@@ -5901,8 +5897,8 @@ try { (() => {
         type: 'line',
         axis: 'right'
       }, {
-        name: 'มูลค่า 2568 (ลบ.)',
-        data: val68,
+        name: 'มูลค่า 2568 (บาท)',
+        data: val68.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--slate-400)',
         type: 'line'
       }]
@@ -5940,7 +5936,7 @@ try { (() => {
       gap: 16
     }, /*#__PURE__*/React.createElement(Card, {
       title: "Top \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      subtitle: "\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E25\u0E1A.)",
+      subtitle: "\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17)",
       actions: /*#__PURE__*/React.createElement(DrillHint, null),
       bodyStyle: {
         padding: 'var(--space-2)'
@@ -5948,7 +5944,7 @@ try { (() => {
     }, prodByVal.slice(0, 5).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,      value: fmt.dec1(p.val) + ' ลบ.',
+      label: p.name,      value: fmt.int(p.val * 1e6) + ' บาท',
       ratio: prodByVal.length ? p.val / prodByVal[0].val : 0,
       share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
@@ -5984,15 +5980,15 @@ try { (() => {
       // 5-month comparable totals per year
       const v = D.YEARS.map(y => D.sum(D.valueByYear[y].slice(0, NACT)));
       series = [{
-        name: 'มูลค่า 5 เดือน (ลบ.)',
-        data: v,
+        name: 'มูลค่า 5 เดือน (บาท)',
+        data: v.map(x => x == null ? null : Math.round(x * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }];
     } else if (type === 'combo') {
       series = [{
-        name: 'มูลค่า (ลบ.)',
-        data: D.valueByYear[2569].slice(0, NACT),
+        name: 'มูลค่า (บาท)',
+        data: D.valueByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
@@ -6004,8 +6000,8 @@ try { (() => {
       }];
     } else {
       series = D.YEARS.map((y, i) => ({
-        name: 'มูลค่า ' + y + ' (ลบ.)',
-        data: D.valueByYear[y].slice(0, NACT),
+        name: 'มูลค่า ' + y + ' (บาท)',
+        data: D.valueByYear[y].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1e6)),
         color: i === D.YEARS.length - 1 ? 'var(--viz-1)' : 'var(--slate-400)',
         type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line'
       }));
@@ -6018,8 +6014,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(D.totals.value / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(D.totals.value),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.yoyVal,
       deltaSuffix: " YoY",
       accent: true
@@ -6031,13 +6027,13 @@ try { (() => {
       deltaSuffix: " YoY"
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22/\u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(D.totals.value / 1e6 / NACT),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(D.totals.value / NACT),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
       value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const mx = arr.length ? Math.max(...arr) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
-      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.dec1(Math.max(0, ...arr)) + ' \u0E25\u0E1A.' : '\u2014 \u0E25\u0E1A.'; })(),
+      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.int(Math.max(0, ...arr) * 1e6) + ' \u0E1A\u0E32\u0E17' : '\u2014 \u0E1A\u0E32\u0E17'; })(),
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
@@ -6114,14 +6110,14 @@ try { (() => {
         }, r.month)
       }, {
         key: 'v68',
-        header: 'มูลค่า 2568 (ลบ.)',
+        header: 'มูลค่า 2568 (บาท)',
         numeric: true,
-        render: r => fmt.dec1(r.v68)
+        render: r => fmt.int(r.v68 * 1e6)
       }, {
         key: 'v69',
-        header: 'มูลค่า 2569 (ลบ.)',
+        header: 'มูลค่า 2569 (บาท)',
         numeric: true,
-        render: r => fmt.dec1(r.v69)
+        render: r => fmt.int(r.v69 * 1e6)
       }, {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
@@ -6175,7 +6171,7 @@ try { (() => {
   const D = window.VDATA;
   const NACT = D.NACT;
   const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
-  // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
+  // per-product monthly volume (Kg) derived from monthly value (บาท) ÷ monthly price (฿/Kg)
   const prodKg = p => p.monthly.map((v, i) => p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0);
   const prodKgK = p => prodKg(p).map(k => +(k / 1000).toFixed(2)); // พัน Kg
 
@@ -6225,8 +6221,8 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
-      value: fmt.dec1(D.totals.value / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(D.totals.value),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
@@ -6259,7 +6255,7 @@ try { (() => {
     }, sorted.slice(0, 10).map((p, i) => /*#__PURE__*/React.createElement(RankBar, {
       key: p.id,
       rank: i + 1,
-      label: p.name,      value: metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg',
+      label: p.name,      value: metric === 'val' ? fmt.int(p.val * 1e6) + ' บาท' : fmt.int(p.kg) + ' Kg',
       ratio: p[metric] / max,
       share: p.share.toFixed(2) + '%',
       delta: prodGrowth(p),
@@ -6321,9 +6317,9 @@ try { (() => {
         render: r => fmt.int(r.kg)
       }, {
         key: 'val',
-        header: 'มูลค่า (ลบ.)',
+        header: 'มูลค่า (บาท)',
         numeric: true,
-        render: r => fmt.dec1(r.val)
+        render: r => fmt.int(r.val * 1e6)
       }, {
         key: 'avgPrice',
         header: 'ราคาเฉลี่ย (฿/Kg)',
@@ -6435,8 +6431,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: _single ? ("\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 " + _mName) : "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.dec1(_curVal),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(_curVal * 1e6),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: _curMom,
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -6455,7 +6451,7 @@ try { (() => {
       unit: "%"
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 + \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 \u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 " + ((_D.MONTHS_ACT[0] || '') + (_chartLen > 1 ? "\u2013" + (_D.MONTHS_ACT[_chartLen - 1] || '') : '')),
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17) \u0E41\u0E01\u0E19\u0E0B\u0E49\u0E32\u0E22 \xB7 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \u0E41\u0E01\u0E19\u0E02\u0E27\u0E32 \xB7 " + ((_D.MONTHS_ACT[0] || '') + (_chartLen > 1 ? "\u2013" + (_D.MONTHS_ACT[_chartLen - 1] || '') : '')),
       style: {
         marginBottom: 16
       }
@@ -6465,8 +6461,8 @@ try { (() => {
       yFormat: v => fmt.int(v),
       showDots: true,
       series: [{
-        name: 'มูลค่า (ลบ.)',
-        data: p.monthly.slice(0, _chartLen),
+        name: 'มูลค่า (บาท)',
+        data: p.monthly.slice(0, _chartLen).map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
@@ -6649,12 +6645,12 @@ try { (() => {
     const sorted = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const segs = sorted.map((p, i) => ({
       label: p.name,
-      value: p.val,
+      value: Math.round(p.val * 1e6),
       color: `var(--viz-${i % 8 + 1})`
     }));
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E41\u0E15\u0E48\u0E25\u0E30\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Product Mix)",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E25\u0E1A.) \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 2569",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17) \xB7 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 2569",
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: view,
@@ -6679,9 +6675,9 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(DonutChart, {
       size: 260,
       thickness: 40,
-      centerValue: fmt.m(D.totals.value / 1e6),
-      centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E25\u0E1A.)",
-      valueFormat: v => (v / 1e6).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ลบ.',
+      centerValue: fmt.int(D.totals.value),
+      centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E1A\u0E32\u0E17)",
+      valueFormat: v => fmt.int(v) + ' บาท',
       data: segs
     }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -6743,16 +6739,16 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / (D.PRODUCTS.filter(p => p.kg > 0).length || 1)),
-      unit: "\u0E25\u0E1A./SKU",
+      value: fmt.int(D.totals.value / (D.PRODUCTS.filter(p => p.kg > 0).length || 1)),
+      unit: "\u0E1A\u0E32\u0E17/SKU",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "package",
         size: 15
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32",
-      value: fmt.dec1(D.totals.value / 1e6 / (D.nCustomers || 1)),
-      unit: "\u0E25\u0E1A./\u0E23\u0E32\u0E22",
+      value: fmt.int(D.totals.value / (D.nCustomers || 1)),
+      unit: "\u0E1A\u0E32\u0E17/\u0E23\u0E32\u0E22",
       icon: /*#__PURE__*/React.createElement(Icon, {
         name: "users",
         size: 15
@@ -7254,8 +7250,8 @@ try { (() => {
       accent: true
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13",
-      value: fmt.dec1(_curKg * avgPrice / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(_curKg * avgPrice),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: _momM
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: _single ? "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49" : "\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13",
@@ -7552,7 +7548,9 @@ try { (() => {
     const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
-    const unit = metric === 'value' ? 'ลบ.' : 'Kg';
+    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const _vmul = metric === 'value' ? 1e6 : 1;
+    const _vfmt = metric === 'value' ? (n => fmt.int(n * _vmul)) : (n => fmt.dec1(n));
     const years = D.YEARS.filter(y => Array.isArray(src[y])); // only years with data
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
@@ -7571,7 +7569,7 @@ try { (() => {
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
       name: 'ปี ' + y,
-      data: src[y].slice(0, cmp),
+      data: src[y].slice(0, cmp).map(v => v == null ? null : (metric === 'value' ? Math.round(v * 1e6) : v)),
       color: yearColor(i),
       type: i === years.length - 1 ? 'area' : 'line'
     }));
@@ -7611,14 +7609,14 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${latest}`,
-      value: fmt.dec1(tLatest),
+      value: _vfmt(tLatest),
       unit: unit,
       delta: yoy,
       deltaSuffix: " YoY",
       accent: true
     }), prev && /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${prev}`,
-      value: fmt.dec1(tPrev),
+      value: _vfmt(tPrev),
       unit: unit
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "YoY Growth",
@@ -7639,7 +7637,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -7684,12 +7682,12 @@ try { (() => {
         key: 'cmpT',
         header: `รวม ${cmp} เดือน`,
         numeric: true,
-        render: r => fmt.dec1(r.cmpT)
+        render: r => _vfmt(r.cmpT)
       }, {
         key: 'full',
         header: 'ทั้งปี',
         numeric: true,
-        render: r => /*#__PURE__*/React.createElement("span", null, fmt.dec1(r.full), /*#__PURE__*/React.createElement("span", {
+        render: r => /*#__PURE__*/React.createElement("span", null, _vfmt(r.full), /*#__PURE__*/React.createElement("span", {
           style: {
             color: 'var(--text-disabled)',
             fontSize: 'var(--text-2xs)'
@@ -7729,7 +7727,7 @@ try { (() => {
         key: 'y' + y,
         header: String(y),
         numeric: true,
-        render: r => fmt.dec1(r['y' + y])
+        render: r => _vfmt(r['y' + y])
       })), {
         key: 'yoy',
         header: '% YoY',
@@ -7921,8 +7919,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      value: fmt.int(F.yearEndVal),
-      unit: "\u0E25\u0E1A.",
+      value: fmt.int(F.yearEndVal * 1e6),
+      unit: "\u0E1A\u0E32\u0E17",
       delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })(),
       deltaSuffix: " vs 2568",
       accent: true,
@@ -7958,7 +7956,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35 2569",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.) \xB7 \u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 + \u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E0A\u0E48\u0E27\u0E07\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17) \xB7 \u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 5 \u0E40\u0E14\u0E37\u0E2D\u0E19 + \u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E0A\u0E48\u0E27\u0E07\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19",
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "positive",
         dot: true
@@ -7973,7 +7971,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "Top 10 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E25\u0E1A.)",
+      subtitle: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32 (\u0E1A\u0E32\u0E17)",
       bodyStyle: {
         padding: 'var(--space-2)'
       }
@@ -7983,8 +7981,8 @@ try { (() => {
         key: p.id,
         rank: i + 1,
         label: p.name,
-        sublabel: `คาด ${fmt.dec1(proj)} ลบ.`,
-        value: fmt.dec1(proj) + ' ลบ.',
+        sublabel: `คาด ${fmt.int(proj * 1e6)} บาท`,
+        value: fmt.int(proj * 1e6) + ' บาท',
         ratio: prodByVal.length ? proj / (prodByVal[0].val * (12 / NACT) * 1.02) : 0,
         color: `var(--viz-${i % 8 + 1})`
       });
