@@ -124,6 +124,7 @@
         <thead>
           <tr>
             <th style="width:44px">#</th>
+            <th style="width:64px">รหัส</th>
             <th>ชื่อลูกค้า</th>
             <th style="width:180px">ประเภท</th>
             <th style="width:100px">หมายเหตุ</th>
@@ -137,6 +138,7 @@
 
       <!-- add new row -->
       <div class="add-row">
+        <input id="newId" placeholder="รหัส" type="number" min="1" style="width:80px;flex:none" />
         <input id="newName" placeholder="ชื่อลูกค้าใหม่…" type="text" />
         <select id="newType">
           <option value="">เลือกประเภท</option>
@@ -218,12 +220,14 @@ function boot(p) {
   // load customersDB from _raw if exists, else seed from DEFAULT
   const stored = (p._raw && p._raw.customersDB) ? p._raw.customersDB : null;
   if (stored && stored.length > 0) {
-    db = stored.map(c => typeof c === 'string' ? { name: c, type: '', note: '' } : { name: c.name||'', type: c.type||'', note: c.note||'' });
+    db = stored.map(c => typeof c === 'string'
+      ? { name: c, type: '', note: '', id: null }
+      : { name: c.name||'', type: c.type||'', note: c.note||'', id: c.id || null });
     // merge any customers in dashboard but not in db
     const names = db.map(c => c.name);
-    (p.allCustomers||[]).forEach(c => { if (!names.includes(c.name)) db.push({ name: c.name, type: '', note: '' }); });
+    (p.allCustomers||[]).forEach(c => { if (!names.includes(c.name)) db.push({ name: c.name, type: '', note: '', id: null }); });
   } else {
-    db = DEFAULT_CUSTOMERS.map(c => ({...c}));
+    db = DEFAULT_CUSTOMERS.map(c => ({...c, id: null}));
   }
   $('mainContent').style.display = 'block';
   $('saveBtn').disabled = false;
@@ -268,6 +272,7 @@ function renderTable() {
     if (editingIdx === realIdx) {
       tr.innerHTML = `
         <td class="ic">${realIdx+1}</td>
+        <td><input id="editId" type="number" min="1" style="width:60px" value="${c.id||''}" placeholder="—" /></td>
         <td><input class="edit-inp" id="editName" value="${esc(c.name)}" /></td>
         <td>
           <select id="editType" style="width:100%">
@@ -283,6 +288,7 @@ function renderTable() {
     } else {
       tr.innerHTML = `
         <td class="ic">${realIdx+1}</td>
+        <td style="font-family:var(--font-numeric);font-size:12px;color:var(--text-tertiary);text-align:center">${c.id || '<span class="ic">—</span>'}</td>
         <td style="font-weight:500">${esc(c.name)}</td>
         <td>${col ? `<span class="badge ${col}">${esc(c.type)}</span>` : '<span class="ic">—</span>'}</td>
         <td class="ic">${esc(c.note||'') || '—'}</td>
@@ -303,6 +309,8 @@ function saveEdit(idx) {
   db[idx].name = name;
   db[idx].type = $('editType').value;
   db[idx].note = ($('editNote').value||'').trim();
+  const idVal = parseInt($('editId').value);
+  db[idx].id = isNaN(idVal) ? null : idVal;
   editingIdx = null;
   renderStats();
   renderTable();
@@ -322,8 +330,9 @@ $('addBtn').addEventListener('click', () => {
   const name = $('newName').value.trim();
   if (!name) { $('newName').focus(); toast('กรุณาใส่ชื่อลูกค้า','err'); return; }
   if (db.some(c => c.name === name)) { toast('มีชื่อนี้แล้วในฐานข้อมูล','err'); return; }
-  db.push({ name, type: $('newType').value, note: '' });
-  $('newName').value = ''; $('newType').value = '';
+  const newIdVal = parseInt($('newId').value);
+  db.push({ name, type: $('newType').value, note: '', id: isNaN(newIdVal) ? null : newIdVal });
+  $('newName').value = ''; $('newType').value = ''; $('newId').value = '';
   renderStats(); renderTable();
   setStatus('ยังไม่บันทึก — กด "💾 บันทึกรายชื่อ"', 'var(--warning)');
 });
@@ -335,7 +344,7 @@ $('saveBtn').addEventListener('click', () => {
   $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
   // attach customersDB to existing payload _raw
   if (!payload._raw) payload._raw = {};
-  payload._raw.customersDB = db.map(c => ({ name: c.name, type: c.type, note: c.note }));
+  payload._raw.customersDB = db.map(c => ({ name: c.name, type: c.type||'', note: c.note||'', id: c.id||null }));
   window.BWP_DB.saveDashboard(PASS, payload).then(() => {
     setStatus('บันทึกแล้ว · ' + db.length + ' ราย · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
     toast('✓ บันทึกฐานข้อมูลลูกค้าสำเร็จ', 'ok');
@@ -347,7 +356,7 @@ $('saveBtn').addEventListener('click', () => {
 
 // ---------- export CSV ----------
 $('exportBtn').addEventListener('click', () => {
-  const rows = [['ชื่อลูกค้า','ประเภท','หมายเหตุ']].concat(db.map(c => [c.name, c.type||'', c.note||'']));
+  const rows = [['รหัสลูกค้า','ชื่อลูกค้า','ประเภท','หมายเหตุ']].concat(db.map(c => [c.id||'', c.name, c.type||'', c.note||'']));
   const csv = rows.map(r => r.map(cell => '"' + String(cell).replace(/"/g,'""') + '"').join(',')).join('\n');
   const blob = new Blob(['﻿'+csv], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -363,13 +372,18 @@ $('csvFile').addEventListener('change', e => {
   reader.onload = ev => {
     try {
       const lines = ev.target.result.replace(/^﻿/,'').split(/\r?\n/).filter(l => l.trim());
-      const start = lines[0].toLowerCase().includes('ชื่อ') ? 1 : 0;
+      const hdr = lines[0].toLowerCase();
+      const hasId = hdr.includes('รหัส') || hdr.includes('id');
+      const start = (hdr.includes('ชื่อ') || hdr.includes('name')) ? 1 : 0;
       let added = 0;
       lines.slice(start).forEach(line => {
         const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g,'').replace(/""/g,'"'));
-        const name = parts[0]; if (!name) return;
+        let id = null, name, type, note;
+        if (hasId) { id = parseInt(parts[0])||null; name = parts[1]; type = parts[2]||''; note = parts[3]||''; }
+        else { name = parts[0]; type = parts[1]||''; note = parts[2]||''; }
+        if (!name) return;
         if (!db.some(c => c.name === name)) {
-          db.push({ name, type: parts[1]||'', note: parts[2]||'' }); added++;
+          db.push({ name, type, note, id }); added++;
         }
       });
       renderStats(); renderTable();
