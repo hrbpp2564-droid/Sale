@@ -2449,27 +2449,41 @@ try { (() => {
       .replace(/^(บริษัท|ห้างหุ้นส่วนจำกัด|หจก\.|บจก\.)\s*/, '')
       .replace(/\s*จำกัด\s*\(มหาชน\)\s*$/, '')
       .replace(/\s*จำกัด\s*$/, '').trim() || nm);
-    // เทียบ MoM/แนวโน้มได้ก็ต่อเมื่อมี ≥2 เดือนในมุมมองปัจจุบันเท่านั้น
-    const _canCmp = NACT >= 2;
+    // เงื่อนไขกันข้อมูลไม่พอ (รู้จักตัวกรองเดือน):
+    //  • _single = ผู้ใช้เลือกกรอง "เดือนเดียว"  •  _mi = ดัชนีเดือนที่เลือก (0-based)
+    //  • _canMoM  = เทียบเดือนต่อเดือนได้ไหม → มุมมองหลายเดือนต้องมี ≥2 เดือน,
+    //               ถ้าเลือกเดือนเดียวก็เทียบกับเดือนก่อนหน้าได้ (ตราบใดที่ไม่ใช่เดือนแรกสุด)
+    //  • _canTrend = ดูแนวโน้ม/การเติบโตหลายเดือนได้ไหม → ต้องมีหลายจุดในมุมมอง (ไม่ใช่เดือนเดียว)
+    const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
+    const _mi = _single ? +filters.month : -1;
+    const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
+    const _canMoM = _single ? (_mi >= 1) : (NACT >= 2);
+    const _canTrend = NACT >= 2;  // มุมมองเดือนเดียว NACT=1 → ดูแนวโน้มไม่ได้โดยอัตโนมัติ
     // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
     const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
     const _priceArr = (D.price69 || []).slice(0, NACT).filter(p => p != null && p > 0);
     const _pNow = _priceArr.length ? _priceArr[_priceArr.length - 1] : null;
     const _pFirst = _priceArr.length ? _priceArr[0] : null;
-    const _pChg = (_canCmp && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
+    const _pChg = (_canTrend && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
     let _upStreak = 0;  // จำนวนเดือนที่ราคาขึ้น "ติดกัน" จากเดือนล่าสุดย้อนกลับ
     for (let i = _priceArr.length - 1; i > 0; i--) { if (_priceArr[i] > _priceArr[i - 1]) _upStreak++; else break; }
 
-    // 1) มูลค่าขายเดือนล่าสุด (MoM) — แสดงเมื่อมี ≥2 เดือน, ไม่งั้นขึ้น "—" พร้อมหมายเหตุ
+    // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
     const _mom = D.totals.momVal;
-    const _i1 = _canCmp
+    const _i1 = _canMoM
       ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
-          title: _mom > 0 ? 'มูลค่าขายเดือนล่าสุดเพิ่มขึ้น' : _mom < 0 ? 'มูลค่าขายเดือนล่าสุดลดลง' : 'มูลค่าขายเดือนล่าสุดทรงตัว',
+          title: (_single ? `มูลค่าขาย ${_mName} ` : 'มูลค่าขายเดือนล่าสุด') + (_mom > 0 ? 'เพิ่มขึ้น' : _mom < 0 ? 'ลดลง' : 'ทรงตัว'),
           metric: fmt.pct(_mom),
-          detail: `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`, time: 'ล่าสุด' }
-      : { tone: 'info', icon: 'clock', title: 'มูลค่าขายเดือนล่าสุด', metric: '—',
-          detail: `มีข้อมูลเดือนเดียว ยังเทียบเดือนก่อนไม่ได้ (ต้องมี ≥2 เดือน) · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`, time: 'ข้อมูลไม่พอ' };
+          detail: _single
+            ? `เทียบ ${_mName} กับเดือนก่อนหน้า · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`
+            : `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`,
+          time: _single ? _mName : 'ล่าสุด' }
+      : { tone: 'info', icon: 'clock', title: _single ? `มูลค่าขาย ${_mName}` : 'มูลค่าขายเดือนล่าสุด', metric: '—',
+          detail: _single
+            ? `${_mName} เป็นเดือนแรก ยังไม่มีเดือนก่อนให้เทียบ · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`
+            : `มีข้อมูลเดือนเดียว ยังเทียบเดือนก่อนไม่ได้ (ต้องมี ≥2 เดือน) · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`,
+          time: 'ข้อมูลไม่พอ' };
 
     // 2) การพึ่งพาลูกค้ารายใหญ่ (Top 3) — แบ่งระดับตามส่วนแบ่งจริง + กรณีไม่มีข้อมูลลูกค้า
     const _t3 = D.totals.top3;
@@ -2484,10 +2498,13 @@ try { (() => {
           detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0, 3).map(c => _short(c.name)).join(', ')}) สร้างยอด ${_t3.toFixed(2)}% ของปริมาณ`,
           time: _t3 >= 70 ? 'เฝ้าระวัง' : 'ภาพรวม' };
 
-    // 3) ลูกค้าโตเด่น — ต้องมี ≥2 เดือนจึงดูการเติบโตได้, ผูกข้อความกับค่าจริง
-    const _i3 = (!_canCmp || !_gc)
+    // 3) ลูกค้าโตเด่น — ต้องมุมมองหลายเดือนจึงจัดอันดับการเติบโตได้ (เดือนเดียวคำนวณ MoM รายลูกค้าไม่ได้)
+    const _i3 = (!_canTrend || !_gc)
       ? { tone: 'info', icon: 'clock', title: 'ลูกค้าโตเด่น', metric: '—',
-          detail: !_canCmp ? 'ต้องมีข้อมูลอย่างน้อย 2 เดือนจึงดูการเติบโตได้' : 'ยังไม่มีข้อมูลลูกค้าให้จัดอันดับ', time: 'ข้อมูลไม่พอ' }
+          detail: _single
+            ? 'เลือกดูเดือนเดียว · ดูการเติบโตรายลูกค้าได้ในมุมมองหลายเดือน'
+            : (!_canTrend ? 'ต้องมีข้อมูลอย่างน้อย 2 เดือนจึงดูการเติบโตได้' : 'ยังไม่มีข้อมูลลูกค้าให้จัดอันดับ'),
+          time: _single ? 'เลือกเดือนเดียว' : 'ข้อมูลไม่พอ' }
       : (_gc.mom > 0
           ? { tone: 'positive', icon: 'arrow-up', title: `ลูกค้าโตเด่น: ${_short(_gc.name)}`,
               metric: fmt.pct(_gc.mom), detail: `ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้น ${fmt.pct(_gc.mom)} จากเดือนก่อน`, time: 'เดือนนี้' }
@@ -2495,9 +2512,11 @@ try { (() => {
               detail: 'ยังไม่มีลูกค้าที่ปริมาณสั่งซื้อเพิ่มขึ้นจากเดือนก่อน', time: 'เดือนนี้' });
 
     // 4) ราคาขายเฉลี่ย — ปรับขึ้น/ลง/ทรงตัว ตามค่าจริง ("ต่อเนื่อง" ใช้เมื่อขึ้นติดกัน ≥2 เดือน)
-    const _i4 = !_canCmp
+    const _i4 = !_canTrend
       ? { tone: 'info', icon: 'tag', title: 'ราคาขายเฉลี่ย', metric: '—',
-          detail: `ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ข้อมูลเดือนเดียว ยังดูแนวโน้มไม่ได้)`, time: '1 เดือน' }
+          detail: _single
+            ? `เลือกดู ${_mName} · ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ดูแนวโน้มได้ในมุมมองหลายเดือน)`
+            : `ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ข้อมูลเดือนเดียว ยังดูแนวโน้มไม่ได้)`, time: _single ? _mName : '1 เดือน' }
       : { tone: _pChg > 0 ? 'positive' : _pChg < 0 ? 'negative' : 'info', icon: 'activity',
           title: _pChg > 0 ? (_upStreak >= 2 ? 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง' : 'ราคาขายเฉลี่ยปรับขึ้น')
                : _pChg < 0 ? 'ราคาขายเฉลี่ยปรับลง' : 'ราคาขายเฉลี่ยทรงตัว',
@@ -5904,27 +5923,41 @@ try { (() => {
       .replace(/^(บริษัท|ห้างหุ้นส่วนจำกัด|หจก\.|บจก\.)\s*/, '')
       .replace(/\s*จำกัด\s*\(มหาชน\)\s*$/, '')
       .replace(/\s*จำกัด\s*$/, '').trim() || nm);
-    // เทียบ MoM/แนวโน้มได้ก็ต่อเมื่อมี ≥2 เดือนในมุมมองปัจจุบันเท่านั้น
-    const _canCmp = NACT >= 2;
+    // เงื่อนไขกันข้อมูลไม่พอ (รู้จักตัวกรองเดือน):
+    //  • _single = ผู้ใช้เลือกกรอง "เดือนเดียว"  •  _mi = ดัชนีเดือนที่เลือก (0-based)
+    //  • _canMoM  = เทียบเดือนต่อเดือนได้ไหม → มุมมองหลายเดือนต้องมี ≥2 เดือน,
+    //               ถ้าเลือกเดือนเดียวก็เทียบกับเดือนก่อนหน้าได้ (ตราบใดที่ไม่ใช่เดือนแรกสุด)
+    //  • _canTrend = ดูแนวโน้ม/การเติบโตหลายเดือนได้ไหม → ต้องมีหลายจุดในมุมมอง (ไม่ใช่เดือนเดียว)
+    const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
+    const _mi = _single ? +filters.month : -1;
+    const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
+    const _canMoM = _single ? (_mi >= 1) : (NACT >= 2);
+    const _canTrend = NACT >= 2;  // มุมมองเดือนเดียว NACT=1 → ดูแนวโน้มไม่ได้โดยอัตโนมัติ
     // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
     const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
     const _priceArr = (D.price69 || []).slice(0, NACT).filter(p => p != null && p > 0);
     const _pNow = _priceArr.length ? _priceArr[_priceArr.length - 1] : null;
     const _pFirst = _priceArr.length ? _priceArr[0] : null;
-    const _pChg = (_canCmp && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
+    const _pChg = (_canTrend && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
     let _upStreak = 0;  // จำนวนเดือนที่ราคาขึ้น "ติดกัน" จากเดือนล่าสุดย้อนกลับ
     for (let i = _priceArr.length - 1; i > 0; i--) { if (_priceArr[i] > _priceArr[i - 1]) _upStreak++; else break; }
 
-    // 1) มูลค่าขายเดือนล่าสุด (MoM) — แสดงเมื่อมี ≥2 เดือน, ไม่งั้นขึ้น "—" พร้อมหมายเหตุ
+    // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
     const _mom = D.totals.momVal;
-    const _i1 = _canCmp
+    const _i1 = _canMoM
       ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
-          title: _mom > 0 ? 'มูลค่าขายเดือนล่าสุดเพิ่มขึ้น' : _mom < 0 ? 'มูลค่าขายเดือนล่าสุดลดลง' : 'มูลค่าขายเดือนล่าสุดทรงตัว',
+          title: (_single ? `มูลค่าขาย ${_mName} ` : 'มูลค่าขายเดือนล่าสุด') + (_mom > 0 ? 'เพิ่มขึ้น' : _mom < 0 ? 'ลดลง' : 'ทรงตัว'),
           metric: fmt.pct(_mom),
-          detail: `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`, time: 'ล่าสุด' }
-      : { tone: 'info', icon: 'clock', title: 'มูลค่าขายเดือนล่าสุด', metric: '—',
-          detail: `มีข้อมูลเดือนเดียว ยังเทียบเดือนก่อนไม่ได้ (ต้องมี ≥2 เดือน) · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`, time: 'ข้อมูลไม่พอ' };
+          detail: _single
+            ? `เทียบ ${_mName} กับเดือนก่อนหน้า · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`
+            : `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`,
+          time: _single ? _mName : 'ล่าสุด' }
+      : { tone: 'info', icon: 'clock', title: _single ? `มูลค่าขาย ${_mName}` : 'มูลค่าขายเดือนล่าสุด', metric: '—',
+          detail: _single
+            ? `${_mName} เป็นเดือนแรก ยังไม่มีเดือนก่อนให้เทียบ · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`
+            : `มีข้อมูลเดือนเดียว ยังเทียบเดือนก่อนไม่ได้ (ต้องมี ≥2 เดือน) · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`,
+          time: 'ข้อมูลไม่พอ' };
 
     // 2) การพึ่งพาลูกค้ารายใหญ่ (Top 3) — แบ่งระดับตามส่วนแบ่งจริง + กรณีไม่มีข้อมูลลูกค้า
     const _t3 = D.totals.top3;
@@ -5939,10 +5972,13 @@ try { (() => {
           detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0, 3).map(c => _short(c.name)).join(', ')}) สร้างยอด ${_t3.toFixed(2)}% ของปริมาณ`,
           time: _t3 >= 70 ? 'เฝ้าระวัง' : 'ภาพรวม' };
 
-    // 3) ลูกค้าโตเด่น — ต้องมี ≥2 เดือนจึงดูการเติบโตได้, ผูกข้อความกับค่าจริง
-    const _i3 = (!_canCmp || !_gc)
+    // 3) ลูกค้าโตเด่น — ต้องมุมมองหลายเดือนจึงจัดอันดับการเติบโตได้ (เดือนเดียวคำนวณ MoM รายลูกค้าไม่ได้)
+    const _i3 = (!_canTrend || !_gc)
       ? { tone: 'info', icon: 'clock', title: 'ลูกค้าโตเด่น', metric: '—',
-          detail: !_canCmp ? 'ต้องมีข้อมูลอย่างน้อย 2 เดือนจึงดูการเติบโตได้' : 'ยังไม่มีข้อมูลลูกค้าให้จัดอันดับ', time: 'ข้อมูลไม่พอ' }
+          detail: _single
+            ? 'เลือกดูเดือนเดียว · ดูการเติบโตรายลูกค้าได้ในมุมมองหลายเดือน'
+            : (!_canTrend ? 'ต้องมีข้อมูลอย่างน้อย 2 เดือนจึงดูการเติบโตได้' : 'ยังไม่มีข้อมูลลูกค้าให้จัดอันดับ'),
+          time: _single ? 'เลือกเดือนเดียว' : 'ข้อมูลไม่พอ' }
       : (_gc.mom > 0
           ? { tone: 'positive', icon: 'arrow-up', title: `ลูกค้าโตเด่น: ${_short(_gc.name)}`,
               metric: fmt.pct(_gc.mom), detail: `ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้น ${fmt.pct(_gc.mom)} จากเดือนก่อน`, time: 'เดือนนี้' }
@@ -5950,9 +5986,11 @@ try { (() => {
               detail: 'ยังไม่มีลูกค้าที่ปริมาณสั่งซื้อเพิ่มขึ้นจากเดือนก่อน', time: 'เดือนนี้' });
 
     // 4) ราคาขายเฉลี่ย — ปรับขึ้น/ลง/ทรงตัว ตามค่าจริง ("ต่อเนื่อง" ใช้เมื่อขึ้นติดกัน ≥2 เดือน)
-    const _i4 = !_canCmp
+    const _i4 = !_canTrend
       ? { tone: 'info', icon: 'tag', title: 'ราคาขายเฉลี่ย', metric: '—',
-          detail: `ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ข้อมูลเดือนเดียว ยังดูแนวโน้มไม่ได้)`, time: '1 เดือน' }
+          detail: _single
+            ? `เลือกดู ${_mName} · ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ดูแนวโน้มได้ในมุมมองหลายเดือน)`
+            : `ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ข้อมูลเดือนเดียว ยังดูแนวโน้มไม่ได้)`, time: _single ? _mName : '1 เดือน' }
       : { tone: _pChg > 0 ? 'positive' : _pChg < 0 ? 'negative' : 'info', icon: 'activity',
           title: _pChg > 0 ? (_upStreak >= 2 ? 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง' : 'ราคาขายเฉลี่ยปรับขึ้น')
                : _pChg < 0 ? 'ราคาขายเฉลี่ยปรับลง' : 'ราคาขายเฉลี่ยทรงตัว',
