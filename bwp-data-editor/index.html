@@ -102,6 +102,9 @@
     <button class="btn ghost sm" id="tmplBtn" type="button">⬇ เทมเพลต Excel</button>
     <button class="btn ghost sm" id="uploadBtn" type="button">⬆ อัปโหลด Excel</button>
     <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+    <button class="btn ghost sm" id="tmplHistBtn" type="button">⬇ เทมเพลตปีเก่า</button>
+    <button class="btn ghost sm" id="uploadHistBtn" type="button">⬆ อัปโหลดปีเก่า</button>
+    <input type="file" id="fileHistInput" accept=".xlsx,.xls" style="display:none">
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
     <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
@@ -701,6 +704,103 @@ function importWorkbook(wb) {
   curYear = CUR_YEAR; curMonth = 0;
   buildYearSelect(); buildMonthSelect(); renderMonth();
   toast(`✓ นำเข้าสำเร็จ · ลูกค้าใหม่ ${added} · อัปเดต ${updated} · ข้ามแถวว่าง ${skipped} · ตรวจสอบแล้วกด "บันทึก"`, 'ok');
+}
+
+// ---------- Excel: download history template ----------
+$('tmplHistBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  const TH12 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const headers = ['เดือน','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (ลบ.)'];
+  const sampleCusts = (CUSTOMERS_DB || []).slice(0, 5);
+  const wb = XLSX.utils.book_new();
+
+  HIST_YEARS.forEach(yr => {
+    const dataRows = [];
+    TH12.slice(0, 3).forEach(m => {
+      (sampleCusts.length ? sampleCusts : ['']).forEach(c => {
+        dataRows.push([m, c, 0, 0, 0, 0, 0, 0]);
+      });
+    });
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+    ws['!cols'] = [{wch:8},{wch:22},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, ws, 'ข้อมูลการขาย ' + yr);
+  });
+
+  // Sheet: รายชื่อลูกค้า
+  const wsC = XLSX.utils.aoa_to_sheet([['รายชื่อลูกค้า'], ...(CUSTOMERS_DB||[]).map(c => [c])]);
+  wsC['!cols'] = [{wch:30}];
+  XLSX.utils.book_append_sheet(wb, wsC, 'รายชื่อลูกค้า');
+
+  XLSX.writeFile(wb, 'BWP_history_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  toast('✓ ดาวน์โหลดเทมเพลตปีเก่าแล้ว', 'ok');
+});
+
+// ---------- Excel: upload history ----------
+$('uploadHistBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  $('fileHistInput').click();
+});
+$('fileHistInput').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+      importHistoryWorkbook(wb);
+    } catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
+    $('fileHistInput').value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function importHistoryWorkbook(wb) {
+  const TH_IDX = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
+  const PROD_KEY = {'ม้วนใส':'p0','ม้วนพิมพ์':'p1','ถุงคลุม/ชีท':'p2','ฟิล์มยืด':'p3','ถุงหลอด':'p4'};
+  let imported = 0;
+
+  wb.SheetNames.forEach(sheetName => {
+    // ชีตที่ชื่อขึ้นต้นด้วย "ข้อมูลการขาย " ตามด้วยปี เช่น "ข้อมูลการขาย 2567"
+    const m = sheetName.match(/(\d{4})/);
+    if (!m) return;
+    const yr = String(m[1]);
+    if (!HIST_YEARS.map(String).includes(yr)) return;
+
+    const ws = wb.Sheets[sheetName];
+    if (!ws) return;
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }).filter(r => r && r.length > 1);
+    if (rows.length < 2) return;
+
+    const hdr = rows[0].map(h => String(h||'').trim());
+    const monCol = hdr.findIndex(h => h === 'เดือน');
+    const valCol = hdr.findIndex(h => h.includes('มูลค่า'));
+    const prodCols = {};
+    hdr.forEach((h, i) => {
+      const clean = h.replace(/\s*\(.*?\)/g,'').trim();
+      if (PROD_KEY[clean]) prodCols[PROD_KEY[clean]] = i;
+    });
+    if (monCol < 0) return;
+
+    // รวมยอดรายเดือน
+    const val12 = Array(12).fill(0);
+    const vol12 = Array(12).fill(0); // กก. รวม
+    rows.slice(1).forEach(row => {
+      const mon = String(row[monCol]||'').trim();
+      const mi = TH_IDX[mon];
+      if (mi === undefined) return;
+      if (valCol >= 0) val12[mi] += n(row[valCol]);
+      Object.values(prodCols).forEach(col => { vol12[mi] += n(row[col]); });
+    });
+
+    raw.history[yr] = {
+      value: val12.map(v => v || null),
+      volume: vol12.map(v => v ? +(v / 1000).toFixed(3) : null)
+    };
+    imported++;
+  });
+
+  if (imported === 0) { toast('ไม่พบชีตปีที่รู้จัก (ต้องมีตัวเลขปีในชื่อชีต เช่น "ข้อมูลการขาย 2567")', 'err'); return; }
+  buildYearSelect(); renderMonth();
+  toast(`✓ นำเข้าปีเก่าสำเร็จ ${imported} ปี · กด "บันทึก" เพื่อยืนยัน`, 'ok');
 }
 
 // auto-login
