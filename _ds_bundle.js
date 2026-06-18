@@ -194,9 +194,10 @@ function useMeasure() {
   const [w, setW] = React.useState(640);
   React.useEffect(() => {
     if (!ref.current) return;
+    let _roTimer;
     const ro = new ResizeObserver(entries => {
       const cw = entries[0].contentRect.width;
-      if (cw > 0) setW(cw);
+      if (cw > 0) { clearTimeout(_roTimer); _roTimer = setTimeout(() => setW(cw), 80); }
     });
     ro.observe(ref.current);
     return () => ro.disconnect();
@@ -420,9 +421,10 @@ function useMeasure() {
   const [w, setW] = React.useState(640);
   React.useEffect(() => {
     if (!ref.current) return;
+    let _roTimer;
     const ro = new ResizeObserver(e => {
       const cw = e[0].contentRect.width;
-      if (cw > 0) setW(cw);
+      if (cw > 0) { clearTimeout(_roTimer); _roTimer = setTimeout(() => setW(cw), 80); }
     });
     ro.observe(ref.current);
     return () => ro.disconnect();
@@ -1502,7 +1504,7 @@ function DeltaBadge({
   }, /*#__PURE__*/React.createElement("path", {
     d: "M6 2.5L10 8H2L6 2.5z",
     fill: "currentColor"
-  })), positive ? '+' : negative ? '−' : '', num, suffix);
+  })), positive ? '▲' : negative ? '▼' : '', num, suffix);
 }
 Object.assign(__ds_scope, { DeltaBadge });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/data/DeltaBadge.jsx", error: String((e && e.message) || e) }); }
@@ -2629,8 +2631,8 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      value: "\u0E1E.\u0E04.",
-      unit: fmt.dec1(Math.max(...D.valueByYear[2569].slice(0, NACT))) + ' ลบ.',
+      value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const mx = arr.length ? Math.max(...arr) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
+      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.dec1(Math.max(0, ...arr)) + ' \u0E25\u0E1A.' : '\u2014 \u0E25\u0E1A.'; })(),
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
@@ -4107,9 +4109,10 @@ try { (() => {
     const [w, setW] = React.useState(720);
     React.useEffect(() => {
       if (!ref.current) return;
+      let _roTimer;
       const ro = new ResizeObserver(e => {
         const cw = e[0].contentRect.width;
-        if (cw > 0) setW(cw);
+        if (cw > 0) { clearTimeout(_roTimer); _roTimer = setTimeout(() => setW(cw), 80); }
       });
       ro.observe(ref.current);
       return () => ro.disconnect();
@@ -4129,7 +4132,7 @@ try { (() => {
     // count of actual (non-null) months for a year
     const monthsOf = y => src[y].filter(v => v != null).length;
     // comparable window = min actual months across all years (so YoY is apples-to-apples)
-    const cmp = Math.min(...years.map(monthsOf));
+    const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
     const sumN = (y, n) => D.sum(src[y].slice(0, n).map(v => v || 0));
     const sumFull = y => D.sum(src[y].map(v => v || 0));
     const tLatest = sumN(latest, cmp);
@@ -4715,6 +4718,8 @@ try { (() => {
         key: n.id,
         onClick: () => onNav(n.id),
         title: collapsed ? n.label : undefined,
+        "aria-label": n.label,
+        "aria-current": active === n.id ? 'page' : undefined,
         onMouseEnter: () => setHovered(n.id),
         onMouseLeave: () => setHovered(null),
         style: {
@@ -5287,6 +5292,8 @@ try { (() => {
         key: n.id,
         onClick: () => onNav(n.id),
         title: collapsed ? n.label : undefined,
+        "aria-label": n.label,
+        "aria-current": active === n.id ? 'page' : undefined,
         onMouseEnter: () => setHovered(n.id),
         onMouseLeave: () => setHovered(null),
         style: {
@@ -6018,8 +6025,8 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      value: "\u0E1E.\u0E04.",
-      unit: fmt.dec1(Math.max(...D.valueByYear[2569].slice(0, NACT))) + ' ลบ.',
+      value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const mx = arr.length ? Math.max(...arr) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
+      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.dec1(Math.max(0, ...arr)) + ' \u0E25\u0E1A.' : '\u2014 \u0E25\u0E1A.'; })(),
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
@@ -7517,9 +7524,10 @@ try { (() => {
     const [w, setW] = React.useState(720);
     React.useEffect(() => {
       if (!ref.current) return;
+      let _roTimer;
       const ro = new ResizeObserver(e => {
         const cw = e[0].contentRect.width;
-        if (cw > 0) setW(cw);
+        if (cw > 0) { clearTimeout(_roTimer); _roTimer = setTimeout(() => setW(cw), 80); }
       });
       ro.observe(ref.current);
       return () => ro.disconnect();
@@ -7541,7 +7549,7 @@ try { (() => {
     // count of actual (non-null) months for a year
     const monthsOf = y => src[y].filter(v => v != null).length;
     // comparable window = min actual months across all years (so YoY is apples-to-apples)
-    const cmp = Math.min(...years.map(monthsOf));
+    const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
     const sumN = (y, n) => D.sum(src[y].slice(0, n).map(v => v || 0));
     const sumFull = y => D.sum(src[y].map(v => v || 0));
     const tLatest = sumN(latest, cmp);

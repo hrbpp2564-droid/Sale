@@ -190,7 +190,7 @@
         yoyKg: yoyKg, yoyVal: yoyVal, momKg: momPct(vol69), momVal: momPct(val69),
         top3: top3, top5: top5
       },
-      forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: 82 },
+      forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: Math.min(95, Math.round(50 + NACT * 8)) },
       _raw: { monthly: { value: val69, volume: vol69 }, products: rprods, customers: rcust, history: hist }
     };
     return out;
