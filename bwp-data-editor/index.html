@@ -471,7 +471,7 @@ function renderCustTable() {
     <td></td><td></td><td style="font-size:12px;color:var(--text-tertiary)">รวมทั้งหมด</td>
     ${PRODUCTS_STD.map(std => `<td class="num" style="font-family:var(--font-numeric)">${sums[std.key] > 0 ? sums[std.key].toLocaleString('en-US') : '—'}</td>`).join('')}
     <td class="num" style="font-family:var(--font-numeric)">${sums.tot > 0 ? sums.tot.toLocaleString('en-US') : '—'}</td>
-    <td class="num" style="font-family:var(--font-numeric)">${sums.val > 0 ? sums.val.toFixed(2) : '—'}</td>
+    <td class="num" style="font-family:var(--font-numeric)">${sums.val > 0 ? sums.val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
   `;
   ft.appendChild(tr);
 }
