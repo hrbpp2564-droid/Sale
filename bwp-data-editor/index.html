@@ -433,9 +433,13 @@ function buildCustOptions(selected) {
 function renderCustTable() {
   $('custMonLbl').textContent = '— ' + TH[curMonth] + ' ' + curYear;
   const tb = $('custBody'); tb.innerHTML = '';
-  curCustomers().forEach((c, idx) => {
+  const allCusts = curCustomers();
+  // แสดงเฉพาะแถวที่มียอดในเดือนนี้ หรือแถวที่ยังไม่ได้เลือกชื่อ (กำลังกรอก)
+  allCusts.forEach((c, idx) => {
     const mp = c.monthlyProd[curMonth];
     const tot = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
+    const hasData = tot > 0 || n(mp.value) > 0 || !c.name;
+    if (!hasData) return;
     const tr = document.createElement('tr');
     const _cid = CUSTOMERS_ID_MAP[c.name] || '';
     tr.innerHTML = `
