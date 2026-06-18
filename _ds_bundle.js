@@ -2443,12 +2443,68 @@ try { (() => {
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
-    const INSIGHTS = NACT === 0 ? [] : [
-      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: NACT > 1 ? `ราคาเฉลี่ย ${D.price69[NACT-1] ? D.price69[NACT-1].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg (จาก ${D.price69[NACT-2] ? D.price69[NACT-2].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg เดือนก่อน)` : `ราคาเฉลี่ย ${D.price69[NACT-1] ? D.price69[NACT-1].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg (เดือนแรกที่มีข้อมูล)`, time: 'ล่าสุด'},
-      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3.toFixed(2) + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3.toFixed(2)}% ของปริมาณ`, time: 'เฝ้าระวัง'},
-      {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
-      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ฿/Kg`, time: `${NACT} เดือน`}
-    ];
+    // ---- ตัวช่วยสร้าง insight จากค่าจริง (กันข้อมูลไม่พอ + เลิก hardcode) ----
+    // ตัดคำนำหน้า/ลงท้ายนิติบุคคล ให้เหลือชื่อจริงที่สื่อความหมาย (กัน split() เหลือแต่ "บริษัท")
+    const _short = nm => !nm ? '—' : (nm
+      .replace(/^(บริษัท|ห้างหุ้นส่วนจำกัด|หจก\.|บจก\.)\s*/, '')
+      .replace(/\s*จำกัด\s*\(มหาชน\)\s*$/, '')
+      .replace(/\s*จำกัด\s*$/, '').trim() || nm);
+    // เทียบ MoM/แนวโน้มได้ก็ต่อเมื่อมี ≥2 เดือนในมุมมองปัจจุบันเท่านั้น
+    const _canCmp = NACT >= 2;
+    // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
+    const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+    const _priceArr = (D.price69 || []).slice(0, NACT).filter(p => p != null && p > 0);
+    const _pNow = _priceArr.length ? _priceArr[_priceArr.length - 1] : null;
+    const _pFirst = _priceArr.length ? _priceArr[0] : null;
+    const _pChg = (_canCmp && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
+    let _upStreak = 0;  // จำนวนเดือนที่ราคาขึ้น "ติดกัน" จากเดือนล่าสุดย้อนกลับ
+    for (let i = _priceArr.length - 1; i > 0; i--) { if (_priceArr[i] > _priceArr[i - 1]) _upStreak++; else break; }
+
+    // 1) มูลค่าขายเดือนล่าสุด (MoM) — แสดงเมื่อมี ≥2 เดือน, ไม่งั้นขึ้น "—" พร้อมหมายเหตุ
+    const _mom = D.totals.momVal;
+    const _i1 = _canCmp
+      ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
+          icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
+          title: _mom > 0 ? 'มูลค่าขายเดือนล่าสุดเพิ่มขึ้น' : _mom < 0 ? 'มูลค่าขายเดือนล่าสุดลดลง' : 'มูลค่าขายเดือนล่าสุดทรงตัว',
+          metric: fmt.pct(_mom),
+          detail: `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`, time: 'ล่าสุด' }
+      : { tone: 'info', icon: 'clock', title: 'มูลค่าขายเดือนล่าสุด', metric: '—',
+          detail: `มีข้อมูลเดือนเดียว ยังเทียบเดือนก่อนไม่ได้ (ต้องมี ≥2 เดือน) · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`, time: 'ข้อมูลไม่พอ' };
+
+    // 2) การพึ่งพาลูกค้ารายใหญ่ (Top 3) — แบ่งระดับตามส่วนแบ่งจริง + กรณีไม่มีข้อมูลลูกค้า
+    const _t3 = D.totals.top3;
+    const _hasCust = D.CUSTOMERS.length > 0 && _t3 > 0;
+    const _i2 = !_hasCust
+      ? { tone: 'info', icon: 'users', title: 'ยังไม่มีข้อมูลลูกค้า', metric: '—',
+          detail: 'ยังไม่มีข้อมูลการซื้อรายลูกค้าให้วิเคราะห์การกระจุกตัว', time: '—' }
+      : { tone: _t3 >= 70 ? 'warning' : _t3 >= 40 ? 'info' : 'positive',
+          icon: _t3 >= 70 ? 'alert-triangle' : 'users',
+          title: _t3 >= 70 ? 'พึ่งพาลูกค้ารายใหญ่สูงมาก' : _t3 >= 40 ? 'พึ่งพาลูกค้ารายใหญ่ปานกลาง' : 'ฐานลูกค้ากระจายตัวดี',
+          metric: _t3.toFixed(2) + '%',
+          detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0, 3).map(c => _short(c.name)).join(', ')}) สร้างยอด ${_t3.toFixed(2)}% ของปริมาณ`,
+          time: _t3 >= 70 ? 'เฝ้าระวัง' : 'ภาพรวม' };
+
+    // 3) ลูกค้าโตเด่น — ต้องมี ≥2 เดือนจึงดูการเติบโตได้, ผูกข้อความกับค่าจริง
+    const _i3 = (!_canCmp || !_gc)
+      ? { tone: 'info', icon: 'clock', title: 'ลูกค้าโตเด่น', metric: '—',
+          detail: !_canCmp ? 'ต้องมีข้อมูลอย่างน้อย 2 เดือนจึงดูการเติบโตได้' : 'ยังไม่มีข้อมูลลูกค้าให้จัดอันดับ', time: 'ข้อมูลไม่พอ' }
+      : (_gc.mom > 0
+          ? { tone: 'positive', icon: 'arrow-up', title: `ลูกค้าโตเด่น: ${_short(_gc.name)}`,
+              metric: fmt.pct(_gc.mom), detail: `ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้น ${fmt.pct(_gc.mom)} จากเดือนก่อน`, time: 'เดือนนี้' }
+          : { tone: 'info', icon: 'activity', title: 'การเติบโตของลูกค้า', metric: fmt.pct(_gc.mom),
+              detail: 'ยังไม่มีลูกค้าที่ปริมาณสั่งซื้อเพิ่มขึ้นจากเดือนก่อน', time: 'เดือนนี้' });
+
+    // 4) ราคาขายเฉลี่ย — ปรับขึ้น/ลง/ทรงตัว ตามค่าจริง ("ต่อเนื่อง" ใช้เมื่อขึ้นติดกัน ≥2 เดือน)
+    const _i4 = !_canCmp
+      ? { tone: 'info', icon: 'tag', title: 'ราคาขายเฉลี่ย', metric: '—',
+          detail: `ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ข้อมูลเดือนเดียว ยังดูแนวโน้มไม่ได้)`, time: '1 เดือน' }
+      : { tone: _pChg > 0 ? 'positive' : _pChg < 0 ? 'negative' : 'info', icon: 'activity',
+          title: _pChg > 0 ? (_upStreak >= 2 ? 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง' : 'ราคาขายเฉลี่ยปรับขึ้น')
+               : _pChg < 0 ? 'ราคาขายเฉลี่ยปรับลง' : 'ราคาขายเฉลี่ยทรงตัว',
+          metric: _pChg != null ? fmt.pct(_pChg) : '—',
+          detail: `เฉลี่ย ${NACT} เดือน ${_fp(D.totals.avgPrice)} ฿/Kg`, time: `${NACT} เดือน` };
+
+    const INSIGHTS = NACT === 0 ? [] : [_i1, _i2, _i3, _i4];
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(KpiRow, {
       onDrill: onDrill,
       filters: filters
@@ -5842,12 +5898,68 @@ try { (() => {
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
-    const INSIGHTS = NACT === 0 ? [] : [
-      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: NACT > 1 ? `ราคาเฉลี่ย ${D.price69[NACT-1] ? D.price69[NACT-1].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg (จาก ${D.price69[NACT-2] ? D.price69[NACT-2].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg เดือนก่อน)` : `ราคาเฉลี่ย ${D.price69[NACT-1] ? D.price69[NACT-1].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg (เดือนแรกที่มีข้อมูล)`, time: 'ล่าสุด'},
-      {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3.toFixed(2) + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3.toFixed(2)}% ของปริมาณ`, time: 'เฝ้าระวัง'},
-      {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
-      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ฿/Kg`, time: `${NACT} เดือน`}
-    ];
+    // ---- ตัวช่วยสร้าง insight จากค่าจริง (กันข้อมูลไม่พอ + เลิก hardcode) ----
+    // ตัดคำนำหน้า/ลงท้ายนิติบุคคล ให้เหลือชื่อจริงที่สื่อความหมาย (กัน split() เหลือแต่ "บริษัท")
+    const _short = nm => !nm ? '—' : (nm
+      .replace(/^(บริษัท|ห้างหุ้นส่วนจำกัด|หจก\.|บจก\.)\s*/, '')
+      .replace(/\s*จำกัด\s*\(มหาชน\)\s*$/, '')
+      .replace(/\s*จำกัด\s*$/, '').trim() || nm);
+    // เทียบ MoM/แนวโน้มได้ก็ต่อเมื่อมี ≥2 เดือนในมุมมองปัจจุบันเท่านั้น
+    const _canCmp = NACT >= 2;
+    // ฟอร์แมตราคา ฿/Kg อย่างปลอดภัย — ไม่มีค่าให้คืน "—" ไม่ใช่ 0
+    const _fp = v => (v != null && v > 0) ? v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+    const _priceArr = (D.price69 || []).slice(0, NACT).filter(p => p != null && p > 0);
+    const _pNow = _priceArr.length ? _priceArr[_priceArr.length - 1] : null;
+    const _pFirst = _priceArr.length ? _priceArr[0] : null;
+    const _pChg = (_canCmp && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
+    let _upStreak = 0;  // จำนวนเดือนที่ราคาขึ้น "ติดกัน" จากเดือนล่าสุดย้อนกลับ
+    for (let i = _priceArr.length - 1; i > 0; i--) { if (_priceArr[i] > _priceArr[i - 1]) _upStreak++; else break; }
+
+    // 1) มูลค่าขายเดือนล่าสุด (MoM) — แสดงเมื่อมี ≥2 เดือน, ไม่งั้นขึ้น "—" พร้อมหมายเหตุ
+    const _mom = D.totals.momVal;
+    const _i1 = _canCmp
+      ? { tone: _mom > 0 ? 'positive' : _mom < 0 ? 'negative' : 'info',
+          icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
+          title: _mom > 0 ? 'มูลค่าขายเดือนล่าสุดเพิ่มขึ้น' : _mom < 0 ? 'มูลค่าขายเดือนล่าสุดลดลง' : 'มูลค่าขายเดือนล่าสุดทรงตัว',
+          metric: fmt.pct(_mom),
+          detail: `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`, time: 'ล่าสุด' }
+      : { tone: 'info', icon: 'clock', title: 'มูลค่าขายเดือนล่าสุด', metric: '—',
+          detail: `มีข้อมูลเดือนเดียว ยังเทียบเดือนก่อนไม่ได้ (ต้องมี ≥2 เดือน) · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`, time: 'ข้อมูลไม่พอ' };
+
+    // 2) การพึ่งพาลูกค้ารายใหญ่ (Top 3) — แบ่งระดับตามส่วนแบ่งจริง + กรณีไม่มีข้อมูลลูกค้า
+    const _t3 = D.totals.top3;
+    const _hasCust = D.CUSTOMERS.length > 0 && _t3 > 0;
+    const _i2 = !_hasCust
+      ? { tone: 'info', icon: 'users', title: 'ยังไม่มีข้อมูลลูกค้า', metric: '—',
+          detail: 'ยังไม่มีข้อมูลการซื้อรายลูกค้าให้วิเคราะห์การกระจุกตัว', time: '—' }
+      : { tone: _t3 >= 70 ? 'warning' : _t3 >= 40 ? 'info' : 'positive',
+          icon: _t3 >= 70 ? 'alert-triangle' : 'users',
+          title: _t3 >= 70 ? 'พึ่งพาลูกค้ารายใหญ่สูงมาก' : _t3 >= 40 ? 'พึ่งพาลูกค้ารายใหญ่ปานกลาง' : 'ฐานลูกค้ากระจายตัวดี',
+          metric: _t3.toFixed(2) + '%',
+          detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0, 3).map(c => _short(c.name)).join(', ')}) สร้างยอด ${_t3.toFixed(2)}% ของปริมาณ`,
+          time: _t3 >= 70 ? 'เฝ้าระวัง' : 'ภาพรวม' };
+
+    // 3) ลูกค้าโตเด่น — ต้องมี ≥2 เดือนจึงดูการเติบโตได้, ผูกข้อความกับค่าจริง
+    const _i3 = (!_canCmp || !_gc)
+      ? { tone: 'info', icon: 'clock', title: 'ลูกค้าโตเด่น', metric: '—',
+          detail: !_canCmp ? 'ต้องมีข้อมูลอย่างน้อย 2 เดือนจึงดูการเติบโตได้' : 'ยังไม่มีข้อมูลลูกค้าให้จัดอันดับ', time: 'ข้อมูลไม่พอ' }
+      : (_gc.mom > 0
+          ? { tone: 'positive', icon: 'arrow-up', title: `ลูกค้าโตเด่น: ${_short(_gc.name)}`,
+              metric: fmt.pct(_gc.mom), detail: `ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้น ${fmt.pct(_gc.mom)} จากเดือนก่อน`, time: 'เดือนนี้' }
+          : { tone: 'info', icon: 'activity', title: 'การเติบโตของลูกค้า', metric: fmt.pct(_gc.mom),
+              detail: 'ยังไม่มีลูกค้าที่ปริมาณสั่งซื้อเพิ่มขึ้นจากเดือนก่อน', time: 'เดือนนี้' });
+
+    // 4) ราคาขายเฉลี่ย — ปรับขึ้น/ลง/ทรงตัว ตามค่าจริง ("ต่อเนื่อง" ใช้เมื่อขึ้นติดกัน ≥2 เดือน)
+    const _i4 = !_canCmp
+      ? { tone: 'info', icon: 'tag', title: 'ราคาขายเฉลี่ย', metric: '—',
+          detail: `ราคาเฉลี่ย ${_fp(D.totals.avgPrice)} ฿/Kg (ข้อมูลเดือนเดียว ยังดูแนวโน้มไม่ได้)`, time: '1 เดือน' }
+      : { tone: _pChg > 0 ? 'positive' : _pChg < 0 ? 'negative' : 'info', icon: 'activity',
+          title: _pChg > 0 ? (_upStreak >= 2 ? 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง' : 'ราคาขายเฉลี่ยปรับขึ้น')
+               : _pChg < 0 ? 'ราคาขายเฉลี่ยปรับลง' : 'ราคาขายเฉลี่ยทรงตัว',
+          metric: _pChg != null ? fmt.pct(_pChg) : '—',
+          detail: `เฉลี่ย ${NACT} เดือน ${_fp(D.totals.avgPrice)} ฿/Kg`, time: `${NACT} เดือน` };
+
+    const INSIGHTS = NACT === 0 ? [] : [_i1, _i2, _i3, _i4];
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(KpiRow, {
       onDrill: onDrill,
       filters: filters
