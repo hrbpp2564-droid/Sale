@@ -48,6 +48,9 @@
     var val69 = mVal.map(function (v) { return v == null || v === '' ? null : r2(num(v)); });
     var vol69 = mVol.map(function (v) { return v == null || v === '' ? null : r2(num(v)); });
 
+    var targets = ((raw.targets || [])).slice(0, 12).map(function(v){ return v == null ? null : num(v); });
+    while (targets.length < 12) targets.push(null);
+
     // price per month ฿/Kg  = value(บาท) / volume(Kg) = value / (vol(พัน Kg) * 1000)
     var price69 = [];
     for (var m = 0; m < NACT; m++) {
@@ -60,6 +63,10 @@
     var totalValueLbn = totalValueBaht / 1e6;
     var totalVolKg = totalVolKKg * 1000;
     var avgPrice = totalVolKg > 0 ? r2(totalValueBaht / totalVolKg) : 0;
+
+    var totalTarget = 0, hasTarget = false;
+    for (var ti = 0; ti < NACT; ti++) { if (targets[ti] != null) { totalTarget += targets[ti]; hasTarget = true; } }
+    var achievementPct = (hasTarget && totalTarget > 0) ? r2(totalValueBaht / totalTarget * 100) : null;
 
     // ---- products ----
     var _prodByName = {};
@@ -137,7 +144,8 @@
       { id: 'volume', label: 'ปริมาณขายรวม', value: Math.round(totalVolKg).toLocaleString('en-US'), unit: 'Kg', delta: momPct(vol69), yoy: yoyKg, spark: vol69.slice(0, NACT), color: 'var(--viz-2)' },
       { id: 'price', label: 'ราคาเฉลี่ย/Kg', value: avgPrice.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}), unit: '฿/Kg', delta: momPct(price69), yoy: yoyPrice, spark: price69.slice(0, NACT), color: 'var(--viz-3)' },
       { id: 'customers', label: 'จำนวนลูกค้า', value: String(nCustomers), unit: 'ราย', delta: 0, yoy: 0, spark: monthlyCustCounts(rcust, NACT), color: 'var(--viz-4)' },
-      { id: 'products', label: 'จำนวนผลิตภัณฑ์', value: String(nProducts), unit: 'ประเภท', delta: 0, yoy: 0, spark: new Array(NACT).fill(nProducts), color: 'var(--viz-5)' }
+      { id: 'products', label: 'จำนวนผลิตภัณฑ์', value: String(nProducts), unit: 'ประเภท', delta: 0, yoy: 0, spark: new Array(NACT).fill(nProducts), color: 'var(--viz-5)' },
+      { id: 'target', label: 'Achievement', value: achievementPct != null ? achievementPct.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : '—', unit: achievementPct != null ? '%' : 'ไม่มีเป้า', delta: 0, yoy: 0, spark: [], color: 'var(--viz-6,#a78bfa)' }
     ];
 
     // ---- forecast: project remaining months at average of actuals ----
@@ -194,6 +202,8 @@
         top3: top3, top5: top5
       },
       forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: Math.min(95, Math.round(50 + NACT * 8)) },
+      targets: targets,
+      achievementPct: achievementPct,
       _raw: { monthly: { value: val69, volume: vol69 }, products: rprods, customers: rcust, history: hist }
     };
     return out;

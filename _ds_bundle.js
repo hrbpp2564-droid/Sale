@@ -2351,12 +2351,16 @@ try { (() => {
       _sv = rnd(sumVal * (_sk / sumVol), 4);
       _pr = _sk ? r2(_sv * 1000 / _sk) : 0;
     }
+    var _tgt = 0, _hasT = false;
+    (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
+    var _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
     const patch = {
       value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
       price: { value: _pr.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
       products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
+      target: { value: _achv != null ? _achv.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : '—', unit: _achv != null ? '%' : 'ไม่มีเป้า' },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
@@ -5745,12 +5749,16 @@ try { (() => {
       _sv = rnd(sumVal * (_sk / sumVol), 4);
       _pr = _sk ? r2(_sv * 1000 / _sk) : 0;
     }
+    var _tgt = 0, _hasT = false;
+    (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
+    var _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
     const patch = {
       value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
       price: { value: _pr.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
       products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
+      target: { value: _achv != null ? _achv.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : '—', unit: _achv != null ? '%' : 'ไม่มีเป้า' },
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
