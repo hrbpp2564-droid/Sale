@@ -3025,7 +3025,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_single ? _mName : "\u0E21.\u0E04.\u2013\u0E1E.\u0E04.")
+      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_D.MONTHS_ACT.length ? (_D.MONTHS_ACT[0] + "\u2013" + _D.MONTHS_ACT[_D.MONTHS_ACT.length - 1]) : "")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
       labels: _D.MONTHS_ACT,
@@ -6383,7 +6383,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xB7 2569",
-      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_single ? _mName : "\u0E21.\u0E04.\u2013\u0E1E.\u0E04.")
+      subtitle: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg) \xB7 " + (_D.MONTHS_ACT.length ? (_D.MONTHS_ACT[0] + "\u2013" + _D.MONTHS_ACT[_D.MONTHS_ACT.length - 1]) : "")
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 220,
       labels: _D.MONTHS_ACT,
