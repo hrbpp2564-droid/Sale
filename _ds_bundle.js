@@ -2349,9 +2349,9 @@ try { (() => {
       _pr = _sk ? _sv * 1000 / _sk : 0;
     }
     const patch = {
-      value: { value: _sv.toFixed(2), delta: momVal, yoy: yoy(_sv, sumValC) },
+      value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
-      price: { value: _pr.toFixed(2), yoy: yoy(_pr, priceC) },
+      price: { value: _pr.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
       products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
     };
@@ -2440,10 +2440,10 @@ try { (() => {
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
     const INSIGHTS = NACT === 0 ? [] : [
-      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1]||'-'} ฿/Kg (จาก ${D.price69[0]||'-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
+      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1] ? D.price69[NACT-1].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg (จาก ${D.price69[0] ? D.price69[0].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
       {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3.toFixed(2) + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3.toFixed(2)}% ของปริมาณ`, time: 'เฝ้าระวัง'},
       {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
-      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice} ฿/Kg`, time: `${NACT} เดือน`}
+      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ฿/Kg`, time: `${NACT} เดือน`}
     ];
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(KpiRow, {
       onDrill: onDrill,
@@ -2807,7 +2807,7 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
-      value: D.totals.avgPrice.toFixed(2),
+      value: D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
       unit: "\u0E3F/Kg",
       delta: D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -3255,7 +3255,7 @@ try { (() => {
       thickness: 40,
       centerValue: fmt.m(D.totals.value / 1e6),
       centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E25\u0E1A.)",
-      valueFormat: v => (v / 1e6).toFixed(2) + " \u0E25\u0E1A.",
+      valueFormat: v => (v / 1e6).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ลบ.',
       data: segs
     }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -3304,7 +3304,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D Kg",
-      value: D.totals.avgPrice.toFixed(2),
+      value: D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
       unit: "\u0E3F/Kg",
       delta: (D.price69[NACT - 1] / D.price69[0] - 1) * 100,
       deltaSuffix: " 5\u0E40\u0E14\u0E37\u0E2D\u0E19",
@@ -5743,9 +5743,9 @@ try { (() => {
       _pr = _sk ? _sv * 1000 / _sk : 0;
     }
     const patch = {
-      value: { value: _sv.toFixed(2), delta: momVal, yoy: yoy(_sv, sumValC) },
+      value: { value: _sv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
-      price: { value: _pr.toFixed(2), yoy: yoy(_pr, priceC) },
+      price: { value: _pr.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), yoy: yoy(_pr, priceC) },
       customers: { value: String(allC.length) },
       products: { value: String(prods.filter(p => p.val > 0 || p.kg > 0).length) },
     };
@@ -5834,10 +5834,10 @@ try { (() => {
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
     const INSIGHTS = NACT === 0 ? [] : [
-      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1]||'-'} ฿/Kg (จาก ${D.price69[0]||'-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
+      {tone: D.totals.momVal >= 0 ? 'positive' : 'negative', icon: D.totals.momVal >= 0 ? 'trending-up' : 'trending-down', title: 'มูลค่าขายเดือนล่าสุด เทียบเดือนก่อน', metric: fmt.pct(D.totals.momVal), detail: `ราคาเฉลี่ย ${D.price69[NACT-1] ? D.price69[NACT-1].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg (จาก ${D.price69[0] ? D.price69[0].toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'} ฿/Kg เมื่อ ม.ค.)`, time: 'ล่าสุด'},
       {tone: 'warning', icon: 'alert-triangle', title: 'พึ่งพาลูกค้ารายใหญ่สูงมาก', metric: D.totals.top3.toFixed(2) + '%', detail: `Top 3 ลูกค้า (${D.CUSTOMERS.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}) สร้างยอด ${D.totals.top3.toFixed(2)}% ของปริมาณ`, time: 'เฝ้าระวัง'},
       {tone: 'positive', icon: 'arrow-up', title: _gc ? `ลูกค้าโตเด่น: ${_gc.name.split(' ')[0]}` : 'ลูกค้าโตเด่น', metric: _gc ? fmt.pct(_gc.mom) : '-', detail: 'ปริมาณสั่งซื้อเดือนล่าสุดเพิ่มขึ้นเด่นชัด', time: 'เดือนนี้'},
-      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice} ฿/Kg`, time: `${NACT} เดือน`}
+      {tone: 'info', icon: 'activity', title: 'ราคาขายเฉลี่ยปรับขึ้นต่อเนื่อง', metric: D.price69[0] ? fmt.pct((D.price69[NACT-1]/D.price69[0]-1)*100) : '-', detail: `เฉลี่ย ${NACT} เดือน ${D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ฿/Kg`, time: `${NACT} เดือน`}
     ];
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(KpiRow, {
       onDrill: onDrill,
@@ -6219,7 +6219,7 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22",
-      value: D.totals.avgPrice.toFixed(2),
+      value: D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
       unit: "\u0E3F/Kg",
       delta: D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0
     })), /*#__PURE__*/React.createElement(Grid, {
@@ -6670,7 +6670,7 @@ try { (() => {
       thickness: 40,
       centerValue: fmt.m(D.totals.value / 1e6),
       centerLabel: "\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E25\u0E1A.)",
-      valueFormat: v => (v / 1e6).toFixed(2) + " \u0E25\u0E1A.",
+      valueFormat: v => (v / 1e6).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ลบ.',
       data: segs
     }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -6721,7 +6721,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E23\u0E32\u0E04\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22\u0E15\u0E48\u0E2D Kg",
-      value: D.totals.avgPrice.toFixed(2),
+      value: D.totals.avgPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
       unit: "\u0E3F/Kg",
       delta: (D.price69[NACT - 1] / D.price69[0] - 1) * 100,
       deltaSuffix: " 5\u0E40\u0E14\u0E37\u0E2D\u0E19",
