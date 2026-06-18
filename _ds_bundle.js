@@ -2467,6 +2467,16 @@ try { (() => {
     const _pChg = (_canTrend && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
     let _upStreak = 0;  // จำนวนเดือนที่ราคาขึ้น "ติดกัน" จากเดือนล่าสุดย้อนกลับ
     for (let i = _priceArr.length - 1; i > 0; i--) { if (_priceArr[i] > _priceArr[i - 1]) _upStreak++; else break; }
+    // ส่วนต่างมูลค่าเป็นบาท (เดือนปัจจุบัน − เดือนก่อนหน้า) — ดึงจากซีรีส์เต็มใน VDATA (ลบ. → ×1e6)
+    // เพราะมุมมองเดือนเดียวใน D ถูกตัดเหลือเดือนเดียว จึงไม่มีเดือนก่อนให้เทียบ
+    const _vFull = ((window.VDATA || {}).valueByYear || {})[String((filters && filters.year) || '2569')] || [];
+    const _curIdx = _single ? _mi : (NACT - 1);
+    const _prevIdx = _curIdx - 1;
+    const _curBaht = (_vFull[_curIdx] != null) ? _vFull[_curIdx] * 1e6 : null;
+    const _prevBaht = (_prevIdx >= 0 && _vFull[_prevIdx] != null) ? _vFull[_prevIdx] * 1e6 : null;
+    const _diffBaht = (_curBaht != null && _prevBaht != null) ? (_curBaht - _prevBaht) : null;
+    const _diffStr = _diffBaht == null ? '' :
+      ((_diffBaht >= 0 ? 'เพิ่มขึ้น ' : 'ลดลง ') + fmt.int(Math.abs(_diffBaht)) + ' บาท จากเดือนก่อน');
 
     // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
     const _mom = D.totals.momVal;
@@ -2475,9 +2485,7 @@ try { (() => {
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
           title: (_single ? `มูลค่าขาย ${_mName} ` : 'มูลค่าขายเดือนล่าสุด') + (_mom > 0 ? 'เพิ่มขึ้น' : _mom < 0 ? 'ลดลง' : 'ทรงตัว'),
           metric: fmt.pct(_mom),
-          detail: _single
-            ? `เทียบ ${_mName} กับเดือนก่อนหน้า · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`
-            : `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`,
+          detail: (_diffStr ? _diffStr + ' · ' : '') + `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`,
           time: _single ? _mName : 'ล่าสุด' }
       : { tone: 'info', icon: 'clock', title: _single ? `มูลค่าขาย ${_mName}` : 'มูลค่าขายเดือนล่าสุด', metric: '—',
           detail: _single
@@ -5941,6 +5949,16 @@ try { (() => {
     const _pChg = (_canTrend && _pFirst) ? (_pNow / _pFirst - 1) * 100 : null;  // เปลี่ยนแปลงราคารวม (%)
     let _upStreak = 0;  // จำนวนเดือนที่ราคาขึ้น "ติดกัน" จากเดือนล่าสุดย้อนกลับ
     for (let i = _priceArr.length - 1; i > 0; i--) { if (_priceArr[i] > _priceArr[i - 1]) _upStreak++; else break; }
+    // ส่วนต่างมูลค่าเป็นบาท (เดือนปัจจุบัน − เดือนก่อนหน้า) — ดึงจากซีรีส์เต็มใน VDATA (ลบ. → ×1e6)
+    // เพราะมุมมองเดือนเดียวใน D ถูกตัดเหลือเดือนเดียว จึงไม่มีเดือนก่อนให้เทียบ
+    const _vFull = ((window.VDATA || {}).valueByYear || {})[String((filters && filters.year) || '2569')] || [];
+    const _curIdx = _single ? _mi : (NACT - 1);
+    const _prevIdx = _curIdx - 1;
+    const _curBaht = (_vFull[_curIdx] != null) ? _vFull[_curIdx] * 1e6 : null;
+    const _prevBaht = (_prevIdx >= 0 && _vFull[_prevIdx] != null) ? _vFull[_prevIdx] * 1e6 : null;
+    const _diffBaht = (_curBaht != null && _prevBaht != null) ? (_curBaht - _prevBaht) : null;
+    const _diffStr = _diffBaht == null ? '' :
+      ((_diffBaht >= 0 ? 'เพิ่มขึ้น ' : 'ลดลง ') + fmt.int(Math.abs(_diffBaht)) + ' บาท จากเดือนก่อน');
 
     // 1) มูลค่าขายเดือน (MoM) — เทียบได้เมื่อ _canMoM, ไม่งั้นขึ้น "—" พร้อมหมายเหตุตามบริบท
     const _mom = D.totals.momVal;
@@ -5949,9 +5967,7 @@ try { (() => {
           icon: _mom > 0 ? 'trending-up' : _mom < 0 ? 'trending-down' : 'activity',
           title: (_single ? `มูลค่าขาย ${_mName} ` : 'มูลค่าขายเดือนล่าสุด') + (_mom > 0 ? 'เพิ่มขึ้น' : _mom < 0 ? 'ลดลง' : 'ทรงตัว'),
           metric: fmt.pct(_mom),
-          detail: _single
-            ? `เทียบ ${_mName} กับเดือนก่อนหน้า · ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`
-            : `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg (จาก ${_fp(D.price69[NACT - 2])} ฿/Kg เดือนก่อน)`,
+          detail: (_diffStr ? _diffStr + ' · ' : '') + `ราคาเฉลี่ย ${_fp(_pNow)} ฿/Kg`,
           time: _single ? _mName : 'ล่าสุด' }
       : { tone: 'info', icon: 'clock', title: _single ? `มูลค่าขาย ${_mName}` : 'มูลค่าขายเดือนล่าสุด', metric: '—',
           detail: _single
