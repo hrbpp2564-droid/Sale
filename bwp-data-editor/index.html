@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618a" />
+<link rel="stylesheet" href="../styles.css?v=20260618b" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -187,9 +187,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618a"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618a"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618a"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618b"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618b"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618b"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -649,64 +649,54 @@ $('saveBtn').addEventListener('click', () => {
 });
 
 // ---------- Excel: download template ----------
-$('tmplBtn').addEventListener('click', () => {
-  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+function buildSalesSheet(wb, sheetName, custList, months) {
   const TH12 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const wb = XLSX.utils.book_new();
-
-  // Sheet 1: กรอกข้อมูล
-  const headers = ['เดือน','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (ลบ.)'];
+  const mNames = months ? months.map(i => TH12[i]) : TH12;
+  const headers = ['เดือน','รหัสลูกค้า','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (ลบ.)'];
   const dataRows = [];
-  // สร้างแถวตัวอย่างสำหรับแต่ละเดือนและลูกค้า
-  const sampleCusts = CUSTOMERS_DB.slice(0, 5);
-  TH12.slice(0, 5).forEach(m => {
-    sampleCusts.forEach(c => {
-      dataRows.push([m, c, 0, 0, 0, 0, 0, 0]);
+  mNames.forEach(m => {
+    custList.forEach(c => {
+      const id = CUSTOMERS_ID_MAP[c] || '';
+      dataRows.push([m, id, c, '', '', '', '', '', '']);
     });
   });
-  const ws1 = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-  ws1['!cols'] = [{wch:8},{wch:22},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14}];
-  XLSX.utils.book_append_sheet(wb, ws1, 'ข้อมูลการขาย 2569');
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+  ws['!cols'] = [{wch:8},{wch:10},{wch:28},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14}];
+  ws['!autofilter'] = { ref: 'A1:I1' };
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+}
 
-  // Sheet 2: รายชื่อลูกค้า
-  const ws2 = XLSX.utils.aoa_to_sheet([['รายชื่อลูกค้า'], ...CUSTOMERS_DB.map(c => [c])]);
-  ws2['!cols'] = [{wch:30}];
+$('tmplBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  const wb = XLSX.utils.book_new();
+  const custList = CUSTOMERS_DB.filter(c => CUSTOMERS_ID_MAP[c]);
+  buildSalesSheet(wb, 'ข้อมูลการขาย 2569', custList, null);
+
+  // Sheet รายชื่อลูกค้า
+  const ws2hdr = [['รหัสลูกค้า','ชื่อลูกค้า']];
+  const ws2rows = CUSTOMERS_DB.map(c => [CUSTOMERS_ID_MAP[c] || '', c]);
+  const ws2 = XLSX.utils.aoa_to_sheet([...ws2hdr, ...ws2rows]);
+  ws2['!cols'] = [{wch:12},{wch:36}];
   XLSX.utils.book_append_sheet(wb, ws2, 'รายชื่อลูกค้า');
 
-  // Sheet 3: รายการสินค้า
-  const ws3 = XLSX.utils.aoa_to_sheet([
-    ['รายการสินค้า (คอลัมน์ในชีต 1)'],
-    ['ม้วนใส'],['ม้วนพิมพ์'],['ถุงคลุม/ชีท'],['ฟิล์มยืด'],['ถุงหลอด'],
-  ]);
-  ws3['!cols'] = [{wch:30}];
-  XLSX.utils.book_append_sheet(wb, ws3, 'รายการสินค้า');
-
-  XLSX.writeFile(wb, 'BWP_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  XLSX.writeFile(wb, 'BWP_template_2569_' + new Date().toISOString().slice(0,10) + '.xlsx');
   toast('✓ ดาวน์โหลดเทมเพลต Excel แล้ว', 'ok');
 });
 
 // ---------- Excel: download template ปีเก่า ----------
 $('tmplHistBtn').addEventListener('click', () => {
   if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
-  const TH12 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const headers = ['เดือน','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (ลบ.)'];
-  const sampleCusts = (CUSTOMERS_DB || []).slice(0, 5);
   const wb = XLSX.utils.book_new();
+  const custList = CUSTOMERS_DB.filter(c => CUSTOMERS_ID_MAP[c]);
 
   [2565, 2566, 2567, 2568].forEach(yr => {
-    const dataRows = [];
-    TH12.forEach(m => {
-      (sampleCusts.length ? sampleCusts : ['']).forEach(c => {
-        dataRows.push([m, c, 0, 0, 0, 0, 0, 0]);
-      });
-    });
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-    ws['!cols'] = [{wch:8},{wch:22},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14}];
-    XLSX.utils.book_append_sheet(wb, ws, 'ข้อมูลการขาย ' + yr);
+    buildSalesSheet(wb, 'ข้อมูลการขาย ' + yr, custList, null);
   });
 
-  const wsC = XLSX.utils.aoa_to_sheet([['รายชื่อลูกค้า'], ...(CUSTOMERS_DB||[]).map(c => [c])]);
-  wsC['!cols'] = [{wch:30}];
+  const ws2hdr = [['รหัสลูกค้า','ชื่อลูกค้า']];
+  const ws2rows = CUSTOMERS_DB.map(c => [CUSTOMERS_ID_MAP[c] || '', c]);
+  const wsC = XLSX.utils.aoa_to_sheet([...ws2hdr, ...ws2rows]);
+  wsC['!cols'] = [{wch:12},{wch:36}];
   XLSX.utils.book_append_sheet(wb, wsC, 'รายชื่อลูกค้า');
 
   XLSX.writeFile(wb, 'BWP_history_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
