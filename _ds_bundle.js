@@ -2906,7 +2906,7 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(Card, {
-      title: `Top 10 สินค้า — ${metric === 'val' ? 'มูลค่าขาย' : 'ปริมาณขาย'}`,
+      title: `สินค้าทั้งหมด — ${metric === 'val' ? 'มูลค่าขาย' : 'ปริมาณขาย'}`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -6406,7 +6406,7 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(Card, {
-      title: `Top 10 สินค้า — ${metric === 'val' ? 'มูลค่าขาย' : 'ปริมาณขาย'}`,
+      title: `สินค้าทั้งหมด — ${metric === 'val' ? 'มูลค่าขาย' : 'ปริมาณขาย'}`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
