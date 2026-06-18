@@ -99,9 +99,12 @@
     <label style="font-size:13px;color:var(--text-secondary)">เดือน:</label>
     <select id="monthSel"></select>
     <div style="flex:1"></div>
-    <button class="btn ghost sm" id="tmplBtn" type="button">⬇ เทมเพลต Excel</button>
+    <button class="btn ghost sm" id="tmplBtn" type="button">⬇ เทมเพลต Excel (2569)</button>
+    <button class="btn ghost sm" id="tmplHistBtn" type="button">⬇ เทมเพลตปีเก่า</button>
     <button class="btn ghost sm" id="uploadBtn" type="button">⬆ อัปโหลด Excel</button>
+    <button class="btn ghost sm" id="uploadHistBtn" type="button">⬆ อัปโหลดปีเก่า</button>
     <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+    <input type="file" id="fileHistInput" accept=".xlsx,.xls" style="display:none">
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
     <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
@@ -627,6 +630,132 @@ $('tmplBtn').addEventListener('click', () => {
   XLSX.writeFile(wb, 'BWP_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
   toast('✓ ดาวน์โหลดเทมเพลต Excel แล้ว', 'ok');
 });
+
+// ---------- Excel: download template ปีเก่า ----------
+$('tmplHistBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  const TH12 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const wb = XLSX.utils.book_new();
+  const HIST_YEARS = [2565, 2566, 2567, 2568];
+
+  HIST_YEARS.forEach(yr => {
+    // ดึงข้อมูลที่มีอยู่แล้ว (ถ้ามี)
+    const existing = (raw.history && raw.history[String(yr)]) || {};
+    const exVal = existing.value || Array(12).fill(null);
+    const exVol = existing.volume || Array(12).fill(null);
+
+    // Header rows
+    const rows = [
+      ['ข้อมูลยอดขายรายเดือน ปี พ.ศ. ' + yr],
+      [],
+      ['เดือน', 'มูลค่าขาย (ลบ.)', 'ปริมาณขาย (พัน Kg)', 'หมายเหตุ'],
+    ];
+    TH12.forEach((m, i) => {
+      const v = exVal[i] != null ? exVal[i] : '';
+      const k = exVol[i] != null ? exVol[i] : '';
+      rows.push([m, v, k, '']);
+    });
+    rows.push([]);
+    rows.push(['คำอธิบาย']);
+    rows.push(['มูลค่าขาย', 'หน่วย: ล้านบาท (ลบ.) เช่น 34.7']);
+    rows.push(['ปริมาณขาย', 'หน่วย: พัน กิโลกรัม (พัน Kg) เช่น 490.0']);
+    rows.push(['เดือนที่ไม่มีข้อมูล', 'ปล่อยว่างหรือใส่ 0']);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:10},{wch:20},{wch:22},{wch:30}];
+    // style header row
+    ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:3} }];
+    XLSX.utils.book_append_sheet(wb, ws, String(yr));
+  });
+
+  // Sheet คำแนะนำ
+  const wsGuide = XLSX.utils.aoa_to_sheet([
+    ['คู่มือการใช้งานเทมเพลตปีเก่า'],
+    [],
+    ['1. แต่ละชีตคือข้อมูล 1 ปี (2565–2568)'],
+    ['2. กรอกมูลค่าขาย (ลบ.) และปริมาณขาย (พัน Kg) ในแต่ละเดือน'],
+    ['3. เดือนที่ไม่มีข้อมูลปล่อยว่างหรือใส่ 0'],
+    ['4. บันทึกไฟล์และอัปโหลดผ่านปุ่ม "อัปโหลดปีเก่า"'],
+    ['5. ระบบจะรวมข้อมูลปีเก่าเข้ากับข้อมูลปัจจุบันโดยอัตโนมัติ'],
+    [],
+    ['หมายเหตุ: ไม่ต้องกรอกข้อมูลลูกค้าและสินค้าในไฟล์นี้'],
+    ['         ข้อมูลลูกค้า/สินค้าใช้ไฟล์เทมเพลตหลัก (2569)'],
+  ]);
+  wsGuide['!cols'] = [{wch:60}];
+  XLSX.utils.book_append_sheet(wb, wsGuide, 'คำแนะนำ');
+
+  XLSX.writeFile(wb, 'BWP_history_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  toast('✓ ดาวน์โหลดเทมเพลตปีเก่าแล้ว (2565–2568)', 'ok');
+});
+
+// ---------- Excel: upload ปีเก่า ----------
+$('uploadHistBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  $('fileHistInput').click();
+});
+$('fileHistInput').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+      importHistoryWorkbook(wb);
+    } catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
+    $('fileHistInput').value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function importHistoryWorkbook(wb) {
+  const TH_IDX = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
+  let imported = 0;
+  if (!raw.history) raw.history = {};
+
+  wb.SheetNames.forEach(sheetName => {
+    // หาปี พ.ศ. จากชื่อชีต (เช่น "2565", "2566")
+    const yrMatch = sheetName.match(/\b(25\d{2})\b/);
+    if (!yrMatch) return; // ข้ามชีตที่ไม่ใช่ปี
+    const yr = yrMatch[1];
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+    // หา header row (row ที่มี "เดือน")
+    const hdrIdx = rows.findIndex(r => r && r.some(c => String(c||'').includes('เดือน')));
+    if (hdrIdx < 0) return;
+    const hdr = rows[hdrIdx].map(h => String(h||'').trim());
+    const monCol = hdr.findIndex(h => h === 'เดือน');
+    const valCol = hdr.findIndex(h => h.includes('มูลค่า'));
+    const volCol = hdr.findIndex(h => h.includes('ปริมาณ'));
+    if (monCol < 0 || valCol < 0 || volCol < 0) return;
+
+    const value = Array(12).fill(null);
+    const volume = Array(12).fill(null);
+
+    rows.slice(hdrIdx + 1).forEach(row => {
+      const mStr = String(row[monCol]||'').trim();
+      const mi = TH_IDX[mStr];
+      if (mi == null) return;
+      const v = parseFloat(row[valCol]);
+      const k = parseFloat(row[volCol]);
+      if (!isNaN(v) && v > 0) value[mi] = v;
+      if (!isNaN(k) && k > 0) volume[mi] = k;
+    });
+
+    const hasData = value.some(v => v != null) || volume.some(v => v != null);
+    if (hasData) {
+      raw.history[yr] = { value, volume };
+      imported++;
+    }
+  });
+
+  if (imported === 0) {
+    toast('ไม่พบข้อมูลในไฟล์ — ตรวจสอบรูปแบบชีตและชื่อปี', 'err');
+    return;
+  }
+  toast('✓ นำเข้าข้อมูลปีเก่า ' + imported + ' ปีสำเร็จ — กด "บันทึก" เพื่อบันทึกลงระบบ', 'ok');
+  buildYearSelect();
+  renderMonth();
+}
 
 // ---------- Excel: upload ----------
 $('uploadBtn').addEventListener('click', () => {
