@@ -109,7 +109,21 @@
     // ---- customers ----
     var _custByName = {};
     (raw.customers || []).forEach(function (c) {
-      var mk = (c.monthlyKg || []).slice(0, 12).map(num);
+      // Accept both shapes: monthlyKg[12] (legacy/compute output) or
+      // monthlyProd[12] = [{p0..p4, value}, ...] (data-editor native format).
+      var mk;
+      if (c.monthlyKg) {
+        mk = c.monthlyKg.slice(0, 12).map(num);
+      } else if (c.monthlyProd) {
+        mk = c.monthlyProd.slice(0, 12).map(function (mp) {
+          if (!mp || typeof mp !== 'object') return 0;
+          var s = 0;
+          Object.keys(mp).forEach(function (k) { if (k !== 'value') s += num(mp[k]); });
+          return s;
+        });
+      } else {
+        mk = [];
+      }
       while (mk.length < 12) mk.push(0);
       var key = (c.name || '').trim();
       if (!_custByName[key]) { _custByName[key] = { name: c.name, monthlyKg: mk }; }
