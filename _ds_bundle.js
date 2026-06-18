@@ -2406,8 +2406,8 @@ try { (() => {
     }, D.KPIS.map(k => /*#__PURE__*/React.createElement(KpiCard, {
       key: k.id,
       label: k.label,
-      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.value,
-      unit: k.id === 'volume' ? 'Kg' : k.unit,
+      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.id === 'value' ? Math.round(D.totals.value).toLocaleString('en-US') : k.value,
+      unit: k.id === 'volume' ? 'Kg' : k.id === 'value' ? 'บาท' : k.unit,
       delta: k.delta,
       deltaSuffix: " MoM",
       secondary: k.yoy ? {
@@ -5800,8 +5800,8 @@ try { (() => {
     }, D.KPIS.map(k => /*#__PURE__*/React.createElement(KpiCard, {
       key: k.id,
       label: k.label,
-      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.value,
-      unit: k.id === 'volume' ? 'Kg' : k.unit,
+      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.id === 'value' ? Math.round(D.totals.value).toLocaleString('en-US') : k.value,
+      unit: k.id === 'volume' ? 'Kg' : k.id === 'value' ? 'บาท' : k.unit,
       delta: k.delta,
       deltaSuffix: " MoM",
       secondary: k.yoy ? {

@@ -133,7 +133,7 @@
     var yoyPrice = price68avg ? r2((avgPrice / price68avg - 1) * 100) : 0;
 
     var KPIS = [
-      { id: 'value', label: 'มูลค่าขายรวม', value: totalValueLbn.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}), unit: 'ลบ.', delta: momPct(val69), yoy: yoyVal, accent: true, spark: val69.slice(0, NACT), color: 'var(--accent)' },
+      { id: 'value', label: 'มูลค่าขายรวม', value: Math.round(totalValueBaht).toLocaleString('en-US'), unit: 'บาท', delta: momPct(val69), yoy: yoyVal, accent: true, spark: val69.slice(0, NACT), color: 'var(--accent)' },
       { id: 'volume', label: 'ปริมาณขายรวม', value: Math.round(totalVolKg).toLocaleString('en-US'), unit: 'Kg', delta: momPct(vol69), yoy: yoyKg, spark: vol69.slice(0, NACT), color: 'var(--viz-2)' },
       { id: 'price', label: 'ราคาเฉลี่ย/Kg', value: avgPrice.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}), unit: '฿/Kg', delta: momPct(price69), yoy: yoyPrice, spark: price69.slice(0, NACT), color: 'var(--viz-3)' },
       { id: 'customers', label: 'จำนวนลูกค้า', value: String(nCustomers), unit: 'ราย', delta: 0, yoy: 0, spark: monthlyCustCounts(rcust, NACT), color: 'var(--viz-4)' },
