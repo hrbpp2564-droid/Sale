@@ -163,7 +163,7 @@
     volumeByYear['2568'] = padTo12((hist['2568'] && hist['2568'].volume) || BASE.volume68);
     // valueByYear must be in ลบ. (history 2568 is ลบ.; bundle multiplies by 1e6).
     // val69 is stored in บาท for price math, so convert to ลบ. here for consistency.
-    var val69Lbn = val69.map(function (v) { return v == null ? null : r2(num(v) / 1e6); });
+    var val69Lbn = val69.map(function (v) { return v == null ? null : num(v) / 1e6; });
     valueByYear['2569'] = padTo12(val69Lbn);
     volumeByYear['2569'] = padTo12(vol69);
     Object.keys(hist).forEach(function (y) {
