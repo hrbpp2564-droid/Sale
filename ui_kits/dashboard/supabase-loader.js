@@ -112,10 +112,9 @@
       setLoading(true);
       errEl.textContent = '';
       window.BWP_DB.getDashboardUser(username, pass).then(function (result) {
-        var creds = { username: result.username || username, pass: pass, role: result.role || 'viewer', displayName: result.username || username };
-        try { sessionStorage.setItem(CREDS_KEY, JSON.stringify(creds)); } catch (e) {}
+        var creds = { username: result.username || username, role: result.role || 'viewer', displayName: result.username || username };
+        try { sessionStorage.setItem(CREDS_KEY, JSON.stringify({ username: creds.username, role: creds.role, displayName: creds.displayName })); } catch (e) {}
         window.BWP_USER = { username: creds.username, role: creds.role, displayName: creds.displayName };
-        window.BWP_PASS = pass; // backward compat for data editor
         applyPayload(result.payload);
         ov.parentNode && ov.parentNode.removeChild(ov);
       }).catch(function (e) {
