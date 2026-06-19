@@ -3692,7 +3692,7 @@ try { (() => {
       centerLabel: "Kg \u0E23\u0E27\u0E21",
       valueFormat: v => Math.round(v).toLocaleString('en-US') + " Kg",
       data: [...sorted.slice(0, 10).map((c, i) => ({
-        label: c.name.split(' ')[0],
+        label: c.name,
         value: c.kg,
         color: `var(--viz-${(i % 5) + 1})`
       })), {
@@ -7212,7 +7212,7 @@ try { (() => {
       centerLabel: "Kg \u0E23\u0E27\u0E21",
       valueFormat: v => Math.round(v).toLocaleString('en-US') + " Kg",
       data: [...sorted.slice(0, 10).map((c, i) => ({
-        label: c.name.split(' ')[0],
+        label: c.name,
         value: c.kg,
         color: `var(--viz-${(i % 5) + 1})`
       })), {
