@@ -313,6 +313,7 @@
       forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: Math.min(95, Math.round(50 + NACT * 8)) },
       targets: targets,
       targetsKg: targetsKg,
+      targetMode: _tgtMode,
       achievementPct: achievementPct,
       _raw: { monthly: { value: val69, volume: vol69 }, products: rprods, customers: rcust, history: hist }
     };

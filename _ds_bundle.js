@@ -2361,9 +2361,18 @@ try { (() => {
       _sv = rnd(sumVal * (_sk / sumVol), 4);
       _pr = _sk ? rnd(_sv * 1000 / _sk, 2) : 0;
     }
-    var _tgt = 0, _hasT = false;
+    var _tgtMode = D.targetMode === 'kg' ? 'kg' : 'value';
+    var _tgt = 0, _hasT = false, _tgtKg = 0, _hasTKg = false;
     (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
-    var _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
+    (D.targetsKg || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgtKg += t; _hasTKg = true; } });
+    var _achv;
+    if (_tgtMode === 'kg') {
+      _achv = (_hasTKg && _tgtKg > 0) ? rnd(_sk * 1000 / _tgtKg * 100, 1)
+            : (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
+    } else {
+      _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1)
+            : (_hasTKg && _tgtKg > 0) ? rnd(_sk * 1000 / _tgtKg * 100, 1) : null;
+    }
     const patch = {
       value: { value: Math.round(_sv * 1e6).toLocaleString('en-US'), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
@@ -5859,9 +5868,18 @@ try { (() => {
       _sv = rnd(sumVal * (_sk / sumVol), 4);
       _pr = _sk ? rnd(_sv * 1000 / _sk, 2) : 0;
     }
-    var _tgt = 0, _hasT = false;
+    var _tgtMode = D.targetMode === 'kg' ? 'kg' : 'value';
+    var _tgt = 0, _hasT = false, _tgtKg = 0, _hasTKg = false;
     (D.targets || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgt += t; _hasT = true; } });
-    var _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
+    (D.targetsKg || []).forEach(function(t, i){ if(idxs.indexOf(i) >= 0 && t != null){ _tgtKg += t; _hasTKg = true; } });
+    var _achv;
+    if (_tgtMode === 'kg') {
+      _achv = (_hasTKg && _tgtKg > 0) ? rnd(_sk * 1000 / _tgtKg * 100, 1)
+            : (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1) : null;
+    } else {
+      _achv = (_hasT && _tgt > 0) ? rnd(_sv * 1e6 / _tgt * 100, 1)
+            : (_hasTKg && _tgtKg > 0) ? rnd(_sk * 1000 / _tgtKg * 100, 1) : null;
+    }
     const patch = {
       value: { value: Math.round(_sv * 1e6).toLocaleString('en-US'), delta: momVal, yoy: yoy(_sv, sumValC) },
       volume: { value: Math.round(_sk * 1000).toLocaleString('en-US'), delta: momVol, yoy: yoy(_sk, sumVolC) },
