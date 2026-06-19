@@ -3740,55 +3740,7 @@ try { (() => {
       delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(2) : null,
       color: "var(--viz-5)",
       onClick: () => setSel(c)
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 Top 10",
-      subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E14\u0E39\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14",
-      padding: "none"
-    }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted.slice(0, 10),
-      onRowClick: setSel,
-      rowKey: r => r.id,
-      columns: [{
-        key: '_r',
-        header: '#',
-        width: 48,
-        numeric: true,
-        sortable: false,
-        render: r => sorted.indexOf(r) + 1
-      }, {
-        key: 'name',
-        header: 'ลูกค้า',
-        render: r => /*#__PURE__*/React.createElement("span", {
-          style: {
-            fontWeight: 500
-          }
-        }, r.name)
-      }, {
-        key: 'kg',
-        header: 'ปริมาณ (Kg)',
-        numeric: true,
-        render: r => fmt.int(r.kg)
-      }, {
-        key: 'share',
-        header: 'สัดส่วน',
-        numeric: true,
-        render: r => r.share.toFixed(2) + '%'
-      }, {
-        key: 'm5',
-        header: 'พ.ค. (Kg)',
-        numeric: true,
-        sortable: false,
-        render: r => fmt.int(r.monthly[NACT - 1] || 0)
-      }, {
-        key: 'mom',
-        header: '% Growth (MoM)',
-        numeric: true,
-        render: r => /*#__PURE__*/React.createElement(DeltaBadge, {
-          value: r.mom,
-          size: "sm"
-        })
-      }]
-    })), /*#__PURE__*/React.createElement(Grid, {
+    }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2, gap: 16, style: { marginTop: 16 }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "ลูกค้าประจำ (ซื้อครบทุกเดือน)",
@@ -7272,55 +7224,7 @@ try { (() => {
       delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(2) : null,
       color: "var(--viz-5)",
       onClick: () => setSel(c)
-    }))), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 Top 10",
-      subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E14\u0E39\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14",
-      padding: "none"
-    }, /*#__PURE__*/React.createElement(DataTable, {
-      rows: sorted.slice(0, 10),
-      onRowClick: setSel,
-      rowKey: r => r.id,
-      columns: [{
-        key: '_r',
-        header: '#',
-        width: 48,
-        numeric: true,
-        sortable: false,
-        render: r => sorted.indexOf(r) + 1
-      }, {
-        key: 'name',
-        header: 'ลูกค้า',
-        render: r => /*#__PURE__*/React.createElement("span", {
-          style: {
-            fontWeight: 500
-          }
-        }, r.name)
-      }, {
-        key: 'kg',
-        header: 'ปริมาณ (Kg)',
-        numeric: true,
-        render: r => fmt.int(r.kg)
-      }, {
-        key: 'share',
-        header: 'สัดส่วน',
-        numeric: true,
-        render: r => r.share.toFixed(2) + '%'
-      }, {
-        key: 'm5',
-        header: 'พ.ค. (Kg)',
-        numeric: true,
-        sortable: false,
-        render: r => fmt.int(r.monthly[NACT - 1] || 0)
-      }, {
-        key: 'mom',
-        header: '% Growth (MoM)',
-        numeric: true,
-        render: r => /*#__PURE__*/React.createElement(DeltaBadge, {
-          value: r.mom,
-          size: "sm"
-        })
-      }]
-    })), /*#__PURE__*/React.createElement(Grid, {
+    }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2, gap: 16, style: { marginTop: 16 }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "ลูกค้าประจำ (ซื้อครบทุกเดือน)",
