@@ -51,7 +51,7 @@
         </Grid>
 
         <Grid cols={2} gap={16} style={{ marginBottom: 16 }}>
-          <Card title="Top 10 ลูกค้า — ปริมาณขาย (Kg)" actions={<Badge tone="neutral" size="sm">5 เดือน</Badge>} bodyStyle={{ padding: 'var(--space-2)' }}>
+          <Card title="Top 10 ลูกค้า — ปริมาณขาย (Kg)" actions={<Badge tone="neutral" size="sm">{NACT} เดือน</Badge>} bodyStyle={{ padding: 'var(--space-2)' }}>
             {sorted.slice(0, 10).map((c, i) => (
               <RankBar key={c.id} rank={i + 1} label={c.name} sublabel={c.share + '% ของยอดรวม'}
                 value={fmt.int(c.kg) + ' Kg'} ratio={c.kg / max} share={null} delta={c.mom}
@@ -87,7 +87,7 @@
               { key: 'name', header: 'ลูกค้า', render: (r) => <span style={{ fontWeight: 500 }}>{r.name}</span> },
               { key: 'kg', header: 'ปริมาณ (Kg)', numeric: true, render: (r) => fmt.int(r.kg) },
               { key: 'share', header: 'สัดส่วน', numeric: true, render: (r) => r.share + '%' },
-              { key: 'm5', header: 'พ.ค. (Kg)', numeric: true, sortable: false, render: (r) => fmt.int(r.monthly[NACT - 1]) },
+              { key: 'm5', header: `${D.MONTHS_ACT[NACT-1]} (Kg)`, numeric: true, sortable: false, render: (r) => fmt.int(r.monthly[NACT - 1]) },
               { key: 'mom', header: '% Growth (MoM)', numeric: true, render: (r) => <DeltaBadge value={r.mom} size="sm" /> },
             ]} />
         </Card>

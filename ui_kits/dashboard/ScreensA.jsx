@@ -1,5 +1,5 @@
 /* Screens: Executive Overview + Sales Overview → window.{OverviewScreen, SalesScreen}
-   Data: BWP real sales ม.ค.–พ.ค. 2569 (เทียบ 2568). Value=ล้านบาท, Volume=พัน Kg. */
+   Data: BWP real sales ม.ค.–พ.ค. 2569 (เทียบ 2568). Value=บาท, Volume=พัน Kg. */
 (function () {
   const NS = window.VantageSalesIntelligenceDesignSystem_a75d0a;
   const { Card, KpiCard, DeltaBadge, RankBar, InsightCard, LineChart, DonutChart, Sparkline, SegmentedControl, Badge } = NS;
@@ -31,20 +31,20 @@
         vCur = (P.monthly || []).map((v) => (v == null ? null : v));
         kCur = (P.monthly || []).map((v, i) => {
           const pr = (P.priceMonthly || [])[i];
-          return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0);
+          return v == null ? null : (pr ? rnd(v / pr / 1000, 1) : 0);  // บาท / (฿/Kg) / 1000 → พัน Kg
         });
         vCmp = []; kCmp = [];
       }
     }
-    let n = 0; for (let i = 0; i < 12; i++) if (vCur[i] != null) n = i + 1;
+    let n = 0; for (let i = 0; i < 12; i++) { if (vCur[i] != null && +vCur[i] > 0) n = i + 1; else break; }
     const single = f.month != null && f.month !== 'all' && f.month !== '';
     const mi = single ? +f.month : -1;
     const idxs = single ? [mi] : Array.from({ length: n }, (_, i) => i);
     const pick = (arr) => idxs.map((i) => arr[i]);
     const sumVal = sum(pick(vCur)), sumVol = sum(pick(kCur));
     const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
-    const price = sumVol ? sumVal * 1000 / sumVol : 0;
-    const priceC = sumVolC ? sumValC * 1000 / sumVolC : 0;
+    const price = sumVol ? sumVal / (sumVol * 1000) : 0;  // บาท / (พัน Kg * 1000) → ฿/Kg
+    const priceC = sumVolC ? sumValC / (sumVolC * 1000) : 0;
     const momVal = single ? (mi >= 1 && vCur[mi - 1] ? rnd((vCur[mi] - vCur[mi - 1]) / vCur[mi - 1] * 100, 1) : 0) : D.totals.momVal;
     const momVol = single ? (mi >= 1 && kCur[mi - 1] ? rnd((kCur[mi] - kCur[mi - 1]) / kCur[mi - 1] * 100, 1) : 0) : D.totals.momKg;
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
@@ -69,7 +69,7 @@
     };
     const KPIS = D.KPIS.map((k) => Object.assign({}, k, patch[k.id] || {}));
     const labels = idxs.map((i) => D.TH_MONTHS[i]);
-    const priceArr = idxs.map((i) => kCur[i] ? rnd(vCur[i] * 1000 / kCur[i], 1) : 0);
+    const priceArr = idxs.map((i) => kCur[i] ? rnd(vCur[i] / (kCur[i] * 1000), 1) : 0);  // บาท / (พัน Kg * 1000) → ฿/Kg
     return Object.assign({}, D, {
       NACT: idxs.length,
       MONTHS_ACT: labels,
@@ -79,7 +79,7 @@
       KPIS: KPIS,
       PRODUCTS: prods,
       CUSTOMERS: custs,
-      totals: Object.assign({}, D.totals, { value: Math.round(sumVal * 1e6), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
+      totals: Object.assign({}, D.totals, { value: Math.round(sumVal), volume: Math.round(sumVol * 1e3), avgPrice: rnd(price, 1), yoyVal: yoy(sumVal, sumValC), yoyKg: yoy(sumVol, sumVolC), momVal: momVal, momKg: momVol }),
     });
   }
 
@@ -125,9 +125,9 @@
 
         <Grid cols={3} gap={16} style={{ marginBottom: 16 }}>
           <div style={{ gridColumn: 'span 2' }}>
-            <Card title="ยอดขายรวมต่อเดือน" subtitle="มูลค่า (ลบ.) เทียบปริมาณ (พัน Kg) · ม.ค.–พ.ค. 2569"
+            <Card title="ยอดขายรวมต่อเดือน" subtitle={`มูลค่า (ลบ.) เทียบปริมาณ (พัน Kg) · ${D.MONTHS_ACT[0]}–${D.MONTHS_ACT[NACT-1]} 2569`}
               actions={<button onClick={() => onDrill('sales')} style={{ display:'inline-flex',alignItems:'center',gap:4,background:'none',border:'1px solid var(--border-default)',borderRadius:'var(--radius-md)',color:'var(--text-secondary)',padding:'5px 10px',fontSize:'var(--text-xs)',fontFamily:'var(--font-sans)',cursor:'pointer'}}>ดูเต็ม <Icon name="chevron-right" size={13} /></button>}>
-              <LineChart height={250} labels={labels} yFormat={(v) => fmt.int(v)}
+              <LineChart height={250} labels={labels} yFormat={(v) => fmt.dec1(v/1e6)}
                 series={[
                   { name: 'มูลค่า 2569 (ลบ.)', data: val69, color: 'var(--viz-1)', type: 'bar' },
                   { name: 'ปริมาณ 2569 (พัน Kg)', data: vol69, color: 'var(--viz-2)', type: 'line', axis: 'right' },
@@ -151,7 +151,7 @@
           <Card title="Top สินค้า" subtitle="ตามมูลค่าขาย (ลบ.)" actions={<DrillHint />} bodyStyle={{ padding: 'var(--space-2)' }}>
             {prodByVal.slice(0, 5).map((p, i) => (
               <RankBar key={p.id} rank={i + 1} label={p.name} sublabel={p.group}
-                value={fmt.dec1(p.val) + ' ลบ.'} ratio={p.val / prodByVal[0].val} share={p.share + '%'} delta={prodGrowth(p)}
+                value={fmt.dec1(p.val / 1e6) + ' ลบ.'} ratio={p.val / prodByVal[0].val} share={p.share + '%'} delta={prodGrowth(p)}
                 color="var(--viz-1)" onClick={() => onDrill('product')} />
             ))}
           </Card>
@@ -165,7 +165,7 @@
           </Card>
 
           <Card title="Product Mix" subtitle="สัดส่วนมูลค่าตามกลุ่มสินค้า" actions={<button onClick={() => onDrill('mix')} style={{background:'none',border:'none',color:'var(--text-tertiary)',cursor:'pointer'}}><Icon name="external-link" size={14} /></button>}>
-            <DonutChart size={140} thickness={20} centerValue={fmt.m(D.totals.value / 1e6)} centerLabel="รวม (ลบ.)" showLegend
+            <DonutChart size={140} thickness={20} centerValue={fmt.m(D.totals.value)} centerLabel="รวม (ลบ.)" showLegend
               data={groupAgg(D.PRODUCTS).map((g) => ({ label: g.group, value: g.val, color: groupColors[g.group] || 'var(--slate-500)' }))} />
           </Card>
         </Grid>
@@ -191,7 +191,7 @@
     if (gran === 'year') {
       // 5-month comparable totals per year
       const v = D.YEARS.map((y) => D.sum(D.valueByYear[y].slice(0, NACT)));
-      series = [{ name: 'มูลค่า 5 เดือน (ลบ.)', data: v, color: 'var(--viz-1)', type: 'bar' }];
+      series = [{ name: `มูลค่า ${NACT} เดือน (ลบ.)`, data: v, color: 'var(--viz-1)', type: 'bar' }];
     } else if (type === 'combo') {
       series = [
         { name: 'มูลค่า (ลบ.)', data: D.valueByYear[2569].slice(0, NACT), color: 'var(--viz-1)', type: 'bar' },
@@ -208,20 +208,20 @@
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="มูลค่าขาย 5 เดือน" value={fmt.dec1(D.totals.value / 1e6)} unit="ลบ." delta={D.totals.yoyVal} deltaSuffix=" YoY" accent />
-          <KpiCard label="ปริมาณขาย 5 เดือน" value={fmt.kgM(D.totals.volume)} unit="" delta={D.totals.yoyKg} deltaSuffix=" YoY" />
+          <KpiCard label={`มูลค่าขาย ${NACT} เดือน`} value={fmt.dec1(D.totals.value / 1e6)} unit="ลบ." delta={D.totals.yoyVal} deltaSuffix=" YoY" accent />
+          <KpiCard label={`ปริมาณขาย ${NACT} เดือน`} value={fmt.kgM(D.totals.volume)} unit="" delta={D.totals.yoyKg} deltaSuffix=" YoY" />
           <KpiCard label="เฉลี่ย/เดือน" value={fmt.dec1(D.totals.value / 1e6 / NACT)} unit="ลบ." delta={D.totals.momVal} />
-          <KpiCard label="เดือนสูงสุด" value="พ.ค." unit={fmt.dec1(Math.max(...D.valueByYear[2569].slice(0, NACT))) + ' ลบ.'} delta={D.totals.momVal} />
+          {(() => { const vals = D.valueByYear[2569].slice(0, NACT); const peakV = Math.max(...vals); const peakM = D.MONTHS_ACT[vals.indexOf(peakV)] || '—'; return <KpiCard label="เดือนสูงสุด" value={peakM} unit={fmt.dec1(peakV / 1e6) + ' ลบ.'} delta={D.totals.momVal} />; })()}
         </Grid>
 
-        <Card title="ยอดขายรวม — เปรียบเทียบ 2568 vs 2569" subtitle="ม.ค.–พ.ค. (5 เดือนที่มีข้อมูลจริง)"
+        <Card title="ยอดขายรวม — เปรียบเทียบ 2568 vs 2569" subtitle={`${D.MONTHS_ACT[0]}–${D.MONTHS_ACT[NACT-1]} (${NACT} เดือนที่มีข้อมูลจริง)`}
           actions={
             <div style={{ display: 'flex', gap: 8 }}>
               <SegmentedControl size="sm" value={type} onChange={setType} options={[{value:'multi',label:'Multi-Line'},{value:'combo',label:'Combo'},{value:'area',label:'Area'}]} />
               <SegmentedControl size="sm" value={gran} onChange={setGran} options={[{value:'month',label:'รายเดือน'},{value:'year',label:'รายปี'}]} />
             </div>
           }>
-          <LineChart height={340} labels={labels} yFormat={(v) => fmt.int(v)} showDots={gran !== 'month'} series={series} />
+          <LineChart height={340} labels={labels} yFormat={(v) => fmt.dec1(v/1e6)} showDots={gran !== 'month'} series={series} />
         </Card>
 
         <Card title="ตารางยอดขายรายเดือน" subtitle="มูลค่า · ปริมาณ · ราคาเฉลี่ย" style={{ marginTop: 16 }} padding="none">
@@ -243,8 +243,8 @@
       <DataTable rows={rows} sortable={false} rowKey={(r) => r.month}
         columns={[
           { key: 'month', header: 'เดือน', render: (r) => <span style={{ fontWeight: 500 }}>{r.month}</span> },
-          { key: 'v68', header: 'มูลค่า 2568 (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.v68) },
-          { key: 'v69', header: 'มูลค่า 2569 (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.v69) },
+          { key: 'v68', header: 'มูลค่า 2568 (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.v68 / 1e6) },
+          { key: 'v69', header: 'มูลค่า 2569 (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.v69 / 1e6) },
           { key: 'kg69', header: 'ปริมาณ (พัน Kg)', numeric: true, render: (r) => fmt.int(r.kg69) },
           { key: 'price', header: 'ราคาเฉลี่ย (฿/Kg)', numeric: true, render: (r) => fmt.dec1(r.price) },
           { key: 'yoy', header: '% YoY', numeric: true, render: (r) => <DeltaBadge value={r.yoy} size="sm" /> },

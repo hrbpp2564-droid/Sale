@@ -1,5 +1,5 @@
 /* Screens: Year Comparison + Forecast → window.{YearScreen, ForecastScreen}
-   2 years: 2568 (12mo actual) vs 2569 (5mo actual). Forecast projects 2569 year-end. */
+   2 years: 2568 (12mo actual) vs 2569 (actual months). Forecast projects 2569 year-end. */
 (function () {
   const NS = window.VantageSalesIntelligenceDesignSystem_a75d0a;
   const { Card, KpiCard, DeltaBadge, DataTable, LineChart, SegmentedControl, Badge, RankBar } = NS;
@@ -70,15 +70,15 @@
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label={`รวม ${cmp} เดือน ${latest}`} value={fmt.dec1(tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
-          {prev && <KpiCard label={`รวม ${cmp} เดือน ${prev}`} value={fmt.dec1(tPrev)} unit={unit} />}
+          <KpiCard label={`รวม ${cmp} เดือน ${latest}`} value={fmt.dec1(metric === 'value' ? tLatest/1e6 : tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
+          {prev && <KpiCard label={`รวม ${cmp} เดือน ${prev}`} value={fmt.dec1(metric === 'value' ? tPrev/1e6 : tPrev)} unit={unit} />}
           <KpiCard label="YoY Growth" value={fmt.pct(yoy).replace('%', '')} unit="%" delta={yoy} icon={<Icon name="activity" size={15} />} />
           <KpiCard label={`จำนวนปีที่เทียบ`} value={String(years.length)} unit="ปี" icon={<Icon name="calendar" size={15} />} />
         </Grid>
 
         <Card title={`เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`} subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`}
           actions={<SegmentedControl size="sm" value={metric} onChange={setMetric} options={[{value:'value',label:'มูลค่า'},{value:'volume',label:'ปริมาณ'}]} />}>
-          <LineChart height={300} labels={D.MONTHS_ACT.slice(0, cmp)} yFormat={(v) => fmt.int(v)} showDots series={series} />
+          <LineChart height={300} labels={D.MONTHS_ACT.slice(0, cmp)} yFormat={(v) => metric === 'value' ? fmt.dec1(v/1e6) : fmt.int(v)} showDots series={series} />
         </Card>
 
         <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
@@ -86,8 +86,8 @@
             <DataTable rows={annual} sortable={false} rowKey={(r) => r.year}
               columns={[
                 { key: 'year', header: 'ปี', render: (r) => <span style={{ fontWeight: 500 }}>{r.year}</span> },
-                { key: 'cmpT', header: `รวม ${cmp} เดือน`, numeric: true, render: (r) => fmt.dec1(r.cmpT) },
-                { key: 'full', header: 'ทั้งปี', numeric: true, render: (r) => <span>{fmt.dec1(r.full)}<span style={{ color: 'var(--text-disabled)', fontSize: 'var(--text-2xs)' }}> ({r.nM}ด.)</span></span> },
+                { key: 'cmpT', header: `รวม ${cmp} เดือน`, numeric: true, render: (r) => fmt.dec1(metric === 'value' ? r.cmpT/1e6 : r.cmpT) },
+                { key: 'full', header: 'ทั้งปี', numeric: true, render: (r) => <span>{fmt.dec1(metric === 'value' ? r.full/1e6 : r.full)}<span style={{ color: 'var(--text-disabled)', fontSize: 'var(--text-2xs)' }}> ({r.nM}ด.)</span></span> },
                 { key: 'step', header: '% YoY', numeric: true, sortable: false, render: (r) => r.stepYoY == null ? <span style={{ color: 'var(--text-disabled)' }}>—</span> : <DeltaBadge value={r.stepYoY} size="sm" /> },
               ]} />
           </Card>
@@ -96,7 +96,7 @@
             <DataTable rows={rows} sortable={false} rowKey={(r) => r.month}
               columns={[
                 { key: 'month', header: 'เดือน', render: (r) => <span style={{ fontWeight: 500 }}>{r.month}</span> },
-                ...years.map((y) => ({ key: 'y' + y, header: String(y), numeric: true, render: (r) => fmt.dec1(r['y' + y]) })),
+                ...years.map((y) => ({ key: 'y' + y, header: String(y), numeric: true, render: (r) => r['y'+y] == null ? '—' : fmt.dec1(metric === 'value' ? r['y'+y]/1e6 : r['y'+y]) })),
                 { key: 'yoy', header: '% YoY', numeric: true, render: (r) => <DeltaBadge value={r.yoy} size="sm" /> },
               ]} />
           </Card>
@@ -134,7 +134,7 @@
     return (
       <div ref={ref} style={{ width: '100%' }}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
-          <Lg color="var(--viz-1)">ยอดจริง (ม.ค.–พ.ค.)</Lg>
+          <Lg color="var(--viz-1)">{`ยอดจริง (${D.MONTHS_ACT[0]}–${D.MONTHS_ACT[D.NACT-1]})`}</Lg>
           <Lg color="var(--viz-3)" dash>คาดการณ์ (มิ.ย.–ธ.ค.)</Lg>
           <Lg color="var(--viz-3)" band>ช่วงความเชื่อมั่น ±9%</Lg>
         </div>
@@ -142,7 +142,7 @@
           {[0, 0.25, 0.5, 0.75, 1].map((g, k) => (
             <g key={k}>
               <line x1={p.left} y1={p.top + g * ih} x2={p.left + iw} y2={p.top + g * ih} stroke="var(--chart-grid)" />
-              <text x={p.left - 8} y={p.top + g * ih + 4} textAnchor="end" fontSize="10" fill="var(--chart-axis)" fontFamily="var(--font-numeric)">{fmt.int(max * (1 - g))}</text>
+              <text x={p.left - 8} y={p.top + g * ih + 4} textAnchor="end" fontSize="10" fill="var(--chart-axis)" fontFamily="var(--font-numeric)">{fmt.dec1(max * (1 - g) / 1e6)}</text>
             </g>
           ))}
           <line x1={x(A - 1)} y1={p.top} x2={x(A - 1)} y2={p.top + ih} stroke="var(--border-strong)" strokeDasharray="3 3" />
@@ -180,13 +180,13 @@
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.int(F.yearEndVal)} unit="ลบ." delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
-          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.volumeByYear && (_vd.volumeByYear['2568'] || _vd.volumeByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndKg * 1000 / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" icon={<Icon name="box" size={15} />} />
+          <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.dec1(F.yearEndVal / 1e6)} unit="ลบ." delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
+          <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndVolKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.volumeByYear && (_vd.volumeByYear['2568'] || _vd.volumeByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVolKg * 1000 / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" icon={<Icon name="box" size={15} />} />
           <KpiCard label="Confidence Level" value={F.confidence} unit="%" icon={<Icon name="target" size={15} />} />
           <KpiCard label="เดือนที่เหลือ" value={String(12 - NACT)} unit="เดือน" icon={<Icon name="clock" size={15} />} />
         </Grid>
 
-        <Card title="คาดการณ์ยอดขายสิ้นปี 2569" subtitle="มูลค่า (ลบ.) · ยอดจริง 5 เดือน + คาดการณ์พร้อมช่วงความเชื่อมั่น"
+        <Card title="คาดการณ์ยอดขายสิ้นปี 2569" subtitle={`มูลค่า (ลบ.) · ยอดจริง ${NACT} เดือน + คาดการณ์พร้อมช่วงความเชื่อมั่น`}
           actions={<Badge tone="positive" dot>ความเชื่อมั่น {F.confidence}%</Badge>}>
           <ForecastChart height={320} />
         </Card>
@@ -194,9 +194,9 @@
         <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
           <Card title="Top 10 สินค้า คาดการณ์สิ้นปี" subtitle="มูลค่า (ลบ.)" bodyStyle={{ padding: 'var(--space-2)' }}>
             {prodByVal.slice(0, 10).map((p, i) => {
-              const proj = +(p.val * (12 / NACT) * 1.02).toFixed(1);
-              return <RankBar key={p.id} rank={i + 1} label={p.name} sublabel={`คาด ${fmt.dec1(proj)} ลบ.`}
-                value={fmt.dec1(proj) + ' ลบ.'} ratio={proj / (prodByVal[0].val * (12 / NACT) * 1.02)} color={`var(--viz-${(i % 8) + 1})`} />;
+              const proj = +(p.val * (12 / NACT) * 1.02);
+              return <RankBar key={p.id} rank={i + 1} label={p.name} sublabel={`คาด ${fmt.dec1(proj / 1e6)} ลบ.`}
+                value={fmt.dec1(proj / 1e6) + ' ลบ.'} ratio={proj / (prodByVal[0].val * (12 / NACT) * 1.02)} color={`var(--viz-${(i % 8) + 1})`} />;
             })}
           </Card>
           <Card title="Top 10 ลูกค้า คาดการณ์สิ้นปี" subtitle="ปริมาณ (Kg)" bodyStyle={{ padding: 'var(--space-2)' }}>

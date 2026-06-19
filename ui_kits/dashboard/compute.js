@@ -5,7 +5,7 @@
 
    RAW INPUT SHAPE (what an officer types):
    {
-     monthly:  { value: [12 · ลบ.], volume: [12 · พัน Kg] },   // ปีปัจจุบัน (2569) · null = ยังไม่กรอก
+     monthly:  { value: [12 · บาท], volume: [12 · พัน Kg] },   // ปีปัจจุบัน (2569) · null = ยังไม่กรอก
      products: [ { name, monthlyKg: [12 · Kg] }, ... ],
      customers:[ { name,        monthlyKg: [12 · Kg] }, ... ],
      history:  { "2565": { value:[12], volume:[12] }, ... }    // ข้อมูลย้อนหลังรายปี (ไม่บังคับ)
@@ -97,14 +97,13 @@
     var totalProdKg = rprods.reduce(function (s, p) { return s + sum(p.monthlyKg.slice(0, NACT)); }, 0);
 
     var PRODUCTS = rprods.map(function (p, idx) {
-      // monthlyVal/val are stored in ลบ. (the dashboard bundle multiplies by 1e6
-      // when displaying baht). priceMonthly/avgPrice stay in ฿/Kg (computed from baht).
+      // monthlyVal/val stored in บาท; priceMonthly/avgPrice in ฿/Kg
       var monthlyVal = [], priceMonthly = [], valTotBaht = 0;
       for (var mo = 0; mo < NACT; mo++) {
         var kg = p.monthlyKg[mo];
         var vBaht = SK[mo] > 0 ? num(val69[mo]) * (kg / SK[mo]) : 0;  // บาท
         valTotBaht += vBaht;
-        monthlyVal.push(vBaht / 1e6);  // → ลบ. (full precision)
+        monthlyVal.push(vBaht);  // → บาท
         priceMonthly.push(kg > 0 ? r2(vBaht / kg) : 0);  // ฿/Kg
       }
       var kgTot = sum(p.monthlyKg.slice(0, NACT));
@@ -164,7 +163,7 @@
     // ---- KPIs (with MoM & YoY) ----
     function momPct(arr) { return NACT >= 2 && num(arr[NACT - 2]) ? r2((num(arr[NACT - 1]) / num(arr[NACT - 2]) - 1) * 100) : 0; }
     var v68p = sum(BASE.value68.slice(0, NACT)), vol68p = sum(BASE.volume68.slice(0, NACT));
-    var yoyVal = v68p ? r2((totalValueLbn / v68p - 1) * 100) : 0;
+    var yoyVal = v68p ? r2((totalValueBaht / (v68p * 1e6) - 1) * 100) : 0;
     var yoyKg = vol68p ? r2((totalVolKKg / vol68p - 1) * 100) : 0;
     var price68avg = vol68p ? (v68p * 1e6) / (vol68p * 1000) : 0;
     var yoyPrice = price68avg ? r2((avgPrice / price68avg - 1) * 100) : 0;
@@ -179,39 +178,38 @@
     ];
 
     // ---- forecast: run-rate base + linear trend from last 3 months ----
-    var avgMonthVal = NACT ? totalValueLbn / NACT : 0;
+    var avgMonthVal = NACT ? totalValueBaht / NACT : 0;  // บาท/month
     var avgMonthKg = NACT ? totalVolKKg / NACT : 0;
     var _f3v = [];
-    for (var fl = Math.max(0, NACT - 3); fl < NACT; fl++) { var fv = num(val69[fl]) / 1e6; if (fv > 0) _f3v.push(fv); }
+    for (var fl = Math.max(0, NACT - 3); fl < NACT; fl++) { var fv = num(val69[fl]); if (fv > 0) _f3v.push(fv); }
     var _fBase = _f3v.length ? _f3v.reduce(function(s,v){return s+v;},0) / _f3v.length : avgMonthVal;
     var _fSlope = _f3v.length >= 2 ? (_f3v[_f3v.length-1] - _f3v[0]) / Math.max(1, _f3v.length - 1) : 0;
     var projVal = [];
     for (var f = 0; f < 12; f++) {
-      if (f < NACT) { projVal.push(r2(num(val69[f]) / 1e6)); }
+      if (f < NACT) { projVal.push(r2(num(val69[f]))); }  // บาท
       else { var ahead = f - NACT + 1; projVal.push(r2(Math.max(0, _fBase + _fSlope * ahead))); }
     }
-    var yearEndVal = Math.round(sum(projVal));
-    var yearEndKg = r2((totalVolKKg + avgMonthKg * (12 - NACT)) / 1000);
+    var yearEndVal = Math.round(sum(projVal));  // บาท
+    var yearEndVolKg = r2((totalVolKKg + avgMonthKg * (12 - NACT)) / 1000);
 
     // ---- multi-year series (history years 2565–2568 are optional & editable) ----
     var hist = raw.history || {};
     var valueByYear = {}, volumeByYear = {};
-    // hist[y].value is stored in บาท (from customer entry); valueByYear must be in ลบ. (viewFor ×1e6 → บาท)
-    function histValLbn(y, fallback) {
+    // hist[y].value is in บาท (from customer entry); BASE.value68 fallback is in ลบ. → convert *1e6
+    function histValBaht(y, fallback) {
       var hv = hist[y] && hist[y].value;
       if (hv && hv.some(function(v){ return v != null && v > 0; })) {
-        return padTo12(hv.map(function(v){ return v == null ? null : num(v) / 1e6; }));
+        return padTo12(hv.map(function(v){ return v == null ? null : num(v); }));  // already บาท
       }
-      return padTo12(fallback || []);
+      return padTo12((fallback || []).map(function(v){ return num(v) * 1e6; }));  // ลบ. → บาท
     }
-    valueByYear['2568'] = histValLbn('2568', BASE.value68);
+    valueByYear['2568'] = histValBaht('2568', BASE.value68);
     volumeByYear['2568'] = padTo12((hist['2568'] && hist['2568'].volume) || BASE.volume68);
-    var val69Lbn = val69.map(function (v) { return v == null ? null : num(v) / 1e6; });
-    valueByYear['2569'] = padTo12(val69Lbn);
+    valueByYear['2569'] = padTo12(val69.map(function(v){ return v == null ? null : num(v); }));  // บาท
     volumeByYear['2569'] = padTo12(vol69);
     Object.keys(hist).forEach(function (y) {
       if (y === '2568' || y === '2569') return;
-      valueByYear[y] = histValLbn(y);
+      valueByYear[y] = histValBaht(y);
       volumeByYear[y] = padTo12((hist[y] && hist[y].volume) || []);
     });
     // YEARS = every year with ≥1 actual value, plus 2568/2569 always
@@ -235,7 +233,7 @@
     Object.keys(histCusts).forEach(function(y) {
       var hcList = histCusts[y] || [];
       if (!hcList.length) return;
-      var vSeries = valueByYear[y] || []; // ลบ./month
+      var vSeries = valueByYear[y] || []; // บาท/month
       var nActH = 0;
       for (var i = 0; i < 12; i++) { if (vSeries[i] != null && num(vSeries[i]) > 0) nActH = i + 1; }
       if (!nActH) nActH = 12;
@@ -281,9 +279,9 @@
         var monthlyVal = [], priceMonthly = [], valTotBahtH = 0;
         for (var mo=0;mo<nActH;mo++) {
           var kgM = monthlyKg[mo];
-          var vBaht = SKH[mo]>0 ? num(vSeries[mo])*1e6*(kgM/SKH[mo]) : 0;
+          var vBaht = SKH[mo]>0 ? num(vSeries[mo])*(kgM/SKH[mo]) : 0;  // vSeries already บาท
           valTotBahtH += vBaht;
-          monthlyVal.push(r2(vBaht/1e6));
+          monthlyVal.push(r2(vBaht));  // บาท
           priceMonthly.push(kgM>0 ? r2(vBaht/kgM) : 0);
         }
         var kgTotH = sum(monthlyKg.slice(0,nActH));
@@ -317,7 +315,7 @@
         yoyKg: yoyKg, yoyVal: yoyVal, momKg: momPct(vol69), momVal: momPct(val69),
         top3: top3, top5: top5
       },
-      forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: Math.min(95, Math.round(50 + NACT * 8)) },
+      forecast: { yearEndVal: yearEndVal, yearEndVolKg: yearEndVolKg, projVal: projVal, actualMonths: NACT, confidence: Math.min(95, Math.round(50 + NACT * 8)) },
       targets: targets,
       targetsKg: targetsKg,
       targetMode: _tgtMode,

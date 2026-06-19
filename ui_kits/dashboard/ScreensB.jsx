@@ -10,8 +10,8 @@
   const NACT = D.NACT;
   const groupColors = { 'ฟิล์มใส': 'var(--viz-1)', 'พิมพ์สี': 'var(--viz-3)', 'PCR (รีไซเคิล)': 'var(--viz-2)', 'สูตรพิเศษ': 'var(--viz-4)' };
   const prodGrowth = (p) => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(1) : 0;
-  // per-product monthly volume (Kg) derived from monthly value (ลบ.) ÷ monthly price (฿/Kg)
-  const prodKg = (p) => p.monthly.map((v, i) => (p.priceMonthly[i] ? Math.round(v * 1e6 / p.priceMonthly[i]) : 0));
+  // per-product monthly volume (Kg) derived from monthly value (บาท) ÷ monthly price (฿/Kg)
+  const prodKg = (p) => p.monthly.map((v, i) => (p.priceMonthly[i] ? Math.round(v / p.priceMonthly[i]) : 0));
   const prodKgK = (p) => prodKg(p).map((k) => +(k / 1000).toFixed(1)); // พัน Kg
 
   function groupAgg() {
@@ -40,7 +40,7 @@
           <KpiCard label="จำนวนสินค้า (ขนาด)" value={String(D.nSizes)} unit="SKU" icon={<Icon name="package" size={15} />} />
           <KpiCard label="มูลค่าขายรวม" value={fmt.dec1(D.totals.value / 1e6)} unit="ลบ." delta={D.totals.momVal} />
           <KpiCard label="ราคาเฉลี่ย" value={D.totals.avgPrice} unit="฿/Kg" delta={D.price69 && D.price69[NACT - 2] ? +((D.price69[NACT - 1] / D.price69[NACT - 2] - 1) * 100).toFixed(1) : 0} />
-          <KpiCard label="กลุ่มขายดีสุด" value={topG.group} unit={fmt.dec1(topG.val) + ' ลบ.'} icon={<Icon name="layers" size={15} />} />
+          <KpiCard label="กลุ่มขายดีสุด" value={topG.group} unit={fmt.dec1(topG.val / 1e6) + ' ลบ.'} icon={<Icon name="layers" size={15} />} />
         </Grid>
 
         <Grid cols={2} gap={16} style={{ marginBottom: 16 }}>
@@ -49,7 +49,7 @@
             bodyStyle={{ padding: 'var(--space-2)' }}>
             {sorted.slice(0, 10).map((p, i) => (
               <RankBar key={p.id} rank={i + 1} label={p.name} sublabel={p.group}
-                value={metric === 'val' ? fmt.dec1(p.val) + ' ลบ.' : fmt.int(p.kg) + ' Kg'}
+                value={metric === 'val' ? fmt.dec1(p.val / 1e6) + ' ลบ.' : fmt.int(p.kg) + ' Kg'}
                 ratio={p[metric] / max} share={p.share + '%'} delta={prodGrowth(p)}
                 color={groupColors[p.group] || 'var(--viz-1)'} onClick={() => setSel(p)} />
             ))}
@@ -79,7 +79,7 @@
               { key: 'name', header: 'สินค้า (ขนาด)', render: (r) => <span style={{ fontWeight: 500 }}>{r.name}</span> },
               { key: 'group', header: 'กลุ่ม', muted: true, render: (r) => <Badge tone="neutral" size="sm">{r.group}</Badge> },
               { key: 'kg', header: 'ปริมาณ (Kg)', numeric: true, render: (r) => fmt.int(r.kg) },
-              { key: 'val', header: 'มูลค่า (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.val) },
+              { key: 'val', header: 'มูลค่า (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.val / 1e6) },
               { key: 'avgPrice', header: 'ราคาเฉลี่ย (฿/Kg)', numeric: true, render: (r) => fmt.dec1(r.avgPrice) },
               { key: 'share', header: 'สัดส่วน', numeric: true, render: (r) => r.share + '%' },
               { key: 'g', header: 'MoM', numeric: true, sortable: false, render: (r) => <DeltaBadge value={prodGrowth(r)} size="sm" /> },
@@ -112,14 +112,14 @@
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="มูลค่าขาย 5 เดือน" value={fmt.dec1(p.val)} unit="ลบ." delta={_pg} accent />
+          <KpiCard label={`มูลค่าขาย ${_D.NACT} เดือน`} value={fmt.dec1(p.val / 1e6)} unit="ลบ." delta={_pg} accent />
           <KpiCard label="ปริมาณขาย" value={fmt.int(p.kg)} unit="Kg" delta={_kg} />
           <KpiCard label="ราคาเฉลี่ย" value={fmt.dec1(p.avgPrice)} unit="฿/Kg" delta={_pp} />
           <KpiCard label="สัดส่วนพอร์ต" value={p.share} unit="%" />
         </Grid>
 
-        <Card title="มูลค่า + ปริมาณ รายเดือน · 2569" subtitle="มูลค่า (ลบ.) แกนซ้าย · ปริมาณ (Kg) แกนขวา · ม.ค.–พ.ค." style={{ marginBottom: 16 }}>
-          <LineChart height={240} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.int(v)} showDots
+        <Card title="มูลค่า + ปริมาณ รายเดือน · 2569" subtitle={`มูลค่า (ลบ.) แกนซ้าย · ปริมาณ (Kg) แกนขวา · ${_D.MONTHS_ACT[0]}–${_D.MONTHS_ACT[_D.NACT-1]}`} style={{ marginBottom: 16 }}>
+          <LineChart height={240} labels={_D.MONTHS_ACT} yFormat={(v) => fmt.dec1(v/1e6)} showDots
             series={[
               { name: 'มูลค่า (ลบ.)', data: p.monthly, color: 'var(--viz-1)', type: 'bar' },
               { name: 'ปริมาณ (Kg)', data: prodKg(p), color: 'var(--viz-2)', type: 'line', axis: 'right' },
@@ -190,11 +190,11 @@
 
     return (
       <div>
-        <Card title="สัดส่วนยอดขายแต่ละสินค้า (Product Mix)" subtitle="มูลค่าขาย (ลบ.) · 5 เดือน 2569"
+        <Card title="สัดส่วนยอดขายแต่ละสินค้า (Product Mix)" subtitle={`มูลค่าขาย (ลบ.) · ${NACT} เดือน 2569`}
           actions={<SegmentedControl size="sm" value={view} onChange={setView} options={[{value:'treemap',label:'Treemap'},{value:'pie',label:'Pie'}]} />}>
           {view === 'treemap'
             ? <Treemap data={segs} height={320} />
-            : <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}><DonutChart size={260} thickness={40} centerValue={fmt.m(D.totals.value / 1e6)} centerLabel="รวมทั้งหมด (ลบ.)" data={segs} /></div>}
+            : <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}><DonutChart size={260} thickness={40} centerValue={fmt.m(D.totals.value)} centerLabel="รวมทั้งหมด (ลบ.)" data={segs} /></div>}
         </Card>
 
         <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
@@ -219,7 +219,7 @@
     const D = viewFor(filters);
     const NACT = D.NACT;
     const [gran, setGran] = React.useState('month');
-    const data = gran === 'year' ? D.YEARS.map((y) => Math.round(D.sum(D.valueByYear[y].slice(0, NACT)) * 1e6 / (D.sum(D.volumeByYear[y].slice(0, NACT)) * 1000))) : D.price69;
+    const data = gran === 'year' ? D.YEARS.map((y) => Math.round(D.sum(D.valueByYear[y].slice(0, NACT)) / (D.sum(D.volumeByYear[y].slice(0, NACT)) * 1000))) : D.price69;
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
     const prodByPrice = [...D.PRODUCTS].sort((a, b) => b.avgPrice - a.avgPrice);
 
