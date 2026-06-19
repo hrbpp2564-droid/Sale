@@ -2121,6 +2121,7 @@ try { (() => {
   const Icon = window.Icon;
   const fmt = {
     int: n => Math.round(n).toLocaleString('en-US'),
+    dec2: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     dec1: n => (!n || n <= 0) ? '—' : (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -2132,7 +2133,7 @@ try { (() => {
     }) + 'M',
     kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgM: n => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kgM: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
   };
 
@@ -2407,7 +2408,7 @@ try { (() => {
     }, D.KPIS.map(k => /*#__PURE__*/React.createElement(KpiCard, {
       key: k.id,
       label: k.label,
-      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.id === 'value' ? Math.round(D.totals.value).toLocaleString('en-US') : k.value,
+      value: k.id === 'volume' ? D.totals.volume.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : k.id === 'value' ? D.totals.value.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : k.value,
       unit: k.id === 'volume' ? 'Kg' : k.id === 'value' ? 'บาท' : k.unit,
       delta: k.delta,
       deltaSuffix: " MoM",
@@ -2706,7 +2707,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.int(D.totals.value),
+      value: fmt.dec2(D.totals.value),
       unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.yoyVal,
       deltaSuffix: " YoY",
@@ -2895,7 +2896,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
-      value: fmt.int(D.totals.value),
+      value: fmt.dec2(D.totals.value),
       unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -5151,6 +5152,7 @@ try { (() => {
   const Icon = window.Icon;
   const fmt = {
     int: n => Math.round(n).toLocaleString('en-US'),
+    dec2: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     dec1: n => (!n || n <= 0) ? '—' : (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -5162,7 +5164,7 @@ try { (() => {
     }) + 'M',
     kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
     kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgM: n => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kgM: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
   };
 
@@ -5893,7 +5895,7 @@ try { (() => {
     }, D.KPIS.map(k => /*#__PURE__*/React.createElement(KpiCard, {
       key: k.id,
       label: k.label,
-      value: k.id === 'volume' ? Math.round(D.totals.volume).toLocaleString('en-US') : k.id === 'value' ? Math.round(D.totals.value).toLocaleString('en-US') : k.value,
+      value: k.id === 'volume' ? D.totals.volume.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : k.id === 'value' ? D.totals.value.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : k.value,
       unit: k.id === 'volume' ? 'Kg' : k.id === 'value' ? 'บาท' : k.unit,
       delta: k.delta,
       deltaSuffix: " MoM",
@@ -6192,7 +6194,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 5 \u0E40\u0E14\u0E37\u0E2D\u0E19",
-      value: fmt.int(D.totals.value),
+      value: fmt.dec2(D.totals.value),
       unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.yoyVal,
       deltaSuffix: " YoY",
@@ -6399,7 +6401,7 @@ try { (() => {
       })
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21",
-      value: fmt.int(D.totals.value),
+      value: fmt.dec2(D.totals.value),
       unit: "\u0E1A\u0E32\u0E17",
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
