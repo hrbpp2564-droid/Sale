@@ -228,7 +228,7 @@ const PRODUCTS_STD = [
 ];
 
 const CUR_YEAR   = 2569;
-const HIST_YEARS = [2565, 2566, 2567, 2568];
+const HIST_YEARS = [2564, 2565, 2566, 2567, 2568];
 const ALL_YEARS  = HIST_YEARS.concat([CUR_YEAR]);
 const $ = id => document.getElementById(id);
 let PASS = null, raw = null, curMonth = 0, curYear = CUR_YEAR;
@@ -783,7 +783,7 @@ $('tmplHistBtn').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
   const custList = CUSTOMERS_DB.filter(c => CUSTOMERS_ID_MAP[c]);
 
-  [2565, 2566, 2567, 2568].forEach(yr => {
+  HIST_YEARS.forEach(yr => {
     buildSalesSheet(wb, 'ข้อมูลการขาย ' + yr, custList, null);
   });
 
@@ -794,7 +794,7 @@ $('tmplHistBtn').addEventListener('click', () => {
   XLSX.utils.book_append_sheet(wb, wsC, 'รายชื่อลูกค้า');
 
   XLSX.writeFile(wb, 'BWP_history_template_' + new Date().toISOString().slice(0,10) + '.xlsx');
-  toast('✓ ดาวน์โหลดเทมเพลตปีเก่าแล้ว (2565–2568)', 'ok');
+  toast('✓ ดาวน์โหลดเทมเพลตปีเก่าแล้ว (2564–2568)', 'ok');
 });
 
 // ---------- Excel: upload ปีเก่า ----------
