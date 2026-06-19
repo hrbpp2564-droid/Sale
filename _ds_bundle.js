@@ -2954,7 +2954,7 @@ try { (() => {
       onClick: () => setSel(p)
     })))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
-      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
+      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "neutral",
         size: "sm"
@@ -2967,12 +2967,7 @@ try { (() => {
       labels: D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       showDots: true,
-      series: [{
-        name: 'ยอดรวมทุกสินค้า',
-        data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
-        color: 'var(--viz-2)',
-        type: 'area'
-      }, ...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
+      series: [...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
         name: p.name,
         data: prodKg(p),
         color: `var(--viz-${i % 8 + 1})`,
@@ -6475,7 +6470,7 @@ try { (() => {
       onClick: () => setSel(p)
     })))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
-      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 + \u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 \xB7 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. 2569",
+      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "neutral",
         size: "sm"
@@ -6488,12 +6483,7 @@ try { (() => {
       labels: D.MONTHS_ACT,
       yFormat: v => fmt.int(v),
       showDots: true,
-      series: [{
-        name: 'ยอดรวมทุกสินค้า',
-        data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
-        color: 'var(--viz-2)',
-        type: 'area'
-      }, ...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
+      series: [...[...D.PRODUCTS].sort((a, b) => b.kg - a.kg).slice(0, 6).map((p, i) => ({
         name: p.name,
         data: prodKg(p),
         color: `var(--viz-${i % 8 + 1})`,
