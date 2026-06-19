@@ -2120,8 +2120,8 @@ try { (() => {
   } = NS;
   const Icon = window.Icon;
   const fmt = {
-    int: n => Math.round(n).toLocaleString('en-US'),
-    dec2: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    int: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    dec2: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     dec1: n => (!n || n <= 0) ? '—' : (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -2131,8 +2131,8 @@ try { (() => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }) + 'M',
-    kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kg: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
+    kgK: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     kgM: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
   };
@@ -2653,7 +2653,7 @@ try { (() => {
         key: c.name + i,
         rank: i + 1,
         label: c.name,
-        sublabel: fmt.int(Math.round(c.kg * (D.totals.avgPrice || 0))) + ' \u0E1A\u0E32\u0E17',
+        sublabel: fmt.int(c.kg * (D.totals.avgPrice || 0)) + ' \u0E1A\u0E32\u0E17',
         value: fmt.int(c.kg) + ' Kg',
         ratio: _sc.length ? c.kg / _sc[0].kg : 0,
         share: c.share.toFixed(2) + '%',
@@ -2815,7 +2815,7 @@ try { (() => {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
         numeric: true,
-        render: r => fmt.int(Math.round(r.kg69 * 1000))
+        render: r => fmt.int(r.kg69 * 1000)
       }, {
         key: 'price',
         header: 'ราคาเฉลี่ย (฿/Kg)',
@@ -3711,7 +3711,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(2) + '% ของเดือน' : '—',
-      value: fmt.int(Math.round(c.monthly[mon] || 0)) + ' Kg',
+      value: fmt.int(c.monthly[mon] || 0) + ' Kg',
       ratio: (c.monthly[mon] || 0) / maxMon,
       delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(2) : null,
       color: "var(--viz-5)",
@@ -3754,7 +3754,7 @@ try { (() => {
         header: 'พ.ค. (Kg)',
         numeric: true,
         sortable: false,
-        render: r => fmt.int(Math.round(r.monthly[NACT - 1] || 0))
+        render: r => fmt.int(r.monthly[NACT - 1] || 0)
       }, {
         key: 'mom',
         header: '% Growth (MoM)',
@@ -3791,7 +3791,7 @@ try { (() => {
       columns: [
         { key: '_r', header: '#', width: 48, numeric: true, sortable: false, render: (r, i) => i + 1 },
         { key: 'name', header: 'ลูกค้า', render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name) },
-        { key: 'monKg', header: 'ปริมาณ (Kg)', numeric: true, render: r => fmt.int(Math.round(r.monthly[mon] || 0)) }
+        { key: 'monKg', header: 'ปริมาณ (Kg)', numeric: true, render: r => fmt.int(r.monthly[mon] || 0) }
       ]
     }) : /*#__PURE__*/React.createElement("div", { style: { padding: 24, color: 'var(--text-tertiary)', textAlign: 'center' } }, mon === 0 ? "เดือนแรก ยังไม่มีฐานให้เทียบ" : "ไม่มีลูกค้าใหม่ในเดือนนี้"))), /*#__PURE__*/React.createElement(Card, {
       title: gAll ? "ลูกค้าทั้งหมด (ทุกเดือน)" : ("ลูกค้าทั้งหมดในเดือน " + D.MONTHS_ACT[mon]),
@@ -3817,7 +3817,7 @@ try { (() => {
         key: 'monKg',
         header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
         numeric: true,
-        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round(r.monthly[mon] || 0))
+        render: r => gAll ? fmt.int(r.kg) : fmt.int(r.monthly[mon] || 0)
       }, {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
@@ -4066,7 +4066,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(ParetoChart, {
       height: 320,
       threshold: 80,
-      valueFormat: v => fmt.int(Math.round(v * 1000)) + ' Kg',
+      valueFormat: v => fmt.int(v * 1000) + ' Kg',
       data: paretoData
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
@@ -5151,8 +5151,8 @@ try { (() => {
   } = NS;
   const Icon = window.Icon;
   const fmt = {
-    int: n => Math.round(n).toLocaleString('en-US'),
-    dec2: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    int: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    dec2: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     dec1: n => (!n || n <= 0) ? '—' : (Math.round(n * 100) / 100).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -5162,8 +5162,8 @@ try { (() => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }) + 'M',
-    kg: n => Math.round(n).toLocaleString('en-US') + ' Kg',
-    kgK: n => Math.round(n).toLocaleString('en-US') + ' Kg',
+    kg: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
+    kgK: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     kgM: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
   };
@@ -6140,7 +6140,7 @@ try { (() => {
         key: c.name + i,
         rank: i + 1,
         label: c.name,
-        sublabel: fmt.int(Math.round(c.kg * (D.totals.avgPrice || 0))) + ' \u0E1A\u0E32\u0E17',
+        sublabel: fmt.int(c.kg * (D.totals.avgPrice || 0)) + ' \u0E1A\u0E32\u0E17',
         value: fmt.int(c.kg) + ' Kg',
         ratio: _sc.length ? c.kg / _sc[0].kg : 0,
         share: c.share.toFixed(2) + '%',
@@ -6302,7 +6302,7 @@ try { (() => {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
         numeric: true,
-        render: r => fmt.int(Math.round(r.kg69 * 1000))
+        render: r => fmt.int(r.kg69 * 1000)
       }, {
         key: 'price',
         header: 'ราคาเฉลี่ย (฿/Kg)',
@@ -7219,7 +7219,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: monTotal ? ((c.monthly[mon] || 0) / monTotal * 100).toFixed(2) + '% ของเดือน' : '—',
-      value: fmt.int(Math.round(c.monthly[mon] || 0)) + ' Kg',
+      value: fmt.int(c.monthly[mon] || 0) + ' Kg',
       ratio: (c.monthly[mon] || 0) / maxMon,
       delta: mon > 0 && c.monthly[mon - 1] ? +(((c.monthly[mon] || 0) / c.monthly[mon - 1] - 1) * 100).toFixed(2) : null,
       color: "var(--viz-5)",
@@ -7262,7 +7262,7 @@ try { (() => {
         header: 'พ.ค. (Kg)',
         numeric: true,
         sortable: false,
-        render: r => fmt.int(Math.round(r.monthly[NACT - 1] || 0))
+        render: r => fmt.int(r.monthly[NACT - 1] || 0)
       }, {
         key: 'mom',
         header: '% Growth (MoM)',
@@ -7299,7 +7299,7 @@ try { (() => {
       columns: [
         { key: '_r', header: '#', width: 48, numeric: true, sortable: false, render: (r, i) => i + 1 },
         { key: 'name', header: 'ลูกค้า', render: r => /*#__PURE__*/React.createElement("span", { style: { fontWeight: 500 } }, r.name) },
-        { key: 'monKg', header: 'ปริมาณ (Kg)', numeric: true, render: r => fmt.int(Math.round(r.monthly[mon] || 0)) }
+        { key: 'monKg', header: 'ปริมาณ (Kg)', numeric: true, render: r => fmt.int(r.monthly[mon] || 0) }
       ]
     }) : /*#__PURE__*/React.createElement("div", { style: { padding: 24, color: 'var(--text-tertiary)', textAlign: 'center' } }, mon === 0 ? "เดือนแรก ยังไม่มีฐานให้เทียบ" : "ไม่มีลูกค้าใหม่ในเดือนนี้"))), /*#__PURE__*/React.createElement(Card, {
       title: gAll ? "ลูกค้าทั้งหมด (ทุกเดือน)" : ("ลูกค้าทั้งหมดในเดือน " + D.MONTHS_ACT[mon]),
@@ -7325,7 +7325,7 @@ try { (() => {
         key: 'monKg',
         header: '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13 (Kg)',
         numeric: true,
-        render: r => gAll ? fmt.int(r.kg) : fmt.int(Math.round(r.monthly[mon] || 0))
+        render: r => gAll ? fmt.int(r.kg) : fmt.int(r.monthly[mon] || 0)
       }, {
         key: 'monShare',
         header: '\u0E2A\u0E31\u0E14\u0E2A\u0E48\u0E27\u0E19',
@@ -7576,7 +7576,7 @@ try { (() => {
     }, /*#__PURE__*/React.createElement(ParetoChart, {
       height: 320,
       threshold: 80,
-      valueFormat: v => fmt.int(Math.round(v * 1000)) + ' Kg',
+      valueFormat: v => fmt.int(v * 1000) + ' Kg',
       data: paretoData
     })), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,

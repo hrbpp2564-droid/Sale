@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618ad" />
+<link rel="stylesheet" href="../styles.css?v=20260618ae" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -194,9 +194,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ad"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618ad"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618ad"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ae"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618ae"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618ae"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -231,7 +231,7 @@ function setCurCustomers(arr) { if (isCur()) raw.customers = arr; else raw.histC
 function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show '+(kind||''); setTimeout(() => { t.className='toast '+(kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
 function n(x){ const v = parseFloat(x); return isFinite(v) ? v : 0; }
-function fmt(x) { return Number.isInteger(x) ? x.toLocaleString('en-US') : x.toFixed(1); }
+function fmt(x) { return (x == null ? 0 : x).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 // ---------- login ----------
 function doLogin(pass, fromStore) {
