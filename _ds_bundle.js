@@ -4212,13 +4212,14 @@ try { (() => {
     const unit = metric === 'value' ? 'บาท' : 'Kg';
     const _vmul = metric === 'value' ? 1e6 : 1;
     const _vfmt = metric === 'value' ? (n => fmt.int(n * _vmul)) : (n => fmt.dec1(n));
-    const years = D.YEARS.filter(y => Array.isArray(src[y])); // only years with data
+    // count of actual (non-null, >0) months for a year
+    const monthsOf = y => src[y].filter(v => v != null && +v > 0).length;
+    // only years that actually have data for this metric
+    const years = D.YEARS.filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
-    // count of actual (non-null) months for a year
-    const monthsOf = y => src[y].filter(v => v != null).length;
-    // comparable window = min actual months across all years (so YoY is apples-to-apples)
+    // comparable window = min actual months across years with data (so YoY is apples-to-apples)
     const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
     const sumN = (y, n) => D.sum(src[y].slice(0, n).map(v => v || 0));
     const sumFull = y => D.sum(src[y].map(v => v || 0));
@@ -7713,13 +7714,14 @@ try { (() => {
     const unit = metric === 'value' ? 'บาท' : 'Kg';
     const _vmul = metric === 'value' ? 1e6 : 1;
     const _vfmt = metric === 'value' ? (n => fmt.int(n * _vmul)) : (n => fmt.dec1(n));
-    const years = D.YEARS.filter(y => Array.isArray(src[y])); // only years with data
+    // count of actual (non-null, >0) months for a year
+    const monthsOf = y => src[y].filter(v => v != null && +v > 0).length;
+    // only years that actually have data for this metric
+    const years = D.YEARS.filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
-    // count of actual (non-null) months for a year
-    const monthsOf = y => src[y].filter(v => v != null).length;
-    // comparable window = min actual months across all years (so YoY is apples-to-apples)
+    // comparable window = min actual months across years with data (so YoY is apples-to-apples)
     const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
     const sumN = (y, n) => D.sum(src[y].slice(0, n).map(v => v || 0));
     const sumFull = y => D.sum(src[y].map(v => v || 0));
