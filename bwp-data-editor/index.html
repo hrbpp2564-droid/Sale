@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618ah" />
+<link rel="stylesheet" href="../styles.css?v=20260618ai" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -33,9 +33,9 @@
   input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
   input.text, select { text-align: left; font-family: var(--font-sans); }
   .cust-name { width: 100%; min-width: 140px; }
-  .kg { width: 90px; text-align: right; }
-  .val { width: 90px; text-align: right; }
-  .tot { width: 90px; text-align: right; background: var(--surface-2); color: var(--text-secondary); cursor: default; }
+  .kg { width: 120px; min-width: 120px; text-align: right; }
+  .val { width: 140px; min-width: 140px; text-align: right; }
+  .tot { width: 130px; min-width: 130px; text-align: right; background: var(--surface-2); color: var(--text-secondary); cursor: default; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
   .fld { display: flex; flex-direction: column; gap: 5px; }
   .fld label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); font-weight: 600; }
@@ -204,9 +204,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ah"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618ah"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618ah"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ai"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618ai"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618ai"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
