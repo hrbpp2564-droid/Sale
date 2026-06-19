@@ -3599,6 +3599,8 @@ try { (() => {
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const max = sorted.length ? sorted[0].kg : 1;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0] || { name: '—', mom: 0 };
+    const [custMetric, setCustMetric] = React.useState('kg'); // kg | val
+    const _avgP = D.totals.avgPrice || 0;
 
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
@@ -3672,11 +3674,13 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(Card, {
-      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 (Kg)",
-      actions: /*#__PURE__*/React.createElement(Badge, {
-        tone: "neutral",
-        size: "sm"
-      }, "5 \u0E40\u0E14\u0E37\u0E2D\u0E19"),
+      title: custMetric === 'val' ? "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17)" : "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 (Kg)",
+      actions: /*#__PURE__*/React.createElement(SegmentedControl, {
+        size: "sm",
+        value: custMetric,
+        onChange: setCustMetric,
+        options: [{ value: 'kg', label: 'Kg' }, { value: 'val', label: '\u0E1A\u0E32\u0E17' }]
+      }),
       bodyStyle: {
         padding: 'var(--space-2)'
       }
@@ -3685,7 +3689,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: c.share.toFixed(2) + '% ของยอดรวม',
-      value: fmt.int(c.kg) + ' Kg',
+      value: custMetric === 'val' ? fmt.int(c.kg * _avgP) + ' บาท' : fmt.int(c.kg) + ' Kg',
       ratio: c.kg / max,
       share: null,
       delta: c.mom,
@@ -7127,6 +7131,8 @@ try { (() => {
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const max = sorted.length ? sorted[0].kg : 1;
     const fastest = [...D.CUSTOMERS].sort((a, b) => b.mom - a.mom)[0] || { name: '—', mom: 0 };
+    const [custMetric, setCustMetric] = React.useState('kg'); // kg | val
+    const _avgP = D.totals.avgPrice || 0;
 
     // Top 10 ranked by the selected month's volume (Kg)
     const byMonth = [...D.CUSTOMERS].sort((a, b) => (b.monthly[mon] || 0) - (a.monthly[mon] || 0)).slice(0, 10);
@@ -7200,11 +7206,13 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(Card, {
-      title: "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 (Kg)",
-      actions: /*#__PURE__*/React.createElement(Badge, {
-        tone: "neutral",
-        size: "sm"
-      }, "5 \u0E40\u0E14\u0E37\u0E2D\u0E19"),
+      title: custMetric === 'val' ? "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E02\u0E32\u0E22 (\u0E1A\u0E32\u0E17)" : "Top 10 \u0E25\u0E39\u0E01\u0E04\u0E49\u0E32 \u2014 \u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22 (Kg)",
+      actions: /*#__PURE__*/React.createElement(SegmentedControl, {
+        size: "sm",
+        value: custMetric,
+        onChange: setCustMetric,
+        options: [{ value: 'kg', label: 'Kg' }, { value: 'val', label: '\u0E1A\u0E32\u0E17' }]
+      }),
       bodyStyle: {
         padding: 'var(--space-2)'
       }
@@ -7213,7 +7221,7 @@ try { (() => {
       rank: i + 1,
       label: c.name,
       sublabel: c.share.toFixed(2) + '% ของยอดรวม',
-      value: fmt.int(c.kg) + ' Kg',
+      value: custMetric === 'val' ? fmt.int(c.kg * _avgP) + ' บาท' : fmt.int(c.kg) + ' Kg',
       ratio: c.kg / max,
       share: null,
       delta: c.mom,
