@@ -4230,13 +4230,13 @@ try { (() => {
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
       name: 'ปี ' + y,
-      data: src[y].slice(0, cmp).map(v => v == null ? null : (metric === 'value' ? Math.round(v * 1e6) : v)),
+      data: src[y].slice(0, 12).map(v => v == null ? null : (metric === 'value' ? Math.round(v * 1e6) : v)),
       color: yearColor(i),
       type: i === years.length - 1 ? 'area' : 'line'
     }));
 
     // monthly comparison table — one column per year + YoY (latest vs prev)
-    const rows = D.MONTHS_ACT.slice(0, cmp).map((m, i) => {
+    const rows = D.TH_MONTHS.map((m, i) => {
       const row = {
         month: m
       };
@@ -4298,7 +4298,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -4313,7 +4313,7 @@ try { (() => {
       })
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 300,
-      labels: D.MONTHS_ACT.slice(0, cmp),
+      labels: D.TH_MONTHS,
       yFormat: v => fmt.int(v),
       showDots: true,
       series: series
@@ -7731,13 +7731,13 @@ try { (() => {
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
       name: 'ปี ' + y,
-      data: src[y].slice(0, cmp).map(v => v == null ? null : (metric === 'value' ? Math.round(v * 1e6) : v)),
+      data: src[y].slice(0, 12).map(v => v == null ? null : (metric === 'value' ? Math.round(v * 1e6) : v)),
       color: yearColor(i),
       type: i === years.length - 1 ? 'area' : 'line'
     }));
 
     // monthly comparison table — one column per year + YoY (latest vs prev)
-    const rows = D.MONTHS_ACT.slice(0, cmp).map((m, i) => {
+    const rows = D.TH_MONTHS.map((m, i) => {
       const row = {
         month: m
       };
@@ -7799,7 +7799,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -7814,7 +7814,7 @@ try { (() => {
       })
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 300,
-      labels: D.MONTHS_ACT.slice(0, cmp),
+      labels: D.TH_MONTHS,
       yFormat: v => fmt.int(v),
       showDots: true,
       series: series
