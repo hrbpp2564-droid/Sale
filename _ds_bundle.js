@@ -2390,12 +2390,27 @@ try { (() => {
       : null;
     const _vCur69 = _custMonKg ? _custMonKg.map((k, j) => kCur[idxs[j]] ? rnd(pick(vCur)[j] * (k / kCur[idxs[j]]), 2) : 0) : pick(vCur);
     const _kCur69 = _custMonKg ? _custMonKg : pick(kCur);
+    // recompute forecast for filtered view (run-rate base + linear trend, last 3 months)
+    const _fNACT = idxs.length;
+    const _f3v = _vCur69.slice(Math.max(0, _fNACT-3), _fNACT).filter(v => v != null && +v > 0);
+    const _fBase = _f3v.length ? _f3v.reduce((s,v)=>s+(+v),0)/_f3v.length : (_fNACT ? _vCur69.reduce((s,v)=>s+(+v||0),0)/_fNACT : 0);
+    const _fSlope = _f3v.length >= 2 ? (_f3v[_f3v.length-1] - _f3v[0]) / Math.max(1, _f3v.length-1) : 0;
+    const _fProjVal = Array.from({length: 12}, (_, fi) => {
+      if (fi < _fNACT) return +(_vCur69[fi] == null ? 0 : +_vCur69[fi]).toFixed(2);
+      const ahead = fi - _fNACT + 1;
+      return +Math.max(0, _fBase + _fSlope * ahead).toFixed(2);
+    });
+    const _fYearEndVal = Math.round(_fProjVal.reduce((s,v)=>s+v,0));
+    const _fTotalKg = _kCur69.reduce((s,v)=>s+(+v||0),0);
+    const _fYearEndKg = rnd((_fTotalKg + (_fNACT ? _fTotalKg/_fNACT : 0) * (12 - _fNACT)) / 1000, 2);
+    const _forecast = { yearEndVal: _fYearEndVal, yearEndKg: _fYearEndKg, projVal: _fProjVal, actualMonths: _fNACT, confidence: Math.min(95, Math.round(50 + _fNACT * 8)) };
     return Object.assign({}, D, {
       NACT: idxs.length,
       MONTHS_ACT: labels,
       valueByYear: Object.assign({}, D.valueByYear, { 2569: _vCur69, 2568: pick(vCmp) }),
       volumeByYear: Object.assign({}, D.volumeByYear, { 2569: _kCur69, 2568: pick(kCmp) }),
       price69: priceArr,
+      forecast: _forecast,
       KPIS: KPIS,
       PRODUCTS: prods,
       CUSTOMERS: custs,
@@ -4430,10 +4445,10 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Lg, {
       color: "var(--viz-1)"
-    }, "\u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 (\u0E21.\u0E04.\u2013\u0E1E.\u0E04.)"), /*#__PURE__*/React.createElement(Lg, {
+    }, `\u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 (${D.MONTHS_ACT[0] || ''}\u2013${D.MONTHS_ACT[A - 1] || ''})`), /*#__PURE__*/React.createElement(Lg, {
       color: "var(--viz-3)",
       dash: true
-    }, "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C (\u0E21\u0E34.\u0E22.\u2013\u0E18.\u0E04.)"), /*#__PURE__*/React.createElement(Lg, {
+    }, `\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C (${D.TH_MONTHS[A] || ''}\u2013${D.TH_MONTHS[11] || ''})`), /*#__PURE__*/React.createElement(Lg, {
       color: "var(--viz-3)",
       band: true
     }, "\u0E0A\u0E48\u0E27\u0E07\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19 \xB19%")), /*#__PURE__*/React.createElement("svg", {
@@ -4555,7 +4570,7 @@ try { (() => {
         fontSize: 'var(--text-sm)',
         color: 'var(--text-tertiary)'
       }
-    }, "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35 2569 \u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. \xB7 \u0E42\u0E21\u0E40\u0E14\u0E25 Time-Series (\u0E04\u0E48\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22 3 \u0E40\u0E14\u0E37\u0E2D\u0E19\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 + \u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21)")), /*#__PURE__*/React.createElement(Grid, {
+    }, `\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35 2569 \u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07 ${D.NACT} \u0E40\u0E14\u0E37\u0E2D\u0E19 (${D.MONTHS_ACT[0] || ''}\u2013${D.MONTHS_ACT[D.NACT - 1] || ''}) \u00B7 Run-rate + Linear Trend`)), /*#__PURE__*/React.createElement(Grid, {
       min: 160,
       gap: 12,
       style: {
@@ -5853,12 +5868,27 @@ try { (() => {
       : null;
     const _vCur69 = _custMonKg ? _custMonKg.map((k, j) => kCur[idxs[j]] ? rnd(pick(vCur)[j] * (k / kCur[idxs[j]]), 2) : 0) : pick(vCur);
     const _kCur69 = _custMonKg ? _custMonKg : pick(kCur);
+    // recompute forecast for filtered view (run-rate base + linear trend, last 3 months)
+    const _fNACT = idxs.length;
+    const _f3v = _vCur69.slice(Math.max(0, _fNACT-3), _fNACT).filter(v => v != null && +v > 0);
+    const _fBase = _f3v.length ? _f3v.reduce((s,v)=>s+(+v),0)/_f3v.length : (_fNACT ? _vCur69.reduce((s,v)=>s+(+v||0),0)/_fNACT : 0);
+    const _fSlope = _f3v.length >= 2 ? (_f3v[_f3v.length-1] - _f3v[0]) / Math.max(1, _f3v.length-1) : 0;
+    const _fProjVal = Array.from({length: 12}, (_, fi) => {
+      if (fi < _fNACT) return +(_vCur69[fi] == null ? 0 : +_vCur69[fi]).toFixed(2);
+      const ahead = fi - _fNACT + 1;
+      return +Math.max(0, _fBase + _fSlope * ahead).toFixed(2);
+    });
+    const _fYearEndVal = Math.round(_fProjVal.reduce((s,v)=>s+v,0));
+    const _fTotalKg = _kCur69.reduce((s,v)=>s+(+v||0),0);
+    const _fYearEndKg = rnd((_fTotalKg + (_fNACT ? _fTotalKg/_fNACT : 0) * (12 - _fNACT)) / 1000, 2);
+    const _forecast = { yearEndVal: _fYearEndVal, yearEndKg: _fYearEndKg, projVal: _fProjVal, actualMonths: _fNACT, confidence: Math.min(95, Math.round(50 + _fNACT * 8)) };
     return Object.assign({}, D, {
       NACT: idxs.length,
       MONTHS_ACT: labels,
       valueByYear: Object.assign({}, D.valueByYear, { 2569: _vCur69, 2568: pick(vCmp) }),
       volumeByYear: Object.assign({}, D.volumeByYear, { 2569: _kCur69, 2568: pick(kCmp) }),
       price69: priceArr,
+      forecast: _forecast,
       KPIS: KPIS,
       PRODUCTS: prods,
       CUSTOMERS: custs,
@@ -7916,10 +7946,10 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Lg, {
       color: "var(--viz-1)"
-    }, "\u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 (\u0E21.\u0E04.\u2013\u0E1E.\u0E04.)"), /*#__PURE__*/React.createElement(Lg, {
+    }, `\u0E22\u0E2D\u0E14\u0E08\u0E23\u0E34\u0E07 (${D.MONTHS_ACT[0] || ''}\u2013${D.MONTHS_ACT[A - 1] || ''})`), /*#__PURE__*/React.createElement(Lg, {
       color: "var(--viz-3)",
       dash: true
-    }, "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C (\u0E21\u0E34.\u0E22.\u2013\u0E18.\u0E04.)"), /*#__PURE__*/React.createElement(Lg, {
+    }, `\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C (${D.TH_MONTHS[A] || ''}\u2013${D.TH_MONTHS[11] || ''})`), /*#__PURE__*/React.createElement(Lg, {
       color: "var(--viz-3)",
       band: true
     }, "\u0E0A\u0E48\u0E27\u0E07\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19 \xB19%")), /*#__PURE__*/React.createElement("svg", {
@@ -8043,7 +8073,7 @@ try { (() => {
         fontSize: 'var(--text-sm)',
         color: 'var(--text-tertiary)'
       }
-    }, "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35 2569 \u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07 \u0E21.\u0E04.\u2013\u0E1E.\u0E04. \xB7 \u0E42\u0E21\u0E40\u0E14\u0E25 Time-Series (\u0E04\u0E48\u0E32\u0E40\u0E09\u0E25\u0E35\u0E48\u0E22 3 \u0E40\u0E14\u0E37\u0E2D\u0E19\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 + \u0E41\u0E19\u0E27\u0E42\u0E19\u0E49\u0E21)")), /*#__PURE__*/React.createElement(Grid, {
+    }, `\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35 2569 \u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07 ${D.NACT} \u0E40\u0E14\u0E37\u0E2D\u0E19 (${D.MONTHS_ACT[0] || ''}\u2013${D.MONTHS_ACT[D.NACT - 1] || ''}) \u00B7 Run-rate + Linear Trend`)), /*#__PURE__*/React.createElement(Grid, {
       min: 160,
       gap: 12,
       style: {

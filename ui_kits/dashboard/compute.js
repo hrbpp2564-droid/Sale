@@ -178,11 +178,18 @@
       { id: 'target', label: 'Achievement', value: achievementPct != null ? achievementPct.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—', unit: achievementPct != null ? '%' : 'ไม่มีเป้า', delta: 0, yoy: 0, spark: [], color: 'var(--viz-6,#a78bfa)' }
     ];
 
-    // ---- forecast: project remaining months at average of actuals ----
+    // ---- forecast: run-rate base + linear trend from last 3 months ----
     var avgMonthVal = NACT ? totalValueLbn / NACT : 0;
     var avgMonthKg = NACT ? totalVolKKg / NACT : 0;
+    var _f3v = [];
+    for (var fl = Math.max(0, NACT - 3); fl < NACT; fl++) { var fv = num(val69[fl]) / 1e6; if (fv > 0) _f3v.push(fv); }
+    var _fBase = _f3v.length ? _f3v.reduce(function(s,v){return s+v;},0) / _f3v.length : avgMonthVal;
+    var _fSlope = _f3v.length >= 2 ? (_f3v[_f3v.length-1] - _f3v[0]) / Math.max(1, _f3v.length - 1) : 0;
     var projVal = [];
-    for (var f = 0; f < 12; f++) projVal.push(f < NACT ? r2(num(val69[f]) / 1e6) : r2(avgMonthVal));
+    for (var f = 0; f < 12; f++) {
+      if (f < NACT) { projVal.push(r2(num(val69[f]) / 1e6)); }
+      else { var ahead = f - NACT + 1; projVal.push(r2(Math.max(0, _fBase + _fSlope * ahead))); }
+    }
     var yearEndVal = Math.round(sum(projVal));
     var yearEndKg = r2((totalVolKKg + avgMonthKg * (12 - NACT)) / 1000);
 
