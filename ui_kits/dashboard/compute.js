@@ -189,16 +189,22 @@
     // ---- multi-year series (history years 2565–2568 are optional & editable) ----
     var hist = raw.history || {};
     var valueByYear = {}, volumeByYear = {};
-    valueByYear['2568'] = padTo12((hist['2568'] && hist['2568'].value) || BASE.value68);
+    // hist[y].value is stored in บาท (from customer entry); valueByYear must be in ลบ. (viewFor ×1e6 → บาท)
+    function histValLbn(y, fallback) {
+      var hv = hist[y] && hist[y].value;
+      if (hv && hv.some(function(v){ return v != null && v > 0; })) {
+        return padTo12(hv.map(function(v){ return v == null ? null : num(v) / 1e6; }));
+      }
+      return padTo12(fallback || []);
+    }
+    valueByYear['2568'] = histValLbn('2568', BASE.value68);
     volumeByYear['2568'] = padTo12((hist['2568'] && hist['2568'].volume) || BASE.volume68);
-    // valueByYear must be in ลบ. (history 2568 is ลบ.; bundle multiplies by 1e6).
-    // val69 is stored in บาท for price math, so convert to ลบ. here for consistency.
     var val69Lbn = val69.map(function (v) { return v == null ? null : num(v) / 1e6; });
     valueByYear['2569'] = padTo12(val69Lbn);
     volumeByYear['2569'] = padTo12(vol69);
     Object.keys(hist).forEach(function (y) {
       if (y === '2568' || y === '2569') return;
-      valueByYear[y] = padTo12((hist[y] && hist[y].value) || []);
+      valueByYear[y] = histValLbn(y);
       volumeByYear[y] = padTo12((hist[y] && hist[y].volume) || []);
     });
     // YEARS = every year with ≥1 actual value, plus 2568/2569 always
