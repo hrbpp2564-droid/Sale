@@ -4244,7 +4244,8 @@ try { (() => {
       years.forEach(y => {
         row['y' + y] = src[y][i];
       });
-      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : 0;
+      row.yoy = (prev && src[prev][i] != null && +src[prev][i] > 0 && src[latest][i] != null && +src[latest][i] > 0)
+        ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : null;
       return row;
     });
 
@@ -4389,12 +4390,12 @@ try { (() => {
         key: 'y' + y,
         header: String(y),
         numeric: true,
-        render: r => _vfmt(r['y' + y])
+        render: r => (r['y' + y] == null || +r['y' + y] === 0) ? /*#__PURE__*/React.createElement('span', { style: { color: 'var(--text-disabled)' } }, '—') : _vfmt(r['y' + y])
       })), {
         key: 'yoy',
         header: '% YoY',
         numeric: true,
-        render: r => /*#__PURE__*/React.createElement(DeltaBadge, {
+        render: r => r.yoy == null ? /*#__PURE__*/React.createElement('span', { style: { color: 'var(--text-disabled)' } }, '—') : /*#__PURE__*/React.createElement(DeltaBadge, {
           value: r.yoy,
           size: "sm"
         })
@@ -7746,7 +7747,8 @@ try { (() => {
       years.forEach(y => {
         row['y' + y] = src[y][i];
       });
-      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : 0;
+      row.yoy = (prev && src[prev][i] != null && +src[prev][i] > 0 && src[latest][i] != null && +src[latest][i] > 0)
+        ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : null;
       return row;
     });
 
@@ -7891,12 +7893,12 @@ try { (() => {
         key: 'y' + y,
         header: String(y),
         numeric: true,
-        render: r => _vfmt(r['y' + y])
+        render: r => (r['y' + y] == null || +r['y' + y] === 0) ? /*#__PURE__*/React.createElement('span', { style: { color: 'var(--text-disabled)' } }, '—') : _vfmt(r['y' + y])
       })), {
         key: 'yoy',
         header: '% YoY',
         numeric: true,
-        render: r => /*#__PURE__*/React.createElement(DeltaBadge, {
+        render: r => r.yoy == null ? /*#__PURE__*/React.createElement('span', { style: { color: 'var(--text-disabled)' } }, '—') : /*#__PURE__*/React.createElement(DeltaBadge, {
           value: r.yoy,
           size: "sm"
         })
