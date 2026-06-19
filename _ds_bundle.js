@@ -2954,7 +2954,7 @@ try { (() => {
       onClick: () => setSel(p)
     })))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
-      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
+      subtitle: (D.PRODUCTS.length <= 6 ? "Kg \xB7 \u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32" : "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32"),
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "neutral",
         size: "sm"
@@ -2974,7 +2974,7 @@ try { (() => {
         type: 'line'
       }))]
     })), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (Top 12 \u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32)",
+      title: "\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E40\u0E23\u0E35\u0E22\u0E07\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32)",
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D Drill Down",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
@@ -6470,7 +6470,7 @@ try { (() => {
       onClick: () => setSel(p)
     })))), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E02\u0E32\u0E22\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32 (Kg)",
-      subtitle: "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32",
+      subtitle: (D.PRODUCTS.length <= 6 ? "Kg \xB7 \u0E17\u0E38\u0E01\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32" : "Kg \xB7 Top 6 \u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32"),
       actions: /*#__PURE__*/React.createElement(Badge, {
         tone: "neutral",
         size: "sm"
@@ -6490,7 +6490,7 @@ try { (() => {
         type: 'line'
       }))]
     })), /*#__PURE__*/React.createElement(Card, {
-      title: "\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (Top 12 \u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32)",
+      title: "\u0E2A\u0E34\u0E19\u0E04\u0E49\u0E32\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E40\u0E23\u0E35\u0E22\u0E07\u0E15\u0E32\u0E21\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32)",
       subtitle: "\u0E04\u0E25\u0E34\u0E01\u0E41\u0E16\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D Drill Down",
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
