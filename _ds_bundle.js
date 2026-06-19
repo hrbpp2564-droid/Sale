@@ -4208,7 +4208,11 @@ try { (() => {
   // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
   function YearScreen() {
     const [metric, setMetric] = React.useState('value');
-    const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
+    // Year comparison is a full-year view across years — source the untruncated
+    // 12-month arrays from window.VDATA (viewFor narrows 2568/2569 to the current
+    // year's active-month window, which would clip the comparison years).
+    const FULL = window.VDATA || D;
+    const src = metric === 'value' ? FULL.valueByYear : FULL.volumeByYear;
     const unit = metric === 'value' ? 'บาท' : 'Kg';
     const _vmul = metric === 'value' ? 1e6 : 1;
     const _vfmt = metric === 'value' ? (n => fmt.int(n * _vmul)) : (n => fmt.dec1(n));
@@ -7711,7 +7715,11 @@ try { (() => {
     const D = viewFor(filters);
     const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
-    const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
+    // Year comparison is a full-year view across years — source the untruncated
+    // 12-month arrays from window.VDATA (viewFor narrows 2568/2569 to the current
+    // year's active-month window, which would clip the comparison years).
+    const FULL = window.VDATA || D;
+    const src = metric === 'value' ? FULL.valueByYear : FULL.volumeByYear;
     const unit = metric === 'value' ? 'บาท' : 'Kg';
     const _vmul = metric === 'value' ? 1e6 : 1;
     const _vfmt = metric === 'value' ? (n => fmt.int(n * _vmul)) : (n => fmt.dec1(n));
