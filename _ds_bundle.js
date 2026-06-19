@@ -2133,8 +2133,8 @@ try { (() => {
     }) + 'M',
     kg: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     kgK: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
-    kgM: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
-    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
+    kgM: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
+    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n == null ? 0 : n).toFixed(2) + '%'
   };
 
   // quarter aggregation of a 12-month series
@@ -2725,8 +2725,8 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const mx = arr.length ? Math.max(...arr) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
-      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.int(Math.max(0, ...arr) * 1e6) + ' \u0E1A\u0E32\u0E17' : '\u2014 \u0E1A\u0E32\u0E17'; })(),
+      value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const vals = arr.filter(v => v != null); const mx = vals.length ? Math.max(...vals) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
+      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT).filter(v => v != null); return arr.length && NACT > 0 ? fmt.int(Math.max(0, ...arr) * 1e6) + ' \u0E1A\u0E32\u0E17' : '\u2014 \u0E1A\u0E32\u0E17'; })(),
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
@@ -3982,8 +3982,8 @@ try { (() => {
         size: 15
       }),
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      metric: fmt.int(Math.max(...c.monthly.slice(0, _NACT))) + ' Kg',
-      detail: 'เดือน ' + (_detailD.MONTHS_ACT[c.monthly.slice(0, _NACT).indexOf(Math.max(...c.monthly.slice(0, _NACT)))] || '—')
+      metric: ((_ms => fmt.int(_ms.length ? Math.max(..._ms) : 0))(c.monthly.slice(0, _NACT).filter(v => v != null))) + ' Kg',
+      detail: 'เดือน ' + ((_ms => _ms.length ? (_detailD.MONTHS_ACT[c.monthly.slice(0, _NACT).indexOf(Math.max(..._ms))] || '—') : '—')(c.monthly.slice(0, _NACT).filter(v => v != null)))
     }), /*#__PURE__*/React.createElement(InsightCard, {
       tone: rank <= 3 ? 'warning' : 'info',
       icon: /*#__PURE__*/React.createElement(Icon, {
@@ -5164,8 +5164,8 @@ try { (() => {
     }) + 'M',
     kg: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
     kgK: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
-    kgM: n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
-    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2) + '%'
+    kgM: n => (n == null ? 0 : n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kg',
+    pct: n => (n >= 0 ? '+' : '−') + Math.abs(n == null ? 0 : n).toFixed(2) + '%'
   };
 
   // quarter aggregation of a 12-month series
@@ -6212,8 +6212,8 @@ try { (() => {
       delta: D.totals.momVal
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const mx = arr.length ? Math.max(...arr) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
-      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); return arr.length && NACT > 0 ? fmt.int(Math.max(0, ...arr) * 1e6) + ' \u0E1A\u0E32\u0E17' : '\u2014 \u0E1A\u0E32\u0E17'; })(),
+      value: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT); const vals = arr.filter(v => v != null); const mx = vals.length ? Math.max(...vals) : 0; const idx = mx > 0 ? arr.indexOf(mx) : -1; return idx >= 0 ? (D.MONTHS_ACT[idx] || '\u2014') : '\u2014'; })(),
+      unit: (() => { const arr = (D.valueByYear[2569] || []).slice(0, NACT).filter(v => v != null); return arr.length && NACT > 0 ? fmt.int(Math.max(0, ...arr) * 1e6) + ' \u0E1A\u0E32\u0E17' : '\u2014 \u0E1A\u0E32\u0E17'; })(),
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
@@ -7490,8 +7490,8 @@ try { (() => {
         size: 15
       }),
       title: "\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
-      metric: fmt.int(Math.max(...c.monthly.slice(0, _NACT))) + ' Kg',
-      detail: 'เดือน ' + (_detailD.MONTHS_ACT[c.monthly.slice(0, _NACT).indexOf(Math.max(...c.monthly.slice(0, _NACT)))] || '—')
+      metric: ((_ms => fmt.int(_ms.length ? Math.max(..._ms) : 0))(c.monthly.slice(0, _NACT).filter(v => v != null))) + ' Kg',
+      detail: 'เดือน ' + ((_ms => _ms.length ? (_detailD.MONTHS_ACT[c.monthly.slice(0, _NACT).indexOf(Math.max(..._ms))] || '—') : '—')(c.monthly.slice(0, _NACT).filter(v => v != null)))
     }), /*#__PURE__*/React.createElement(InsightCard, {
       tone: rank <= 3 ? 'warning' : 'info',
       icon: /*#__PURE__*/React.createElement(Icon, {

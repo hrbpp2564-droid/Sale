@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618ai" />
+<link rel="stylesheet" href="../styles.css?v=20260618aj" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -204,9 +204,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ai"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618ai"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618ai"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618aj"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618aj"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618aj"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -297,6 +297,7 @@ function deriveRaw(payload) {
     });
     r.targets = pad12(s.targets || Array(12).fill(null));
     r.targetsKg = pad12(s.targetsKg || Array(12).fill(null));
+    r.targetMode = s.targetMode === 'kg' ? 'kg' : 'value';
     const h = s.history || {};
     Object.keys(h).forEach(y => { r.history[y] = { value: pad12(h[y] && h[y].value), volume: pad12(h[y] && h[y].volume) }; });
     const hc = s.histCustomers || {};
@@ -555,9 +556,12 @@ function markDirty() { $('saveBtn').disabled = false; }
 function tgtMode() { return document.querySelector('input[name="tgtMode"]:checked') ? document.querySelector('input[name="tgtMode"]:checked').value : 'value'; }
 function tgtArray() { return tgtMode() === 'kg' ? raw.targetsKg : raw.targets; }
 
+let _tgtModeRestored = false;
 function renderTargetRow() {
   if (!isCur()) { $('targetCard').style.display = 'none'; return; }
   $('targetCard').style.display = '';
+  // restore saved mode into the radio once (first render after load)
+  if (!_tgtModeRestored && raw.targetMode === 'kg' && $('tgtModeKg')) { $('tgtModeKg').checked = true; _tgtModeRestored = true; }
   const isKg = tgtMode() === 'kg';
   const lbl = $('targetModeLabel');
   if (lbl) lbl.textContent = isKg ? '— กรอกเป้าปริมาณ (Kg) ต่อเดือน' : '— กรอกเป้ายอดขาย (บาท) ต่อเดือน';
@@ -718,7 +722,8 @@ $('saveBtn').addEventListener('click', () => {
     ),
     customersDB: raw.customersDB || [],
     targets: pad12(raw.targets || Array(12).fill(null)),
-    targetsKg: pad12(raw.targetsKg || Array(12).fill(null))
+    targetsKg: pad12(raw.targetsKg || Array(12).fill(null)),
+    targetMode: tgtMode()
   };
   const payload = window.BWP_compute(_computed);
   payload._raw = saveRaw;

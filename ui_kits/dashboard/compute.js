@@ -70,8 +70,16 @@
     for (var ti = 0; ti < NACT; ti++) { if (targets[ti] != null) { totalTarget += targets[ti]; hasTarget = true; } }
     var totalTargetKg = 0, hasTargetKg = false;
     for (var ti2 = 0; ti2 < NACT; ti2++) { if (targetsKg[ti2] != null) { totalTargetKg += targetsKg[ti2]; hasTargetKg = true; } }
-    var achievementPct = (hasTarget && totalTarget > 0) ? r2(totalValueBaht / totalTarget * 100)
-      : (hasTargetKg && totalTargetKg > 0) ? r2(totalVolKg / totalTargetKg * 100) : null;
+    // respect the mode chosen in the editor; fall back to whichever target exists
+    var _tgtMode = raw.targetMode === 'kg' ? 'kg' : 'value';
+    var achievementPct;
+    if (_tgtMode === 'kg') {
+      achievementPct = (hasTargetKg && totalTargetKg > 0) ? r2(totalVolKg / totalTargetKg * 100)
+        : (hasTarget && totalTarget > 0) ? r2(totalValueBaht / totalTarget * 100) : null;
+    } else {
+      achievementPct = (hasTarget && totalTarget > 0) ? r2(totalValueBaht / totalTarget * 100)
+        : (hasTargetKg && totalTargetKg > 0) ? r2(totalVolKg / totalTargetKg * 100) : null;
+    }
 
     // ---- products ----
     var _prodByName = {};
