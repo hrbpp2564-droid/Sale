@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618ae" />
+<link rel="stylesheet" href="../styles.css?v=20260618af" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -194,9 +194,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ae"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618ae"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618ae"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618af"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618af"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618af"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -231,6 +231,8 @@ function setCurCustomers(arr) { if (isCur()) raw.customers = arr; else raw.histC
 function toast(msg, kind) { const t = $('toast'); t.textContent = msg; t.className = 'toast show '+(kind||''); setTimeout(() => { t.className='toast '+(kind||''); }, 3400); }
 function setStatus(text, color) { $('statusText').textContent = text; $('dot').style.background = color; }
 function n(x){ const v = parseFloat(x); return isFinite(v) ? v : 0; }
+// ปัดเศษหลักบัญชี (round half up) ทศนิยม 2 ตำแหน่ง
+function r2(x){ return Math.round((parseFloat(x) + Number.EPSILON) * 100) / 100; }
 function fmt(x) { return (x == null ? 0 : x).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 // ---------- login ----------
@@ -554,7 +556,7 @@ function renderTargetRow() {
   });
 }
 
-function valOr(x){ return (x===null||x===undefined||x==='') ? '' : x; }
+function valOr(x){ return (x===null||x===undefined||x==='') ? '' : r2(x).toFixed(2); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 // ---------- collect current month inputs back into raw ----------
@@ -568,12 +570,12 @@ function collectMonth() {
   document.querySelectorAll('[data-ckg]').forEach(inp => {
     const idx = +inp.dataset.ckg;
     const key = inp.dataset.key;
-    custs[idx].monthlyProd[curMonth][key] = inp.value.trim()==='' ? 0 : n(inp.value);
+    custs[idx].monthlyProd[curMonth][key] = inp.value.trim()==='' ? 0 : r2(n(inp.value));
   });
   // collect customer values
   document.querySelectorAll('[data-cval]').forEach(inp => {
     const idx = +inp.dataset.cval;
-    custs[idx].monthlyProd[curMonth].value = inp.value.trim()==='' ? 0 : n(inp.value);
+    custs[idx].monthlyProd[curMonth].value = inp.value.trim()==='' ? 0 : r2(n(inp.value));
   });
   // update row totals
   document.querySelectorAll('[data-ctot]').forEach(inp => {
@@ -814,7 +816,7 @@ function importHistoryWorkbook(wb) {
         const mi = TH_IDX[mon];
         if (!custName || mi === undefined) return;
         const prodKgTotal = Object.values(prodCols).reduce((s, col) => s + n(row[col]), 0);
-        const rowVal = valCol >= 0 ? n(row[valCol]) : 0;
+        const rowVal = valCol >= 0 ? r2(n(row[valCol])) : 0;
         if (prodKgTotal === 0 && rowVal === 0) { skipped++; return; }
         let cust = raw.histCustomers[yr].find(c => c.name === custName);
         if (!cust) {
@@ -823,7 +825,7 @@ function importHistoryWorkbook(wb) {
           added++;
         }
         const mp = cust.monthlyProd[mi];
-        Object.entries(prodCols).forEach(([key, col]) => { mp[key] = n(row[col]); });
+        Object.entries(prodCols).forEach(([key, col]) => { mp[key] = r2(n(row[col])); });
         if (valCol >= 0) mp.value = rowVal;
       });
     } else {
@@ -838,7 +840,7 @@ function importHistoryWorkbook(wb) {
       });
       raw.history[yr] = {
         value: val12.map(v => v || null),
-        volume: vol12.map(v => v ? +(v / 1000).toFixed(3) : null)
+        volume: vol12.map(v => v ? r2(v / 1000) : null)
       };
     }
     imported++;
@@ -904,7 +906,7 @@ function importWorkbook(wb) {
 
     // คำนวณยอดรวมก่อน — ถ้า 0 ทั้งหมดไม่ต้องเพิ่ม
     const prodKgTotal = Object.values(prodCols).reduce((s, col) => s + n(row[col]), 0);
-    const rowVal = valCol >= 0 ? n(row[valCol]) : 0;
+    const rowVal = valCol >= 0 ? r2(n(row[valCol])) : 0;
     if (prodKgTotal === 0 && rowVal === 0) { skipped++; return; }
 
     const m = TH_IDX[mon];
@@ -916,7 +918,7 @@ function importWorkbook(wb) {
     } else { updated++; }
 
     const mp = cust.monthlyProd[m];
-    Object.entries(prodCols).forEach(([key, col]) => { mp[key] = n(row[col]); });
+    Object.entries(prodCols).forEach(([key, col]) => { mp[key] = r2(n(row[col])); });
     if (valCol >= 0) mp.value = rowVal;
   });
 
