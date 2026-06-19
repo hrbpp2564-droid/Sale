@@ -2292,9 +2292,21 @@ try { (() => {
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
+    // select year-appropriate product/customer source (hist years use customersByYear/productsByYear)
+    const _yrSrc = (curY !== '2569' && D.productsByYear && D.productsByYear[curY]) ? curY : '2569';
+    const _prodSrc = _yrSrc !== '2569' ? (D.productsByYear[_yrSrc] || D.PRODUCTS || []) : (D.PRODUCTS || []);
+    const _custSrc = _yrSrc !== '2569' ? (D.customersByYear && D.customersByYear[_yrSrc] || []) : ((D.allCustomers && D.allCustomers.length) ? D.allCustomers : D.CUSTOMERS);
+    // when product filter applies to hist year, remap vCur/kCur to that product's monthly series
+    if (prodId && prodId !== 'all' && _yrSrc !== '2569') {
+      const _Phist = _prodSrc.find((p) => p.id === prodId);
+      if (_Phist) {
+        vCur = (_Phist.monthly || []).map((v) => (v == null ? null : v));
+        kCur = (_Phist.monthly || []).map((v, i) => { const pr = (_Phist.priceMonthly || [])[i]; return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0); });
+      }
+    }
     // products: merge duplicate names → 1 ประเภท, filter, re-slice monthly, recompute val/share
     const _pByName = {};
-    (D.PRODUCTS || []).forEach((p) => {
+    _prodSrc.forEach((p) => {
       const key = (p.name || '').trim();
       if (!_pByName[key]) { _pByName[key] = Object.assign({}, p, { monthly: (p.monthly || []).slice(), kg: p.kg || 0 }); }
       else { const t = _pByName[key].monthly, s = p.monthly || []; for (let i = 0; i < s.length; i++) t[i] = (t[i] || 0) + (s[i] || 0); _pByName[key].kg += (p.kg || 0); }
@@ -2331,7 +2343,7 @@ try { (() => {
       out.sort((a, b) => b.kg - a.kg);
       return out;
     };
-    let allC = remapCust((D.allCustomers && D.allCustomers.length) ? D.allCustomers : D.CUSTOMERS);
+    let allC = remapCust(_custSrc);
     if (cg && cg !== 'all') {
       const selName = (D.CUSTOMERS.find((c) => c.id === cg) || {}).name;
       if (selName) allC = allC.filter((c) => c.name === selName);
@@ -5779,9 +5791,21 @@ try { (() => {
     const yoy = (a, b) => b ? rnd((a - b) / b * 100, 1) : 0;
     const cg = f.customerGroup;
     const reslice = (arr) => idxs.map((i) => (arr || [])[i] || 0);
+    // select year-appropriate product/customer source (hist years use customersByYear/productsByYear)
+    const _yrSrc = (curY !== '2569' && D.productsByYear && D.productsByYear[curY]) ? curY : '2569';
+    const _prodSrc = _yrSrc !== '2569' ? (D.productsByYear[_yrSrc] || D.PRODUCTS || []) : (D.PRODUCTS || []);
+    const _custSrc = _yrSrc !== '2569' ? (D.customersByYear && D.customersByYear[_yrSrc] || []) : ((D.allCustomers && D.allCustomers.length) ? D.allCustomers : D.CUSTOMERS);
+    // when product filter applies to hist year, remap vCur/kCur to that product's monthly series
+    if (prodId && prodId !== 'all' && _yrSrc !== '2569') {
+      const _Phist = _prodSrc.find((p) => p.id === prodId);
+      if (_Phist) {
+        vCur = (_Phist.monthly || []).map((v) => (v == null ? null : v));
+        kCur = (_Phist.monthly || []).map((v, i) => { const pr = (_Phist.priceMonthly || [])[i]; return v == null ? null : (pr ? rnd(v * 1000 / pr, 1) : 0); });
+      }
+    }
     // products: merge duplicate names → 1 ประเภท, filter, re-slice monthly, recompute val/share
     const _pByName = {};
-    (D.PRODUCTS || []).forEach((p) => {
+    _prodSrc.forEach((p) => {
       const key = (p.name || '').trim();
       if (!_pByName[key]) { _pByName[key] = Object.assign({}, p, { monthly: (p.monthly || []).slice(), kg: p.kg || 0 }); }
       else { const t = _pByName[key].monthly, s = p.monthly || []; for (let i = 0; i < s.length; i++) t[i] = (t[i] || 0) + (s[i] || 0); _pByName[key].kg += (p.kg || 0); }
@@ -5818,7 +5842,7 @@ try { (() => {
       out.sort((a, b) => b.kg - a.kg);
       return out;
     };
-    let allC = remapCust((D.allCustomers && D.allCustomers.length) ? D.allCustomers : D.CUSTOMERS);
+    let allC = remapCust(_custSrc);
     if (cg && cg !== 'all') {
       const selName = (D.CUSTOMERS.find((c) => c.id === cg) || {}).name;
       if (selName) allC = allC.filter((c) => c.name === selName);

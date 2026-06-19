@@ -215,6 +215,77 @@
     });
     var YEARS = Object.keys(yset).map(Number).sort(function (a, b) { return a - b; });
 
+    // ---- per-year customer/product breakdown from histCustomers ----
+    var PROD_KEYS = ['p0','p1','p2','p3','p4'];
+    var prodNameMap = {};
+    rprods.forEach(function(p, i){ prodNameMap[PROD_KEYS[i]] = p.name; });
+
+    var customersByYear = {}, productsByYear = {};
+    customersByYear['2569'] = allCustomers;
+    productsByYear['2569'] = PRODUCTS;
+
+    var histCusts = raw.histCustomers || {};
+    Object.keys(histCusts).forEach(function(y) {
+      var hcList = histCusts[y] || [];
+      if (!hcList.length) return;
+      var vSeries = valueByYear[y] || []; // ลบ./month
+      var nActH = 0;
+      for (var i = 0; i < 12; i++) { if (vSeries[i] != null && num(vSeries[i]) > 0) nActH = i + 1; }
+      if (!nActH) nActH = 12;
+
+      // --- build customers for this hist year ---
+      var custMap = {};
+      hcList.forEach(function(c) {
+        var key = (c.name||'').trim();
+        var mk = (c.monthlyProd||[]).slice(0,12).map(function(mp) {
+          if (!mp || typeof mp !== 'object') return 0;
+          return PROD_KEYS.reduce(function(s,k){ return s + num(mp[k]); }, 0);
+        });
+        while (mk.length < 12) mk.push(0);
+        if (!custMap[key]) custMap[key] = { name: c.name, monthlyKg: mk };
+        else { var t = custMap[key].monthlyKg; for (var z=0;z<12;z++) t[z]+=mk[z]; }
+      });
+      var rcH = Object.keys(custMap).map(function(k){ return custMap[k]; });
+      var totKgH = rcH.reduce(function(s,c){ return s + sum(c.monthlyKg.slice(0,nActH)); },0);
+      customersByYear[y] = rcH.map(function(c) {
+        var kg = sum(c.monthlyKg.slice(0,nActH));
+        var last = nActH>=1 ? c.monthlyKg[nActH-1] : 0;
+        var prev = nActH>=2 ? c.monthlyKg[nActH-2] : 0;
+        var momC = prev>0 ? r2((last/prev-1)*100) : 0;
+        return { name:c.name, kg:Math.round(kg), share:totKgH>0?r2(kg/totKgH*100):null, monthly:c.monthlyKg.slice(0,nActH), mom:momC };
+      }).filter(function(c){ return c.kg>0; }).sort(function(a,b){ return b.kg-a.kg; });
+
+      // --- build products for this hist year ---
+      var prodMonKg = {};
+      PROD_KEYS.forEach(function(k){ prodMonKg[k] = Array(12).fill(0); });
+      hcList.forEach(function(c) {
+        (c.monthlyProd||[]).forEach(function(mp,m) {
+          if (!mp || typeof mp !== 'object') return;
+          PROD_KEYS.forEach(function(k){ prodMonKg[k][m] += num(mp[k]); });
+        });
+      });
+      var SKH = [];
+      for (var mm=0;mm<nActH;mm++) {
+        var sk=0; PROD_KEYS.forEach(function(k){ sk+=prodMonKg[k][mm]; }); SKH.push(sk);
+      }
+      var prodsH = PROD_KEYS.map(function(k,idx) {
+        var name = prodNameMap[k] || k;
+        var monthlyKg = prodMonKg[k];
+        var monthlyVal = [], priceMonthly = [], valTotBahtH = 0;
+        for (var mo=0;mo<nActH;mo++) {
+          var kgM = monthlyKg[mo];
+          var vBaht = SKH[mo]>0 ? num(vSeries[mo])*1e6*(kgM/SKH[mo]) : 0;
+          valTotBahtH += vBaht;
+          monthlyVal.push(r2(vBaht/1e6));
+          priceMonthly.push(kgM>0 ? r2(vBaht/kgM) : 0);
+        }
+        var kgTotH = sum(monthlyKg.slice(0,nActH));
+        return { id:'p'+(idx+1), name:name, val:r2(sum(monthlyVal)), kg:Math.round(kgTotH), avgPrice:kgTotH>0?r2(valTotBahtH/kgTotH):0, monthly:monthlyVal, priceMonthly:priceMonthly };
+      }).filter(function(p){ return p.kg>0; }).sort(function(a,b){ return b.val-a.val; });
+      var totPH = prodsH.reduce(function(s,p){ return s+p.val; },0);
+      productsByYear[y] = prodsH.map(function(p){ return Object.assign({},p,{ share:totPH?r2(p.val/totPH*100):0 }); });
+    });
+
     var out = {
       company: BASE.company,
       TH_MONTHS: BASE.TH_MONTHS,
@@ -227,6 +298,8 @@
       price69: price69,
       PRODUCTS: PRODUCTS,
       CUSTOMERS: CUSTOMERS,
+      customersByYear: customersByYear,
+      productsByYear: productsByYear,
       allCustomers: allCustomers,
       custTotalKg: Math.round(totalCustKg),
       nCustomers: nCustomers,
