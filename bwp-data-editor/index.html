@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP — บันทึกข้อมูลการขาย</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="../styles.css?v=20260618ag" />
+<link rel="stylesheet" href="../styles.css?v=20260618ah" />
 <style>
   body { margin: 0; background: var(--bg-app); font-family: var(--font-sans); color: var(--text-primary); }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 22px 100px; }
@@ -176,7 +176,17 @@
 
       <!-- [3b] เป้าหมายรายเดือน -->
       <div class="card" id="targetCard">
-        <h2>เป้าหมายรายเดือน <span class="tag">— กรอกเป้ายอดขาย (บาท) ต่อเดือน</span></h2>
+        <h2>เป้าหมายรายเดือน
+          <span class="tag" id="targetModeLabel">— กรอกเป้ายอดขายต่อเดือน</span>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+              <input type="radio" name="tgtMode" value="value" id="tgtModeVal" checked> บาท
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+              <input type="radio" name="tgtMode" value="kg" id="tgtModeKg"> Kg
+            </label>
+          </span>
+        </h2>
         <div class="kpibox" id="targetBox"></div>
       </div>
       <div class="arrow">↓</div>
@@ -194,9 +204,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ag"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260618ag"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260618ag"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260618ah"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260618ah"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260618ah"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -286,6 +296,7 @@ function deriveRaw(payload) {
       }
     });
     r.targets = pad12(s.targets || Array(12).fill(null));
+    r.targetsKg = pad12(s.targetsKg || Array(12).fill(null));
     const h = s.history || {};
     Object.keys(h).forEach(y => { r.history[y] = { value: pad12(h[y] && h[y].value), volume: pad12(h[y] && h[y].volume) }; });
     const hc = s.histCustomers || {};
@@ -510,8 +521,12 @@ function renderMonthSummary() {
   const val_baht = custs.reduce((s, c) => s + n((c.monthlyProd[curMonth]||{}).value), 0);
   const kg = vol_pK * 1000;
   const price = (kg > 0 && val_baht > 0) ? (val_baht / kg).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
-  const tgt = raw.targets && raw.targets[curMonth] != null ? n(raw.targets[curMonth]) : 0;
-  const achv = (tgt > 0 && val_baht > 0) ? ((val_baht / tgt) * 100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  const isKgMode = tgtMode() === 'kg';
+  const tgt = isKgMode
+    ? (raw.targetsKg && raw.targetsKg[curMonth] != null ? n(raw.targetsKg[curMonth]) : 0)
+    : (raw.targets   && raw.targets[curMonth]   != null ? n(raw.targets[curMonth])   : 0);
+  const actual = isKgMode ? kg : val_baht;
+  const achv = (tgt > 0 && actual > 0) ? ((actual / tgt) * 100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
   const box = $('monthSummary'); box.innerHTML = '';
   [
     { l: 'ปริมาณรวม',    v: kg > 0 ? fmt(kg) : '—', u: 'Kg' },
@@ -537,24 +552,36 @@ function renderPreview() {
 
 function markDirty() { $('saveBtn').disabled = false; }
 
+function tgtMode() { return document.querySelector('input[name="tgtMode"]:checked') ? document.querySelector('input[name="tgtMode"]:checked').value : 'value'; }
+function tgtArray() { return tgtMode() === 'kg' ? raw.targetsKg : raw.targets; }
+
 function renderTargetRow() {
   if (!isCur()) { $('targetCard').style.display = 'none'; return; }
   $('targetCard').style.display = '';
+  const isKg = tgtMode() === 'kg';
+  const lbl = $('targetModeLabel');
+  if (lbl) lbl.textContent = isKg ? '— กรอกเป้าปริมาณ (Kg) ต่อเดือน' : '— กรอกเป้ายอดขาย (บาท) ต่อเดือน';
+  const arr = tgtArray();
   const box = $('targetBox'); box.innerHTML = '';
   TH.forEach((m, i) => {
     const d = document.createElement('div'); d.className = 'kpi';
-    const cur = raw.targets ? raw.targets[i] : null;
-    d.innerHTML = `<div class="l">${m}</div><input data-tgt="${i}" class="val" style="width:100%;margin-top:4px" type="number" min="0" step="100000" placeholder="—" value="${cur != null ? cur : ''}">`;
+    const cur = arr ? arr[i] : null;
+    const step = isKg ? '1000' : '100000';
+    d.innerHTML = `<div class="l">${m}</div><input data-tgt="${i}" class="val" style="width:100%;margin-top:4px" type="number" min="0" step="${step}" placeholder="—" value="${cur != null ? cur : ''}">`;
     box.appendChild(d);
   });
   box.querySelectorAll('[data-tgt]').forEach(inp => {
     inp.addEventListener('change', () => {
-      if (!raw.targets) raw.targets = Array(12).fill(null);
-      raw.targets[+inp.dataset.tgt] = inp.value.trim() === '' ? null : n(inp.value);
-      markDirty();
+      const key = tgtMode() === 'kg' ? 'targetsKg' : 'targets';
+      if (!raw[key]) raw[key] = Array(12).fill(null);
+      raw[key][+inp.dataset.tgt] = inp.value.trim() === '' ? null : r2(n(inp.value));
+      markDirty(); renderMonthSummary();
     });
   });
 }
+
+// listen to mode toggle
+document.querySelectorAll('input[name="tgtMode"]').forEach(r => r.addEventListener('change', () => { renderTargetRow(); renderMonthSummary(); }));
 
 function valOr(x){ return (x===null||x===undefined||x==='') ? '' : r2(x).toFixed(2); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
@@ -690,7 +717,8 @@ $('saveBtn').addEventListener('click', () => {
       HIST_YEARS.map(y => [String(y), (raw.histCustomers[String(y)] || []).map(c => ({ name: c.name, monthlyProd: c.monthlyProd }))])
     ),
     customersDB: raw.customersDB || [],
-    targets: pad12(raw.targets || Array(12).fill(null))
+    targets: pad12(raw.targets || Array(12).fill(null)),
+    targetsKg: pad12(raw.targetsKg || Array(12).fill(null))
   };
   const payload = window.BWP_compute(_computed);
   payload._raw = saveRaw;

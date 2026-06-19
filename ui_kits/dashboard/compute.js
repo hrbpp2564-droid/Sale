@@ -50,6 +50,8 @@
 
     var targets = ((raw.targets || [])).slice(0, 12).map(function(v){ return v == null ? null : num(v); });
     while (targets.length < 12) targets.push(null);
+    var targetsKg = ((raw.targetsKg || [])).slice(0, 12).map(function(v){ return v == null ? null : num(v); });
+    while (targetsKg.length < 12) targetsKg.push(null);
 
     // price per month ฿/Kg  = value(บาท) / volume(Kg) = value / (vol(พัน Kg) * 1000)
     var price69 = [];
@@ -66,7 +68,10 @@
 
     var totalTarget = 0, hasTarget = false;
     for (var ti = 0; ti < NACT; ti++) { if (targets[ti] != null) { totalTarget += targets[ti]; hasTarget = true; } }
-    var achievementPct = (hasTarget && totalTarget > 0) ? r2(totalValueBaht / totalTarget * 100) : null;
+    var totalTargetKg = 0, hasTargetKg = false;
+    for (var ti2 = 0; ti2 < NACT; ti2++) { if (targetsKg[ti2] != null) { totalTargetKg += targetsKg[ti2]; hasTargetKg = true; } }
+    var achievementPct = (hasTarget && totalTarget > 0) ? r2(totalValueBaht / totalTarget * 100)
+      : (hasTargetKg && totalTargetKg > 0) ? r2(totalVolKg / totalTargetKg * 100) : null;
 
     // ---- products ----
     var _prodByName = {};
@@ -220,6 +225,7 @@
       },
       forecast: { yearEndVal: yearEndVal, yearEndKg: yearEndKg, projVal: projVal, actualMonths: NACT, confidence: Math.min(95, Math.round(50 + NACT * 8)) },
       targets: targets,
+      targetsKg: targetsKg,
       achievementPct: achievementPct,
       _raw: { monthly: { value: val69, volume: vol69 }, products: rprods, customers: rcust, history: hist }
     };
