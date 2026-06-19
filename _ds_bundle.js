@@ -2450,9 +2450,11 @@ try { (() => {
     const NACT = D.NACT;
     const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const labels = D.MONTHS_ACT;
-    const val69 = D.valueByYear[2569].slice(0, NACT);
-    const val68 = D.valueByYear[2568].slice(0, NACT);
-    const vol69 = D.volumeByYear[2569].slice(0, NACT);
+    const _curY = String((filters && filters.year) || '2569');
+    const _cmpY = String(parseInt(_curY) - 1);
+    const val69 = (D.valueByYear[2569] || []).slice(0, NACT);
+    const val68 = (D.valueByYear[2568] || []).slice(0, NACT);
+    const vol69 = (D.volumeByYear[2569] || []).slice(0, NACT);
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
@@ -2589,18 +2591,18 @@ try { (() => {
       labels: labels,
       yFormat: v => fmt.int(v),
       series: [{
-        name: 'มูลค่า 2569 (บาท)',
+        name: `มูลค่า ${_curY} (บาท)`,
         data: val69.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
-        name: 'ปริมาณ 2569 (Kg)',
+        name: `ปริมาณ ${_curY} (Kg)`,
         data: vol69.map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
       }, {
-        name: 'มูลค่า 2568 (บาท)',
+        name: `มูลค่า ${_cmpY} (บาท)`,
         data: val68.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--slate-400)',
         type: 'line'
@@ -2787,19 +2789,21 @@ try { (() => {
         marginTop: 16
       },
       padding: "none"
-    }, /*#__PURE__*/React.createElement(MonthTable, {D})));
+    }, /*#__PURE__*/React.createElement(MonthTable, {D, filters})));
   }
-  function MonthTable({D}) {
+  function MonthTable({D, filters}) {
     const {
       DataTable
     } = NS;
+    const curY = String((filters && filters.year) || '2569');
+    const cmpY = String(parseInt(curY) - 1);
     const rows = D.MONTHS_ACT.map((m, i) => ({
       month: m,
-      v69: D.valueByYear[2569][i],
-      v68: D.valueByYear[2568][i],
-      kg69: D.volumeByYear[2569][i],
-      price: D.price69[i],
-      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(2)
+      v_cur: (D.valueByYear[2569] || [])[i],
+      v_cmp: (D.valueByYear[2568] || [])[i],
+      kg69: (D.volumeByYear[2569] || [])[i],
+      price: (D.price69 || [])[i],
+      yoy: (() => { const a = (D.valueByYear[2569]||[])[i], b = (D.valueByYear[2568]||[])[i]; return (a != null && b) ? +((a/b - 1)*100).toFixed(2) : null; })()
     }));
     return /*#__PURE__*/React.createElement(DataTable, {
       rows: rows,
@@ -2814,33 +2818,33 @@ try { (() => {
           }
         }, r.month)
       }, {
-        key: 'v68',
-        header: 'มูลค่า 2568 (บาท)',
+        key: 'v_cmp',
+        header: `มูลค่า ${cmpY} (บาท)`,
         numeric: true,
-        render: r => fmt.int(r.v68 * 1e6)
+        render: r => r.v_cmp != null ? fmt.int(r.v_cmp * 1e6) : '—'
       }, {
-        key: 'v69',
-        header: 'มูลค่า 2569 (บาท)',
+        key: 'v_cur',
+        header: `มูลค่า ${curY} (บาท)`,
         numeric: true,
-        render: r => fmt.int(r.v69 * 1e6)
+        render: r => r.v_cur != null ? fmt.int(r.v_cur * 1e6) : '—'
       }, {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
         numeric: true,
-        render: r => fmt.int(r.kg69 * 1000)
+        render: r => r.kg69 != null ? fmt.int(r.kg69 * 1000) : '—'
       }, {
         key: 'price',
         header: 'ราคาเฉลี่ย (฿/Kg)',
         numeric: true,
-        render: r => fmt.dec1(r.price)
+        render: r => r.price != null ? fmt.dec1(r.price) : '—'
       }, {
         key: 'yoy',
         header: '% YoY',
         numeric: true,
-        render: r => /*#__PURE__*/React.createElement(DeltaBadge, {
+        render: r => r.yoy != null ? /*#__PURE__*/React.createElement(DeltaBadge, {
           value: r.yoy,
           size: "sm"
-        })
+        }) : /*#__PURE__*/React.createElement("span", {style:{color:'var(--text-tertiary)'}}, '—')
       }]
     });
   }
@@ -5949,9 +5953,11 @@ try { (() => {
     const NACT = D.NACT;
     const prodGrowth = p => p.monthly[NACT - 2] ? +((p.monthly[NACT - 1] / p.monthly[NACT - 2] - 1) * 100).toFixed(2) : 0;
     const labels = D.MONTHS_ACT;
-    const val69 = D.valueByYear[2569].slice(0, NACT);
-    const val68 = D.valueByYear[2568].slice(0, NACT);
-    const vol69 = D.volumeByYear[2569].slice(0, NACT);
+    const _curY = String((filters && filters.year) || '2569');
+    const _cmpY = String(parseInt(_curY) - 1);
+    const val69 = (D.valueByYear[2569] || []).slice(0, NACT);
+    const val68 = (D.valueByYear[2568] || []).slice(0, NACT);
+    const vol69 = (D.volumeByYear[2569] || []).slice(0, NACT);
     const prodByVal = [...D.PRODUCTS].sort((a, b) => b.val - a.val);
     const custByKg = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
     const _gc = D.CUSTOMERS.length > 0 ? D.CUSTOMERS.slice().sort((a, b) => b.mom - a.mom)[0] : null;
@@ -6088,18 +6094,18 @@ try { (() => {
       labels: labels,
       yFormat: v => fmt.int(v),
       series: [{
-        name: 'มูลค่า 2569 (บาท)',
+        name: `มูลค่า ${_curY} (บาท)`,
         data: val69.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--viz-1)',
         type: 'bar'
       }, {
-        name: 'ปริมาณ 2569 (Kg)',
+        name: `ปริมาณ ${_curY} (Kg)`,
         data: vol69.map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
         axis: 'right'
       }, {
-        name: 'มูลค่า 2568 (บาท)',
+        name: `มูลค่า ${_cmpY} (บาท)`,
         data: val68.map(v => v == null ? null : Math.round(v * 1e6)),
         color: 'var(--slate-400)',
         type: 'line'
@@ -6286,19 +6292,21 @@ try { (() => {
         marginTop: 16
       },
       padding: "none"
-    }, /*#__PURE__*/React.createElement(MonthTable, {D})));
+    }, /*#__PURE__*/React.createElement(MonthTable, {D, filters})));
   }
-  function MonthTable({D}) {
+  function MonthTable({D, filters}) {
     const {
       DataTable
     } = NS;
+    const curY = String((filters && filters.year) || '2569');
+    const cmpY = String(parseInt(curY) - 1);
     const rows = D.MONTHS_ACT.map((m, i) => ({
       month: m,
-      v69: D.valueByYear[2569][i],
-      v68: D.valueByYear[2568][i],
-      kg69: D.volumeByYear[2569][i],
-      price: D.price69[i],
-      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(2)
+      v_cur: (D.valueByYear[2569] || [])[i],
+      v_cmp: (D.valueByYear[2568] || [])[i],
+      kg69: (D.volumeByYear[2569] || [])[i],
+      price: (D.price69 || [])[i],
+      yoy: (() => { const a = (D.valueByYear[2569]||[])[i], b = (D.valueByYear[2568]||[])[i]; return (a != null && b) ? +((a/b - 1)*100).toFixed(2) : null; })()
     }));
     return /*#__PURE__*/React.createElement(DataTable, {
       rows: rows,
@@ -6313,33 +6321,33 @@ try { (() => {
           }
         }, r.month)
       }, {
-        key: 'v68',
-        header: 'มูลค่า 2568 (บาท)',
+        key: 'v_cmp',
+        header: `มูลค่า ${cmpY} (บาท)`,
         numeric: true,
-        render: r => fmt.int(r.v68 * 1e6)
+        render: r => r.v_cmp != null ? fmt.int(r.v_cmp * 1e6) : '—'
       }, {
-        key: 'v69',
-        header: 'มูลค่า 2569 (บาท)',
+        key: 'v_cur',
+        header: `มูลค่า ${curY} (บาท)`,
         numeric: true,
-        render: r => fmt.int(r.v69 * 1e6)
+        render: r => r.v_cur != null ? fmt.int(r.v_cur * 1e6) : '—'
       }, {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
         numeric: true,
-        render: r => fmt.int(r.kg69 * 1000)
+        render: r => r.kg69 != null ? fmt.int(r.kg69 * 1000) : '—'
       }, {
         key: 'price',
         header: 'ราคาเฉลี่ย (฿/Kg)',
         numeric: true,
-        render: r => fmt.dec1(r.price)
+        render: r => r.price != null ? fmt.dec1(r.price) : '—'
       }, {
         key: 'yoy',
         header: '% YoY',
         numeric: true,
-        render: r => /*#__PURE__*/React.createElement(DeltaBadge, {
+        render: r => r.yoy != null ? /*#__PURE__*/React.createElement(DeltaBadge, {
           value: r.yoy,
           size: "sm"
-        })
+        }) : /*#__PURE__*/React.createElement("span", {style:{color:'var(--text-tertiary)'}}, '—')
       }]
     });
   }
