@@ -269,7 +269,7 @@
         </div>
 
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={fmt.dec1(F.yearEndVal / 1e6)} unit="ลบ." delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
+          <KpiCard label="คาดการณ์มูลค่าสิ้นปี" value={Math.round(F.yearEndVal).toLocaleString('en-US')} unit="บาท" delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" accent icon={<Icon name="sparkles" size={15} />} />
           <KpiCard label="คาดการณ์ปริมาณสิ้นปี" value={Math.round(F.yearEndVolKg * 1e6).toLocaleString('en-US')} unit="Kg" delta={(() => { const _vd = window.VDATA || {}; const _b = ((_vd.volumeByYear && (_vd.volumeByYear['2568'] || _vd.volumeByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVolKg * 1000 / _b - 1) * 100).toFixed(1) : 0; })()} deltaSuffix=" vs 2568" icon={<Icon name="box" size={15} />} />
           <KpiCard label="Confidence Level" value={F.confidence} unit="%" icon={<Icon name="target" size={15} />} />
           <KpiCard label="เดือนที่เหลือ" value={String(12 - NACT)} unit="เดือน" icon={<Icon name="clock" size={15} />} />

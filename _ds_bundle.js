@@ -4584,8 +4584,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      value: fmt.dec1(F.yearEndVal / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: Math.round(F.yearEndVal).toLocaleString('en-US'),
+      unit: "บาท",
       delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })(),
       deltaSuffix: " vs 2568",
       accent: true,
@@ -8176,8 +8176,8 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E04\u0E32\u0E14\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32\u0E2A\u0E34\u0E49\u0E19\u0E1B\u0E35",
-      value: fmt.dec1(F.yearEndVal / 1e6),
-      unit: "\u0E25\u0E1A.",
+      value: Math.round(F.yearEndVal).toLocaleString('en-US'),
+      unit: "บาท",
       delta: (() => { const _vd = window.VDATA || {}; const _b = ((_vd.valueByYear && (_vd.valueByYear['2568'] || _vd.valueByYear[2568])) || []).reduce((s, x) => s + (+x || 0), 0); return _b ? +((F.yearEndVal / _b - 1) * 100).toFixed(1) : 0; })(),
       deltaSuffix: " vs 2568",
       accent: true,
