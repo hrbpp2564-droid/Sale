@@ -205,7 +205,7 @@
         return D.sum(arr.filter((x) => x != null));
       });
       series = [
-        { name: `มูลค่ารวมรายปี (ลบ.)`, data: v, color: 'var(--viz-1)', type: 'bar', tipFormat: tipBaht },
+        { name: `มูลค่ารวมรายปี (บาท)`, data: v, color: 'var(--viz-1)', type: 'bar', tipFormat: tipBaht },
         { name: 'ปริมาณรวมรายปี (Kg)', data: kg, color: 'var(--viz-2)', type: 'line', axis: 'right', tipFormat: tipKg },
       ];
     } else if (type === 'combo') {

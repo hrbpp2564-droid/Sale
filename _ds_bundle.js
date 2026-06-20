@@ -2725,7 +2725,7 @@ try { (() => {
         return D.sum(arr.filter(x => x != null)) * 1000;
       });
       series = [{
-        name: `มูลค่ารวมรายปี (ลบ.)`,
+        name: `มูลค่ารวมรายปี (บาท)`,
         data: v.map(x => x == null ? null : Math.round(x)),
         color: 'var(--viz-1)',
         type: 'bar',
@@ -6309,7 +6309,7 @@ try { (() => {
         return D.sum(arr.filter(x => x != null)) * 1000;
       });
       series = [{
-        name: `มูลค่ารวมรายปี (ลบ.)`,
+        name: `มูลค่ารวมรายปี (บาท)`,
         data: v.map(x => x == null ? null : Math.round(x)),
         color: 'var(--viz-1)',
         type: 'bar',
