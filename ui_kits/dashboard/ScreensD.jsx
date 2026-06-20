@@ -55,9 +55,15 @@
     const sumFull = (y) => (_rawByYear[y] || []).reduce((s, v) => s + (+v || 0), 0);
     const nMFull = (y) => (_rawByYear[y] || []).filter((v) => v != null && +v > 0).length;
 
-    const tLatest = sumN(latest, cmp);
-    const tPrev = prev ? sumN(prev, cmp) : 0;
-    const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(1) : 0;
+    const sumSel = (y) => (src[y] || []).reduce((s, v) => s + (+v || 0), 0);
+    // ยอดรวมที่แสดงใน KPI = เต็มทั้งปีของแต่ละปี (ถ้าเลือกบางเดือน = รวมเฉพาะเดือนที่เลือก)
+    const tLatest = _isAllM ? sumFull(latest) : sumSel(latest);
+    const tPrev = prev ? (_isAllM ? sumFull(prev) : sumSel(prev)) : 0;
+    // ยอดสำหรับคำนวณ %YoY = เทียบเฉพาะช่วงเดือนที่ทุกปีมีข้อมูลเท่ากัน (apples-to-apples)
+    const cmpLatest = _isAllM ? sumN(latest, cmp) : sumSel(latest);
+    const cmpPrev = prev ? (_isAllM ? sumN(prev, cmp) : sumSel(prev)) : 0;
+    const yoy = cmpPrev ? +((cmpLatest / cmpPrev - 1) * 100).toFixed(1) : 0;
+    const _cmpNote = _isAllM && years.length > 1 && cmp < 12 ? ` (YoY เทียบ ${cmp} เดือนแรกที่ทุกปีมีครบ)` : '';
 
     const chartLen = _selIdx ? _selIdx.length : 12;
     const chartLabels = _labels.slice(0, chartLen);
@@ -91,11 +97,12 @@
     const insights = [];
     if (valid.length) {
       if (prev) {
-        const diff = tLatest - tPrev;
-        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${_monLabel} ของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(diff))})` });
+        const diff = cmpLatest - cmpPrev;
+        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${_monLabel} ของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(cmpLatest)} เทียบ ${fv(cmpPrev)} (${diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(diff))})${_cmpNote}` });
+        if (_cmpNote) insights.push({ tone: 'info', icon: 'calendar', text: `ยอดเต็มทั้งปี: ปี ${latest} = ${fv(tLatest)} (${nMFull(latest)} เดือน) · ปี ${prev} = ${fv(tPrev)} (${nMFull(prev)} เดือน)` });
       }
       const sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
-      const rank = sortedT.indexOf(tLatest) + 1;
+      const rank = sortedT.indexOf(cmpLatest) + 1;
       insights.push({ tone: rank === 1 ? 'positive' : 'info', icon: 'award', text: rank === 1 ? `ปี ${latest} ทำยอด ${_monLabel} สูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${rank} จาก ${years.length} ปี ในช่วง ${_monLabel}` });
       const peak = valid.reduce((a, b) => (b.v > a.v ? b : a));
       const trough = valid.reduce((a, b) => (b.v < a.v ? b : a));
