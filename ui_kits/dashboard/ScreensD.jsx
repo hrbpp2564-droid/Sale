@@ -180,18 +180,35 @@
   // ---------- Forecast ----------
   function ForecastChart({ height = 300 }) {
     const [ref, width] = useMeasure();
-    const F = D.forecast;
-    const A = F.actualMonths;
-    const proj = F.projVal; // 12 months, first A actual
+    const VD = window.VDATA || {};
+    const TH = VD.TH_MONTHS || ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const vCur = (VD.valueByYear && (VD.valueByYear['2569'] || VD.valueByYear[2569])) || [];
+    // จำนวนเดือนจริง = นับเดือนต้นปีที่มียอดจริง (robust กว่าการอ่าน forecast.actualMonths ที่บางครั้งเป็น 0)
+    let A = 0;
+    for (let i = 0; i < 12; i++) { if (vCur[i] != null && +vCur[i] > 0) A = i + 1; else break; }
+    const F = VD.forecast || {};
+    let proj = Array.isArray(F.projVal) && F.projVal.length === 12 ? F.projVal.map((v) => +v || 0) : null;
+    if (!proj) {
+      // คาดการณ์เอง: ฐาน run-rate เฉลี่ย 3 เดือนล่าสุด + แนวโน้มเชิงเส้น
+      const act = []; for (let i = 0; i < A; i++) act.push(+vCur[i] || 0);
+      const last3 = act.slice(Math.max(0, A - 3));
+      const base = last3.length ? last3.reduce((s, v) => s + v, 0) / last3.length : 0;
+      const slope = last3.length >= 2 ? (last3[last3.length - 1] - last3[0]) / Math.max(1, last3.length - 1) : 0;
+      proj = [];
+      for (let f = 0; f < 12; f++) { proj.push(f < A ? (+vCur[f] || 0) : Math.max(0, base + slope * (f - A + 1))); }
+    }
+    if (!A || !proj.length || proj.every((v) => !v)) {
+      return <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)' }}>ยังไม่มีข้อมูลยอดขายเพียงพอสำหรับการคาดการณ์ — กรุณากรอกยอดขายอย่างน้อย 1 เดือน</div>;
+    }
     const actual = proj.map((v, i) => i < A ? v : null);
     const projected = proj.map((v, i) => i >= A - 1 ? v : null);
     const upper = projected.map((v) => v == null ? null : +(v * 1.09).toFixed(1));
     const lower = projected.map((v) => v == null ? null : +(v * 0.91).toFixed(1));
 
-    const p = { top: 16, right: 16, bottom: 28, left: 42 };
+    const p = { top: 16, right: 16, bottom: 28, left: 48 };
     const iw = Math.max(10, width - p.left - p.right);
     const ih = Math.max(10, height - p.top - p.bottom);
-    const max = Math.max(...proj, ...upper.filter((v) => v != null)) * 1.12;
+    const max = (Math.max(...proj, ...upper.filter((v) => v != null)) * 1.12) || 1;
     const n = proj.length;
     const x = (i) => p.left + (i / (n - 1)) * iw;
     const y = (v) => p.top + ih - (v / max) * ih;
@@ -206,11 +223,11 @@
     return (
       <div ref={ref} style={{ width: '100%' }}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
-          <Lg color="var(--viz-1)">{`ยอดจริง (${D.MONTHS_ACT[0]}–${D.MONTHS_ACT[D.NACT-1]})`}</Lg>
-          <Lg color="var(--viz-3)" dash>คาดการณ์ (มิ.ย.–ธ.ค.)</Lg>
+          <Lg color="var(--viz-1)">{`ยอดจริง (${TH[0] || ''}–${TH[A-1] || ''})`}</Lg>
+          <Lg color="var(--viz-3)" dash>{`คาดการณ์ (${TH[A] || ''}–${TH[11] || ''})`}</Lg>
           <Lg color="var(--viz-3)" band>ช่วงความเชื่อมั่น ±9%</Lg>
         </div>
-        <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', overflow: 'visible' }}>
+        <svg width="100%" height={height} viewBox={`0 0 ${Math.max(width, 1)} ${height}`} style={{ display: 'block', overflow: 'visible' }}>
           {[0, 0.25, 0.5, 0.75, 1].map((g, k) => (
             <g key={k}>
               <line x1={p.left} y1={p.top + g * ih} x2={p.left + iw} y2={p.top + g * ih} stroke="var(--chart-grid)" />
@@ -223,7 +240,7 @@
           <path d={projD} fill="none" stroke="var(--viz-3)" strokeWidth="2" strokeDasharray="5 4" />
           <path d={actualPath} fill="none" stroke="var(--viz-1)" strokeWidth="2.5" />
           {actual.map((v, i) => v != null && <circle key={i} cx={x(i)} cy={y(v)} r="2.5" fill="var(--viz-1)" />)}
-          {F.projVal.map((v, i) => <text key={i} x={x(i)} y={height - 8} textAnchor="middle" fontSize="10" fill="var(--chart-axis)" fontFamily="var(--font-sans)">{D.TH_MONTHS[i]}</text>)}
+          {proj.map((v, i) => <text key={i} x={x(i)} y={height - 8} textAnchor="middle" fontSize="10" fill="var(--chart-axis)" fontFamily="var(--font-sans)">{TH[i]}</text>)}
         </svg>
       </div>
     );
