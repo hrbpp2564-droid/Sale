@@ -28,7 +28,8 @@
     const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
     const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
-    const unit = metric === 'value' ? 'ลบ.' : 'พัน Kg';
+    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
+    const kfmt = (n) => metric === 'value' ? Math.round(n).toLocaleString('en-US') : fmt.dec1(n);
     const years = D.YEARS.filter((y) => Array.isArray(src[y])); // only years with data
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
@@ -120,8 +121,8 @@
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label={`รวม ${cmp} เดือน ${latest}`} value={fmt.dec1(metric === 'value' ? tLatest/1e6 : tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
-          {prev && <KpiCard label={`รวม ${cmp} เดือน ${prev}`} value={fmt.dec1(metric === 'value' ? tPrev/1e6 : tPrev)} unit={unit} />}
+          <KpiCard label={`รวม ${cmp} เดือน ${latest}`} value={kfmt(tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
+          {prev && <KpiCard label={`รวม ${cmp} เดือน ${prev}`} value={kfmt(tPrev)} unit={unit} />}
           <KpiCard label="YoY Growth" value={fmt.pct(yoy).replace('%', '')} unit="%" delta={yoy} icon={<Icon name="activity" size={15} />} />
           <KpiCard label={`จำนวนปีที่เทียบ`} value={String(years.length)} unit="ปี" icon={<Icon name="calendar" size={15} />} />
         </Grid>

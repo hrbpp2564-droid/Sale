@@ -4219,6 +4219,7 @@ try { (() => {
     const unit = metric === 'value' ? 'บาท' : 'Kg';
     const _vmul = 1;
     const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
+    const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
     // count of actual (non-null, >0) months for a year
     const monthsOf = y => src[y].filter(v => v != null && +v > 0).length;
     // only years that actually have data for this metric
@@ -4310,14 +4311,14 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${latest}`,
-      value: _vfmt(tLatest),
+      value: _kfmt(tLatest),
       unit: unit,
       delta: yoy,
       deltaSuffix: " YoY",
       accent: true
     }), prev && /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${prev}`,
-      value: _vfmt(tPrev),
+      value: _kfmt(tPrev),
       unit: unit
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "YoY Growth",
@@ -4338,7 +4339,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -4381,7 +4382,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35",
-      subtitle: `รวม ${cmp} เดือนเทียบกัน + ทั้งปี (เท่าที่มีข้อมูล)`,
+      subtitle: `รวม ${cmp} เดือนเทียบกัน + ทั้งปี · หน่วย ${metric === 'value' ? 'ลบ.' : 'พัน Kg'}`,
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
       rows: annual,
@@ -7854,6 +7855,7 @@ try { (() => {
     const unit = metric === 'value' ? 'บาท' : 'Kg';
     const _vmul = 1;
     const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
+    const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
     // count of actual (non-null, >0) months for a year
     const monthsOf = y => src[y].filter(v => v != null && +v > 0).length;
     // only years that actually have data for this metric
@@ -7945,14 +7947,14 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${latest}`,
-      value: _vfmt(tLatest),
+      value: _kfmt(tLatest),
       unit: unit,
       delta: yoy,
       deltaSuffix: " YoY",
       accent: true
     }), prev && /*#__PURE__*/React.createElement(KpiCard, {
       label: `รวม ${cmp} เดือน ${prev}`,
-      value: _vfmt(tPrev),
+      value: _kfmt(tPrev),
       unit: unit
     }), /*#__PURE__*/React.createElement(KpiCard, {
       label: "YoY Growth",
@@ -7973,7 +7975,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (บาท)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -8016,7 +8018,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35",
-      subtitle: `รวม ${cmp} เดือนเทียบกัน + ทั้งปี (เท่าที่มีข้อมูล)`,
+      subtitle: `รวม ${cmp} เดือนเทียบกัน + ทั้งปี · หน่วย ${metric === 'value' ? 'ลบ.' : 'พัน Kg'}`,
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
       rows: annual,
