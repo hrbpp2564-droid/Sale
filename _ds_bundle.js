@@ -412,7 +412,7 @@ function LineChart({
       fontFamily: 'var(--font-numeric)',
       color: 'var(--text-primary)'
     }
-  }, yFormat(s.data[hover]))))));
+  }, s.tipFormat ? s.tipFormat(s.data[hover]) : yFormat(s.data[hover]))))));
 }
 Object.assign(__ds_scope, { LineChart });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/charts/LineChart.jsx", error: String((e && e.message) || e) }); }
@@ -2709,6 +2709,9 @@ try { (() => {
     const [gran, setGran] = React.useState('month');
     const [type, setType] = React.useState('combo');
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
+    // tooltip: แสดงค่าจริงเต็มจำนวน (data เก็บเป็นค่าเต็มอยู่แล้ว)
+    const _tipBaht = v => v == null ? '–' : Math.round(v).toLocaleString('en-US') + ' บาท';
+    const _tipKg = v => v == null ? '–' : Math.round(v).toLocaleString('en-US') + ' Kg';
     let series;
     if (gran === 'year') {
       // แต่ละปีแสดงยอดรวมเต็มที่มี (ปีสมบูรณ์ = 12 เดือน, ปีปัจจุบัน = เดือนจริงที่มี)
@@ -2717,31 +2720,46 @@ try { (() => {
         const arr = (FULL.valueByYear && (FULL.valueByYear[y] || FULL.valueByYear[+y])) || [];
         return D.sum(arr.filter(x => x != null));
       });
+      const kg = D.YEARS.map(y => {
+        const arr = (FULL.volumeByYear && (FULL.volumeByYear[y] || FULL.volumeByYear[+y])) || [];
+        return D.sum(arr.filter(x => x != null)) * 1000;
+      });
       series = [{
         name: `มูลค่ารวมรายปี (ลบ.)`,
         data: v.map(x => x == null ? null : Math.round(x)),
         color: 'var(--viz-1)',
-        type: 'bar'
+        type: 'bar',
+        tipFormat: _tipBaht
+      }, {
+        name: 'ปริมาณรวมรายปี (Kg)',
+        data: kg.map(x => x == null ? null : Math.round(x)),
+        color: 'var(--viz-2)',
+        type: 'line',
+        axis: 'right',
+        tipFormat: _tipKg
       }];
     } else if (type === 'combo') {
       series = [{
         name: 'มูลค่า (บาท)',
         data: D.valueByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v)),
         color: 'var(--viz-1)',
-        type: 'bar'
+        type: 'bar',
+        tipFormat: _tipBaht
       }, {
         name: 'ปริมาณ (Kg)',
         data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
-        axis: 'right'
+        axis: 'right',
+        tipFormat: _tipKg
       }];
     } else {
       series = D.YEARS.map((y, i) => ({
         name: 'มูลค่า ' + y + ' (บาท)',
         data: D.valueByYear[y].slice(0, NACT).map(v => v == null ? null : Math.round(v)),
         color: i === D.YEARS.length - 1 ? 'var(--viz-1)' : 'var(--slate-400)',
-        type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line'
+        type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line',
+        tipFormat: _tipBaht
       }));
     }
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
@@ -6275,6 +6293,9 @@ try { (() => {
     const [gran, setGran] = React.useState('month');
     const [type, setType] = React.useState('combo');
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
+    // tooltip: แสดงค่าจริงเต็มจำนวน (data เก็บเป็นค่าเต็มอยู่แล้ว)
+    const _tipBaht = v => v == null ? '–' : Math.round(v).toLocaleString('en-US') + ' บาท';
+    const _tipKg = v => v == null ? '–' : Math.round(v).toLocaleString('en-US') + ' Kg';
     let series;
     if (gran === 'year') {
       // แต่ละปีแสดงยอดรวมเต็มที่มี (ปีสมบูรณ์ = 12 เดือน, ปีปัจจุบัน = เดือนจริงที่มี)
@@ -6283,31 +6304,46 @@ try { (() => {
         const arr = (FULL.valueByYear && (FULL.valueByYear[y] || FULL.valueByYear[+y])) || [];
         return D.sum(arr.filter(x => x != null));
       });
+      const kg = D.YEARS.map(y => {
+        const arr = (FULL.volumeByYear && (FULL.volumeByYear[y] || FULL.volumeByYear[+y])) || [];
+        return D.sum(arr.filter(x => x != null)) * 1000;
+      });
       series = [{
         name: `มูลค่ารวมรายปี (ลบ.)`,
         data: v.map(x => x == null ? null : Math.round(x)),
         color: 'var(--viz-1)',
-        type: 'bar'
+        type: 'bar',
+        tipFormat: _tipBaht
+      }, {
+        name: 'ปริมาณรวมรายปี (Kg)',
+        data: kg.map(x => x == null ? null : Math.round(x)),
+        color: 'var(--viz-2)',
+        type: 'line',
+        axis: 'right',
+        tipFormat: _tipKg
       }];
     } else if (type === 'combo') {
       series = [{
         name: 'มูลค่า (บาท)',
         data: D.valueByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v)),
         color: 'var(--viz-1)',
-        type: 'bar'
+        type: 'bar',
+        tipFormat: _tipBaht
       }, {
         name: 'ปริมาณ (Kg)',
         data: D.volumeByYear[2569].slice(0, NACT).map(v => v == null ? null : Math.round(v * 1000)),
         color: 'var(--viz-2)',
         type: 'line',
-        axis: 'right'
+        axis: 'right',
+        tipFormat: _tipKg
       }];
     } else {
       series = D.YEARS.map((y, i) => ({
         name: 'มูลค่า ' + y + ' (บาท)',
         data: D.valueByYear[y].slice(0, NACT).map(v => v == null ? null : Math.round(v)),
         color: i === D.YEARS.length - 1 ? 'var(--viz-1)' : 'var(--slate-400)',
-        type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line'
+        type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line',
+        tipFormat: _tipBaht
       }));
     }
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {

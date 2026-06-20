@@ -189,6 +189,9 @@
     const [type, setType] = React.useState('combo');
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
 
+    // tooltip: แสดงค่าจริงเต็มจำนวน — มูลค่าเป็นบาท, ปริมาณเป็น Kg เต็ม (data เก็บเป็น พัน Kg → ×1000)
+    const tipBaht = (v) => v == null ? '–' : Math.round(v).toLocaleString('en-US') + ' บาท';
+    const tipKg = (v) => v == null ? '–' : Math.round(v * 1000).toLocaleString('en-US') + ' Kg';
     let series;
     if (gran === 'year') {
       // แต่ละปีแสดงยอดรวมเต็มที่มี (ปีสมบูรณ์ = 12 เดือน, ปีปัจจุบัน = เดือนจริงที่มี)
@@ -197,18 +200,25 @@
         const arr = (FULL.valueByYear && (FULL.valueByYear[y] || FULL.valueByYear[+y])) || [];
         return D.sum(arr.filter((x) => x != null));
       });
-      const curY = String(D.YEARS[D.YEARS.length - 1]);
-      series = [{ name: `มูลค่ารวมรายปี (ลบ.)`, data: v, color: 'var(--viz-1)', type: 'bar' }];
+      const kg = D.YEARS.map((y) => {
+        const arr = (FULL.volumeByYear && (FULL.volumeByYear[y] || FULL.volumeByYear[+y])) || [];
+        return D.sum(arr.filter((x) => x != null));
+      });
+      series = [
+        { name: `มูลค่ารวมรายปี (ลบ.)`, data: v, color: 'var(--viz-1)', type: 'bar', tipFormat: tipBaht },
+        { name: 'ปริมาณรวมรายปี (Kg)', data: kg, color: 'var(--viz-2)', type: 'line', axis: 'right', tipFormat: tipKg },
+      ];
     } else if (type === 'combo') {
       series = [
-        { name: 'มูลค่า (ลบ.)', data: D.valueByYear[2569].slice(0, NACT), color: 'var(--viz-1)', type: 'bar' },
-        { name: 'ปริมาณ (พัน Kg)', data: D.volumeByYear[2569].slice(0, NACT), color: 'var(--viz-2)', type: 'line', axis: 'right' },
+        { name: 'มูลค่า (ลบ.)', data: D.valueByYear[2569].slice(0, NACT), color: 'var(--viz-1)', type: 'bar', tipFormat: tipBaht },
+        { name: 'ปริมาณ (พัน Kg)', data: D.volumeByYear[2569].slice(0, NACT), color: 'var(--viz-2)', type: 'line', axis: 'right', tipFormat: tipKg },
       ];
     } else {
       series = D.YEARS.map((y, i) => ({
         name: 'มูลค่า ' + y + ' (ลบ.)', data: D.valueByYear[y].slice(0, NACT),
         color: i === D.YEARS.length - 1 ? 'var(--viz-1)' : 'var(--slate-400)',
         type: type === 'area' && i === D.YEARS.length - 1 ? 'area' : 'line',
+        tipFormat: tipBaht,
       }));
     }
 

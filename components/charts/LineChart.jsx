@@ -145,7 +145,7 @@ export function LineChart({
           {series.map((s) => (
             <span key={s.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--text-secondary)' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
-              {s.name}: <strong style={{ fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)' }}>{yFormat(s.data[hover])}</strong>
+              {s.name}: <strong style={{ fontFamily: 'var(--font-numeric)', color: 'var(--text-primary)' }}>{s.tipFormat ? s.tipFormat(s.data[hover]) : yFormat(s.data[hover])}</strong>
             </span>
           ))}
         </div>
