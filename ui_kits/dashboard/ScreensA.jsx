@@ -165,7 +165,7 @@
           </Card>
 
           <Card title="Product Mix" subtitle="สัดส่วนมูลค่าตามกลุ่มสินค้า" actions={<button onClick={() => onDrill('mix')} style={{background:'none',border:'none',color:'var(--text-tertiary)',cursor:'pointer'}}><Icon name="external-link" size={14} /></button>}>
-            <DonutChart size={140} thickness={20} centerValue={fmt.m(D.totals.value)} centerLabel="รวม (ลบ.)" showLegend
+            <DonutChart size={140} thickness={20} centerValue={fmt.int(D.totals.value)} centerLabel="รวม (บาท)" showLegend
               data={groupAgg(D.PRODUCTS).map((g) => ({ label: g.group, value: g.val, color: groupColors[g.group] || 'var(--slate-500)' }))} />
           </Card>
         </Grid>

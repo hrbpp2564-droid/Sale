@@ -56,7 +56,7 @@
           </Card>
 
           <Card title="สัดส่วนมูลค่าขายตามกลุ่มสินค้า">
-            <DonutChart size={180} thickness={26} centerValue={fmt.m(D.totals.value / 1e6)} centerLabel="รวม (ลบ.)"
+            <DonutChart size={180} thickness={26} centerValue={fmt.int(D.totals.value)} centerLabel="รวม (บาท)"
               data={groupAgg().map((g) => ({ label: g.group, value: g.val, color: groupColors[g.group] || 'var(--slate-500)' }))} />
           </Card>
         </Grid>
@@ -194,7 +194,7 @@
           actions={<SegmentedControl size="sm" value={view} onChange={setView} options={[{value:'treemap',label:'Treemap'},{value:'pie',label:'Pie'}]} />}>
           {view === 'treemap'
             ? <Treemap data={segs} height={320} />
-            : <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}><DonutChart size={260} thickness={40} centerValue={fmt.m(D.totals.value)} centerLabel="รวมทั้งหมด (ลบ.)" data={segs} /></div>}
+            : <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}><DonutChart size={260} thickness={40} centerValue={fmt.int(D.totals.value)} centerLabel="รวมทั้งหมด (บาท)" data={segs} /></div>}
         </Card>
 
         <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
