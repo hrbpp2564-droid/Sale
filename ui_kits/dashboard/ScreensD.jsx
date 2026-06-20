@@ -40,7 +40,7 @@
       src[y] = _selIdx ? _selIdx.map((i) => (arr[i] != null ? arr[i] : null)) : arr;
     });
 
-    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
     const _vfmt = metric === 'value' ? (n) => fmt.dec1(n / 1e6) : (n) => fmt.dec1(n);
     const kfmt = metric === 'value' ? (n) => Math.round(n).toLocaleString('en-US') : _vfmt;
 
@@ -125,7 +125,7 @@
           <KpiCard label={`จำนวนปีที่เทียบ`} value={String(years.length)} unit="ปี" icon={<Icon name="calendar" size={15} />} />
         </Grid>
 
-        <Card title={`เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`} subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ${_monLabel}`}
+        <Card title={`เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`} subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · ${_monLabel}`}
           actions={<SegmentedControl size="sm" value={metric} onChange={setMetric} options={[{value:'value',label:'มูลค่า'},{value:'volume',label:'ปริมาณ'}]} />}>
           <LineChart height={300} labels={chartLabels} yFormat={(v) => metric === 'value' ? fmt.dec1(v/1e6) : fmt.int(v)} showDots series={series} />
         </Card>

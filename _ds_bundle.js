@@ -4226,7 +4226,7 @@ try { (() => {
       src[y] = _selIdx ? _selIdx.map(i => (arr[i] != null ? arr[i] : null)) : arr;
     });
 
-    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
     const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
     const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
 
@@ -4338,7 +4338,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ${_monLabel}`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · ${_monLabel}`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -7859,7 +7859,7 @@ try { (() => {
       src[y] = _selIdx ? _selIdx.map(i => (arr[i] != null ? arr[i] : null)) : arr;
     });
 
-    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
     const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
     const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
 
@@ -7978,7 +7978,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ${_monLabel}`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · ${_monLabel}`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
