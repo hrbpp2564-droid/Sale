@@ -62,7 +62,6 @@
 
     var totalValueBaht = 0, totalVolKKg = 0; // บาท / พัน Kg
     for (var i = 0; i < NACT; i++) { totalValueBaht += num(val69[i]); totalVolKKg += num(vol69[i]); }
-    var totalValueLbn = totalValueBaht / 1e6;
     var totalVolKg = totalVolKKg * 1000;
     var avgPrice = totalVolKg > 0 ? r2(totalValueBaht / totalVolKg) : 0;
 
