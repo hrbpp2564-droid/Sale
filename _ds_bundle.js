@@ -4226,9 +4226,9 @@ try { (() => {
       src[y] = _selIdx ? _selIdx.map(i => (arr[i] != null ? arr[i] : null)) : arr;
     });
 
-    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
-    const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
-    const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
+    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => Math.round(n * 1000).toLocaleString('en-US'));
+    const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : (n => Math.round(n * 1000).toLocaleString('en-US'));
 
     const monthsOf = y => (src[y] || []).filter(v => v != null && +v > 0).length;
     const _selYear = filters && filters.year ? String(filters.year) : null;
@@ -4278,7 +4278,7 @@ try { (() => {
 
     const _monLabel = _isAllM ? 'ทุกเดือน' : (_selIdx.length === 1 ? _labels[0] : `${_selIdx.length} เดือน (${_labels.join(', ')})`);
     // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
-    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
+    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : Math.round(n * 1000).toLocaleString('en-US') + ' Kg';
     const _latM = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
     const _valid = _latM.map((v, i) => ({ v: v, i: i })).filter((o) => o.v != null && +o.v > 0);
     const insights = [];
@@ -7866,9 +7866,9 @@ try { (() => {
       src[y] = _selIdx ? _selIdx.map(i => (arr[i] != null ? arr[i] : null)) : arr;
     });
 
-    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
-    const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
-    const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
+    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => Math.round(n * 1000).toLocaleString('en-US'));
+    const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : (n => Math.round(n * 1000).toLocaleString('en-US'));
 
     // --- จำนวนเดือนที่มีข้อมูลจริงในปีนั้น (หลัง filter) ---
     const monthsOf = y => (src[y] || []).filter(v => v != null && +v > 0).length;
@@ -7925,7 +7925,7 @@ try { (() => {
     // --- ป้ายแสดงเดือนที่เลือก ---
     const _monLabel = _isAllM ? 'ทุกเดือน' : (_selIdx.length === 1 ? _labels[0] : `${_selIdx.length} เดือน (${_labels.join(', ')})`);
     // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
-    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
+    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : Math.round(n * 1000).toLocaleString('en-US') + ' Kg';
     const _latM = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
     const _valid = _latM.map((v, i) => ({ v: v, i: i })).filter((o) => o.v != null && +o.v > 0);
     const insights = [];
