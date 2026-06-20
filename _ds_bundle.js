@@ -5019,7 +5019,7 @@ try { (() => {
       },
       onFocus: e => e.target.style.borderColor = 'var(--border-accent)',
       onBlur: e => e.target.style.borderColor = 'var(--border-default)'
-    })), /*#__PURE__*/React.createElement(Button, {
+    })), !(window.BWP_USER && window.BWP_USER.readOnly) && /*#__PURE__*/React.createElement(Button, {
       variant: "secondary",
       size: "md",
       iconLeft: /*#__PURE__*/React.createElement(Icon, {
@@ -5027,7 +5027,7 @@ try { (() => {
         size: 15
       }),
       onClick: () => window.location.href = '/bwp-data-editor/'
-    }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), /*#__PURE__*/React.createElement(Button, {
+    }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), !(window.BWP_USER && window.BWP_USER.readOnly) && /*#__PURE__*/React.createElement(Button, {
       variant: "ghost",
       size: "md",
       iconLeft: /*#__PURE__*/React.createElement(Icon, {
@@ -5630,7 +5630,7 @@ try { (() => {
       },
       onFocus: e => e.target.style.borderColor = 'var(--border-accent)',
       onBlur: e => e.target.style.borderColor = 'var(--border-default)'
-    })), /*#__PURE__*/React.createElement(Button, {
+    })), !(window.BWP_USER && window.BWP_USER.readOnly) && /*#__PURE__*/React.createElement(Button, {
       variant: "secondary",
       size: "md",
       iconLeft: /*#__PURE__*/React.createElement(Icon, {
@@ -5638,7 +5638,7 @@ try { (() => {
         size: 15
       }),
       onClick: () => window.location.href = '/bwp-data-editor/'
-    }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), /*#__PURE__*/React.createElement(Button, {
+    }, "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25"), !(window.BWP_USER && window.BWP_USER.readOnly) && /*#__PURE__*/React.createElement(Button, {
       variant: "ghost",
       size: "md",
       iconLeft: /*#__PURE__*/React.createElement(Icon, {
