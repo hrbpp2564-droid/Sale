@@ -2870,12 +2870,12 @@ try { (() => {
         key: 'v_cmp',
         header: `มูลค่า ${cmpY} (บาท)`,
         numeric: true,
-        render: r => r.v_cmp != null ? fmt.dec1(r.v_cmp / 1e6) : '—'
+        render: r => r.v_cmp != null ? Math.round(r.v_cmp).toLocaleString('en-US') : '—'
       }, {
         key: 'v_cur',
         header: `มูลค่า ${curY} (บาท)`,
         numeric: true,
-        render: r => r.v_cur != null ? fmt.dec1(r.v_cur / 1e6) : '—'
+        render: r => r.v_cur != null ? Math.round(r.v_cur).toLocaleString('en-US') : '—'
       }, {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',
@@ -6454,12 +6454,12 @@ try { (() => {
         key: 'v_cmp',
         header: `มูลค่า ${cmpY} (บาท)`,
         numeric: true,
-        render: r => r.v_cmp != null ? fmt.dec1(r.v_cmp / 1e6) : '—'
+        render: r => r.v_cmp != null ? Math.round(r.v_cmp).toLocaleString('en-US') : '—'
       }, {
         key: 'v_cur',
         header: `มูลค่า ${curY} (บาท)`,
         numeric: true,
-        render: r => r.v_cur != null ? fmt.dec1(r.v_cur / 1e6) : '—'
+        render: r => r.v_cur != null ? Math.round(r.v_cur).toLocaleString('en-US') : '—'
       }, {
         key: 'kg69',
         header: 'ปริมาณ (Kg)',

@@ -260,9 +260,9 @@
       <DataTable rows={rows} sortable={false} rowKey={(r) => r.month}
         columns={[
           { key: 'month', header: 'เดือน', render: (r) => <span style={{ fontWeight: 500 }}>{r.month}</span> },
-          { key: 'v68', header: 'มูลค่า 2568 (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.v68 / 1e6) },
-          { key: 'v69', header: 'มูลค่า 2569 (ลบ.)', numeric: true, render: (r) => fmt.dec1(r.v69 / 1e6) },
-          { key: 'kg69', header: 'ปริมาณ (พัน Kg)', numeric: true, render: (r) => fmt.int(r.kg69) },
+          { key: 'v68', header: 'มูลค่า 2568 (บาท)', numeric: true, render: (r) => r.v68 != null ? Math.round(r.v68).toLocaleString('en-US') : '—' },
+          { key: 'v69', header: 'มูลค่า 2569 (บาท)', numeric: true, render: (r) => r.v69 != null ? Math.round(r.v69).toLocaleString('en-US') : '—' },
+          { key: 'kg69', header: 'ปริมาณ (Kg)', numeric: true, render: (r) => r.kg69 != null ? fmt.int(r.kg69 * 1000) : '—' },
           { key: 'price', header: 'ราคาเฉลี่ย (฿/Kg)', numeric: true, render: (r) => fmt.dec1(r.price) },
           { key: 'yoy', header: '% YoY', numeric: true, render: (r) => <DeltaBadge value={r.yoy} size="sm" /> },
         ]} />
