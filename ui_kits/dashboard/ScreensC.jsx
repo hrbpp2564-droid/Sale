@@ -47,7 +47,7 @@
           <KpiCard label={_gAll ? "จำนวนลูกค้า" : "จำนวนลูกค้า (เดือนนี้)"} value={String(_kCount)} unit="ราย" icon={<Icon name="users" size={15} />} />
           <KpiCard label="ปริมาณเฉลี่ย/ราย" value={fmt.int(_kAvg)} unit="Kg" icon={<Icon name="box" size={15} />} />
           <KpiCard label="Top 10 = สัดส่วน" value={_kTop10.toFixed(0)} unit="%" />
-          <KpiCard label="ลูกค้าโตเร็วสุด" value={fastest.name.split(' ')[0]} unit={fmt.pct(fastest.mom)} delta={fastest.mom} icon={<Icon name="trending-up" size={15} />} />
+          <KpiCard label="ลูกค้าโตเร็วสุด" value={(() => { const nm = (fastest.name || '').replace(/^บริษัท\s*/, '').replace(/\s*จำกัด.*$/, '').trim() || fastest.name; return nm.length > 16 ? nm.slice(0, 16) + '…' : nm; })()} unit={fmt.pct(fastest.mom)} delta={fastest.mom} icon={<Icon name="trending-up" size={15} />} />
         </Grid>
 
         <Grid cols={2} gap={16} style={{ marginBottom: 16 }}>

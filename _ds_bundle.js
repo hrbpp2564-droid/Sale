@@ -3675,7 +3675,7 @@ try { (() => {
       unit: "%"
     }),/*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E42\u0E15\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E38\u0E14",
-      value: fastest.name.split(' ')[0],
+      value: (() => { const nm = (fastest.name || '').replace(/^บริษัท\s*/, '').replace(/\s*จำกัด.*$/, '').trim() || fastest.name; return nm.length > 16 ? nm.slice(0, 16) + '…' : nm; })(),
       unit: fmt.pct(fastest.mom),
       delta: fastest.mom,
       icon: /*#__PURE__*/React.createElement(Icon, {
@@ -7180,7 +7180,7 @@ try { (() => {
       unit: "%"
     }),/*#__PURE__*/React.createElement(KpiCard, {
       label: "\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E42\u0E15\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E38\u0E14",
-      value: fastest.name.split(' ')[0],
+      value: (() => { const nm = (fastest.name || '').replace(/^บริษัท\s*/, '').replace(/\s*จำกัด.*$/, '').trim() || fastest.name; return nm.length > 16 ? nm.slice(0, 16) + '…' : nm; })(),
       unit: fmt.pct(fastest.mom),
       delta: fastest.mom,
       icon: /*#__PURE__*/React.createElement(Icon, {
