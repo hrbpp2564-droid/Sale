@@ -24,96 +24,93 @@
 
   // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
   function YearScreen({ filters }) {
-    const D = viewFor(filters);
-    const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
-    const src = metric === 'value' ? D.valueByYear : D.volumeByYear;
-    const unit = metric === 'value' ? 'บาท' : 'พัน Kg';
-    const kfmt = (n) => metric === 'value' ? Math.round(n).toLocaleString('en-US') : fmt.dec1(n);
-    const years = D.YEARS.filter((y) => Array.isArray(src[y])); // only years with data
+    const FULL = window.VDATA || {};
+
+    // ตัวกรองเดือน: รองรับหลายเดือน
+    const _isAllM = !filters || !filters.month || filters.month === 'all' || filters.month === '';
+    const _selIdx = _isAllM ? null : String(filters.month).split(',').map(Number).filter((x) => !isNaN(x) && x >= 0 && x < 12).sort((a, b) => a - b);
+    const _labels = _selIdx ? _selIdx.map((i) => (FULL.TH_MONTHS || [])[i] || '') : (FULL.TH_MONTHS || []);
+
+    // apply month filter to every year's array
+    const _rawByYear = metric === 'value' ? (FULL.valueByYear || {}) : (FULL.volumeByYear || {});
+    const src = {};
+    (FULL.YEARS || []).forEach((y) => {
+      const arr = _rawByYear[y] || [];
+      src[y] = _selIdx ? _selIdx.map((i) => (arr[i] != null ? arr[i] : null)) : arr;
+    });
+
+    const unit = metric === 'value' ? 'บาท' : 'Kg';
+    const _vfmt = metric === 'value' ? (n) => fmt.dec1(n / 1e6) : (n) => fmt.dec1(n);
+    const kfmt = metric === 'value' ? (n) => Math.round(n).toLocaleString('en-US') : _vfmt;
+
+    const monthsOf = (y) => (src[y] || []).filter((v) => v != null && +v > 0).length;
+    const years = (FULL.YEARS || []).filter((y) => Array.isArray(src[y]) && monthsOf(y) > 0);
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
-    // count of actual (non-null) months for a year
-    const monthsOf = (y) => src[y].filter((v) => v != null).length;
-    // comparable window = min actual months across all years (so YoY is apples-to-apples)
-    const cmp = Math.min(...years.map(monthsOf));
-    const sumN = (y, n) => D.sum(src[y].slice(0, n).map((v) => v || 0));
-    const sumFull = (y) => D.sum(src[y].map((v) => v || 0));
+    const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
+    const sumN = (y, n) => (src[y] || []).slice(0, n).reduce((s, v) => s + (+v || 0), 0);
+    const sumFull = (y) => (_rawByYear[y] || []).reduce((s, v) => s + (+v || 0), 0);
+    const nMFull = (y) => (_rawByYear[y] || []).filter((v) => v != null && +v > 0).length;
 
     const tLatest = sumN(latest, cmp);
     const tPrev = prev ? sumN(prev, cmp) : 0;
     const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(1) : 0;
 
-    // palette: older years muted, latest highlighted
+    const chartLen = _selIdx ? _selIdx.length : cmp;
+    const chartLabels = _labels.slice(0, chartLen);
     const yearColor = (i) => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${((years.length - 1 - i) % 6) + 2})`;
     const series = years.map((y, i) => ({
-      name: 'ปี ' + y, data: src[y].slice(0, cmp), color: yearColor(i),
-      type: i === years.length - 1 ? 'area' : 'line',
+      name: 'ปี ' + y, data: (src[y] || []).slice(0, chartLen).map((v) => v == null ? null : (metric === 'value' ? Math.round(v) : v)),
+      color: yearColor(i), type: i === years.length - 1 ? 'area' : 'line',
     }));
 
-    // monthly comparison table — one column per year + YoY (latest vs prev)
-    const rows = D.MONTHS_ACT.slice(0, cmp).map((m, i) => {
+    const tableLen = _selIdx ? _selIdx.length : cmp;
+    const rows = _labels.slice(0, tableLen).map((m, i) => {
       const row = { month: m };
-      years.forEach((y) => { row['y' + y] = src[y][i]; });
-      row.yoy = prev && src[prev][i] ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(1) : 0;
+      years.forEach((y) => { row['y' + y] = (src[y] || [])[i]; });
+      row.yoy = (prev && (src[prev] || [])[i] != null && +src[prev][i] > 0 && (src[latest] || [])[i] != null && +src[latest][i] > 0)
+        ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(1) : null;
       return row;
     });
 
-    // annual summary — per year totals (comparable window + full year), with step YoY
     const annual = years.map((y, i) => {
-      const cmpT = sumN(y, cmp), full = sumFull(y), nM = monthsOf(y);
+      const cmpT = sumN(y, cmp), full = sumFull(y), nM = nMFull(y);
       const py = years[i - 1];
-      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(1) : null;
+      const stepYoY = py ? +((cmpT / sumN(py, cmp) - 1) * 100).toFixed(1) : null;
       return { year: y, cmpT, full, nM, stepYoY };
     });
 
-    // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
+    const _monLabel = _isAllM ? 'ทุกเดือน' : (_selIdx.length === 1 ? _labels[0] : `${_selIdx.length} เดือน (${_labels.join(', ')})`);
+
+    // ---------- บทวิเคราะห์อัตโนมัติ ----------
     const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
-    const latestMonthly = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
-    const valid = latestMonthly.map((v, i) => ({ v, i })).filter((o) => o.v != null);
+    const valid = rows.map((r, i) => ({ v: r['y' + latest], i })).filter((o) => o.v != null && +o.v > 0);
     const insights = [];
     if (valid.length) {
       if (prev) {
         const diff = tLatest - tPrev;
-        insights.push({
-          tone: yoy >= 0 ? 'positive' : 'negative',
-          icon: yoy >= 0 ? 'trending-up' : 'trending-down',
-          text: `ยอดรวม ${cmp} เดือนแรกของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(diff))})`,
-        });
+        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${_monLabel} ของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(diff))})` });
       }
       const sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
       const rank = sortedT.indexOf(tLatest) + 1;
-      insights.push({
-        tone: rank === 1 ? 'positive' : 'info', icon: 'award',
-        text: rank === 1
-          ? `ปี ${latest} ทำยอด ${cmp} เดือนแรกสูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ`
-          : `ปี ${latest} อยู่อันดับ ${rank} จาก ${years.length} ปี ในช่วง ${cmp} เดือนแรก`,
-      });
+      insights.push({ tone: rank === 1 ? 'positive' : 'info', icon: 'award', text: rank === 1 ? `ปี ${latest} ทำยอด ${_monLabel} สูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${rank} จาก ${years.length} ปี ในช่วง ${_monLabel}` });
       const peak = valid.reduce((a, b) => (b.v > a.v ? b : a));
       const trough = valid.reduce((a, b) => (b.v < a.v ? b : a));
-      insights.push({
-        tone: 'info', icon: 'bar-chart-2',
-        text: `เดือนที่ทำยอดสูงสุดคือ ${rows[peak.i].month} (${fv(peak.v)}) ส่วนต่ำสุดคือ ${rows[trough.i].month} (${fv(trough.v)})`,
-      });
+      insights.push({ tone: 'info', icon: 'bar-chart-2', text: `เดือนที่ทำยอดสูงสุดคือ ${rows[peak.i].month} (${fv(peak.v)}) ส่วนต่ำสุดคือ ${rows[trough.i].month} (${fv(trough.v)})` });
       if (prev) {
         const yv = rows.filter((r) => r.yoy != null && isFinite(r.yoy));
         if (yv.length) {
           const best = yv.reduce((a, b) => (b.yoy > a.yoy ? b : a));
           const worst = yv.reduce((a, b) => (b.yoy < a.yoy ? b : a));
-          insights.push({
-            tone: best.yoy >= 0 ? 'positive' : 'negative', icon: 'activity',
-            text: `เทียบรายเดือนกับปี ${prev}: ${best.month} โตเด่นสุด (${fmt.pct(best.yoy)}) ขณะที่ ${worst.month} อ่อนสุด (${fmt.pct(worst.yoy)})`,
-          });
+          insights.push({ tone: best.yoy >= 0 ? 'positive' : 'negative', icon: 'activity', text: `เทียบรายเดือนกับปี ${prev}: ${best.month} โตเด่นสุด (${fmt.pct(best.yoy)}) ขณะที่ ${worst.month} อ่อนสุด (${fmt.pct(worst.yoy)})` });
         }
       }
       if (valid.length >= 2) {
         const first = valid[0], last = valid[valid.length - 1];
         const mo = first.v ? +((last.v / first.v - 1) * 100).toFixed(1) : 0;
-        insights.push({
-          tone: mo >= 0 ? 'positive' : 'warning', icon: mo >= 0 ? 'trending-up' : 'trending-down',
-          text: `โมเมนตัมภายในปี ${latest}: เดือน ${rows[last.i].month} ${mo >= 0 ? 'สูงกว่า' : 'ต่ำกว่า'} ${rows[first.i].month} ${fmt.pct(mo)}`,
-        });
+        insights.push({ tone: mo >= 0 ? 'positive' : 'warning', icon: mo >= 0 ? 'trending-up' : 'trending-down', text: `โมเมนตัมภายในปี ${latest}: เดือน ${rows[last.i].month} ${mo >= 0 ? 'สูงกว่า' : 'ต่ำกว่า'} ${rows[first.i].month} ${fmt.pct(mo)}` });
       }
     }
     const toneColor = (t) => t === 'positive' ? 'var(--positive)' : t === 'negative' ? 'var(--negative)' : t === 'warning' ? 'var(--warning)' : 'var(--accent)';
@@ -121,15 +118,15 @@
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
-          <KpiCard label={`รวม ${cmp} เดือน ${latest}`} value={kfmt(tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
-          {prev && <KpiCard label={`รวม ${cmp} เดือน ${prev}`} value={kfmt(tPrev)} unit={unit} />}
+          <KpiCard label={`รวม ${latest} · ${_monLabel}`} value={kfmt(tLatest)} unit={unit} delta={yoy} deltaSuffix=" YoY" accent />
+          {prev && <KpiCard label={`รวม ${prev} · ${_monLabel}`} value={kfmt(tPrev)} unit={unit} />}
           <KpiCard label="YoY Growth" value={fmt.pct(yoy).replace('%', '')} unit="%" delta={yoy} icon={<Icon name="activity" size={15} />} />
           <KpiCard label={`จำนวนปีที่เทียบ`} value={String(years.length)} unit="ปี" icon={<Icon name="calendar" size={15} />} />
         </Grid>
 
-        <Card title={`เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`} subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (พัน Kg)'} · รายเดือน · เทียบ ${cmp} เดือนแรกที่มีข้อมูลครบทุกปี`}
+        <Card title={`เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`} subtitle={`${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ${_monLabel}`}
           actions={<SegmentedControl size="sm" value={metric} onChange={setMetric} options={[{value:'value',label:'มูลค่า'},{value:'volume',label:'ปริมาณ'}]} />}>
-          <LineChart height={300} labels={D.MONTHS_ACT.slice(0, cmp)} yFormat={(v) => metric === 'value' ? fmt.dec1(v/1e6) : fmt.int(v)} showDots series={series} />
+          <LineChart height={300} labels={chartLabels} yFormat={(v) => metric === 'value' ? fmt.dec1(v/1e6) : fmt.int(v)} showDots series={series} />
         </Card>
 
         {insights.length > 0 && (
@@ -149,12 +146,12 @@
         )}
 
         <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
-          <Card title="สรุปรายปี" subtitle={`รวม ${cmp} เดือนเทียบกัน + ทั้งปี (เท่าที่มีข้อมูล)`} padding="none">
+          <Card title="สรุปรายปี" subtitle={`รวม ${_monLabel} · หน่วย ${metric === 'value' ? 'ลบ.' : 'Kg'}`} padding="none">
             <DataTable rows={annual} sortable={false} rowKey={(r) => r.year}
               columns={[
                 { key: 'year', header: 'ปี', render: (r) => <span style={{ fontWeight: 500 }}>{r.year}</span> },
-                { key: 'cmpT', header: `รวม ${cmp} เดือน`, numeric: true, render: (r) => fmt.dec1(metric === 'value' ? r.cmpT/1e6 : r.cmpT) },
-                { key: 'full', header: 'ทั้งปี', numeric: true, render: (r) => <span>{fmt.dec1(metric === 'value' ? r.full/1e6 : r.full)}<span style={{ color: 'var(--text-disabled)', fontSize: 'var(--text-2xs)' }}> ({r.nM}ด.)</span></span> },
+                { key: 'cmpT', header: _monLabel, numeric: true, render: (r) => _vfmt(r.cmpT) },
+                { key: 'full', header: 'ทั้งปี', numeric: true, render: (r) => <span>{_vfmt(r.full)}<span style={{ color: 'var(--text-disabled)', fontSize: 'var(--text-2xs)' }}> ({r.nM}ด.)</span></span> },
                 { key: 'step', header: '% YoY', numeric: true, sortable: false, render: (r) => r.stepYoY == null ? <span style={{ color: 'var(--text-disabled)' }}>—</span> : <DeltaBadge value={r.stepYoY} size="sm" /> },
               ]} />
           </Card>

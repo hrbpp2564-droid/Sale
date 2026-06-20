@@ -4209,69 +4209,67 @@ try { (() => {
   }
 
   // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
-  function YearScreen() {
+  function YearScreen({ filters }) {
     const [metric, setMetric] = React.useState('value');
-    // Year comparison is a full-year view across years — source the untruncated
-    // 12-month arrays from window.VDATA (viewFor narrows 2568/2569 to the current
-    // year's active-month window, which would clip the comparison years).
-    const FULL = window.VDATA || D;
-    const src = metric === 'value' ? FULL.valueByYear : FULL.volumeByYear;
+    const FULL = window.VDATA || {};
+
+    // --- ตัวกรองเดือน: รองรับหลายเดือน (comma-separated) ---
+    const _isAllM = !filters || !filters.month || filters.month === 'all' || filters.month === '';
+    const _selIdx = _isAllM ? null : String(filters.month).split(',').map(Number).filter(x => !isNaN(x) && x >= 0 && x < 12).sort((a, b) => a - b);
+    const _labels = _selIdx ? _selIdx.map(i => (FULL.TH_MONTHS || [])[i] || '') : (FULL.TH_MONTHS || []);
+
+    // --- ข้อมูลดิบแยกตาม metric แล้ว apply month filter ทุกปี ---
+    const _rawByYear = metric === 'value' ? (FULL.valueByYear || {}) : (FULL.volumeByYear || {});
+    const src = {};
+    (FULL.YEARS || []).forEach(y => {
+      const arr = _rawByYear[y] || [];
+      src[y] = _selIdx ? _selIdx.map(i => (arr[i] != null ? arr[i] : null)) : arr;
+    });
+
     const unit = metric === 'value' ? 'บาท' : 'Kg';
-    const _vmul = 1;
     const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
     const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
-    // count of actual (non-null, >0) months for a year
-    const monthsOf = y => src[y].filter(v => v != null && +v > 0).length;
-    // only years that actually have data for this metric
-    const years = D.YEARS.filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
+
+    const monthsOf = y => (src[y] || []).filter(v => v != null && +v > 0).length;
+    const years = (FULL.YEARS || []).filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
-    // comparable window = min actual months across years with data (so YoY is apples-to-apples)
     const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
-    const sumN = (y, n) => D.sum(src[y].slice(0, n).map(v => v || 0));
-    const sumFull = y => D.sum(src[y].map(v => v || 0));
+    const sumN = (y, n) => (src[y] || []).slice(0, n).reduce((s, v) => s + (+v || 0), 0);
+    const sumFull = y => (_rawByYear[y] || []).reduce((s, v) => s + (+v || 0), 0);
+    const nMFull = y => (_rawByYear[y] || []).filter(v => v != null && +v > 0).length;
     const tLatest = sumN(latest, cmp);
     const tPrev = prev ? sumN(prev, cmp) : 0;
     const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(2) : 0;
 
-    // palette: older years muted, latest highlighted
+    const chartLen = _selIdx ? _selIdx.length : cmp;
+    const chartLabels = _labels.slice(0, chartLen);
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
       name: 'ปี ' + y,
-      data: src[y].slice(0, 12).map(v => v == null ? null : (metric === 'value' ? Math.round(v) : v)),
+      data: (src[y] || []).slice(0, chartLen).map(v => v == null ? null : (metric === 'value' ? Math.round(v) : v)),
       color: yearColor(i),
       type: i === years.length - 1 ? 'area' : 'line'
     }));
 
-    // monthly comparison table — one column per year + YoY (latest vs prev)
-    const rows = D.TH_MONTHS.map((m, i) => {
-      const row = {
-        month: m
-      };
-      years.forEach(y => {
-        row['y' + y] = src[y][i];
-      });
-      row.yoy = (prev && src[prev][i] != null && +src[prev][i] > 0 && src[latest][i] != null && +src[latest][i] > 0)
+    const tableLen = _selIdx ? _selIdx.length : cmp;
+    const rows = _labels.slice(0, tableLen).map((m, i) => {
+      const row = { month: m };
+      years.forEach(y => { row['y' + y] = (src[y] || [])[i]; });
+      row.yoy = (prev && (src[prev] || [])[i] != null && +src[prev][i] > 0 && (src[latest] || [])[i] != null && +src[latest][i] > 0)
         ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : null;
       return row;
     });
 
-    // annual summary — per year totals (comparable window + full year), with step YoY
     const annual = years.map((y, i) => {
-      const cmpT = sumN(y, cmp),
-        full = sumFull(y),
-        nM = monthsOf(y);
+      const cmpT = sumN(y, cmp), full = sumFull(y), nM = nMFull(y);
       const py = years[i - 1];
-      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(2) : null;
-      return {
-        year: y,
-        cmpT,
-        full,
-        nM,
-        stepYoY
-      };
+      const stepYoY = py ? +((cmpT / sumN(py, cmp) - 1) * 100).toFixed(2) : null;
+      return { year: y, cmpT, full, nM, stepYoY };
     });
+
+    const _monLabel = _isAllM ? 'ทุกเดือน' : (_selIdx.length === 1 ? _labels[0] : `${_selIdx.length} เดือน (${_labels.join(', ')})`);
     // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
     const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
     const _latM = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
@@ -4280,11 +4278,11 @@ try { (() => {
     if (_valid.length) {
       if (prev) {
         const _diff = tLatest - tPrev;
-        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${cmp} เดือนแรกของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${_diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(_diff))})` });
+        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${_monLabel} ของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${_diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(_diff))})` });
       }
       const _sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
       const _rank = _sortedT.indexOf(tLatest) + 1;
-      insights.push({ tone: _rank === 1 ? 'positive' : 'info', icon: 'award', text: _rank === 1 ? `ปี ${latest} ทำยอด ${cmp} เดือนแรกสูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${_rank} จาก ${years.length} ปี ในช่วง ${cmp} เดือนแรก` });
+      insights.push({ tone: _rank === 1 ? 'positive' : 'info', icon: 'award', text: _rank === 1 ? `ปี ${latest} ทำยอด ${_monLabel} สูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${_rank} จาก ${years.length} ปี ในช่วง ${_monLabel}` });
       const _peak = _valid.reduce((a, b) => (b.v > a.v ? b : a));
       const _trough = _valid.reduce((a, b) => (b.v < a.v ? b : a));
       insights.push({ tone: 'info', icon: 'bar-chart-2', text: `เดือนที่ทำยอดสูงสุดคือ ${rows[_peak.i].month} (${fv(_peak.v)}) ส่วนต่ำสุดคือ ${rows[_trough.i].month} (${fv(_trough.v)})` });
@@ -4310,14 +4308,14 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: `รวม ${cmp} เดือน ${latest}`,
+      label: `รวม ${latest} · ${_monLabel}`,
       value: _kfmt(tLatest),
       unit: unit,
       delta: yoy,
       deltaSuffix: " YoY",
       accent: true
     }), prev && /*#__PURE__*/React.createElement(KpiCard, {
-      label: `รวม ${cmp} เดือน ${prev}`,
+      label: `รวม ${prev} · ${_monLabel}`,
       value: _kfmt(tPrev),
       unit: unit
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -4339,7 +4337,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ${_monLabel}`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -4354,7 +4352,7 @@ try { (() => {
       })
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 300,
-      labels: D.TH_MONTHS,
+      labels: chartLabels,
       yFormat: v => metric === 'value' ? fmt.dec1(v / 1e6) : fmt.int(v),
       showDots: true,
       series: series
@@ -4382,7 +4380,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35",
-      subtitle: `รวม ${cmp} เดือนเทียบกัน + ทั้งปี · หน่วย ${metric === 'value' ? 'ลบ.' : 'พัน Kg'}`,
+      subtitle: `รวม ${_monLabel} · หน่วย ${metric === 'value' ? 'ลบ.' : 'พัน Kg'}`,
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
       rows: annual,
@@ -7844,70 +7842,73 @@ try { (() => {
 
   // ---------- Year Comparison (dynamic over all years in D.YEARS) ----------
   function YearScreen({ filters }) {
-    const D = viewFor(filters);
-    const NACT = D.NACT;
     const [metric, setMetric] = React.useState('value');
-    // Year comparison is a full-year view across years — source the untruncated
-    // 12-month arrays from window.VDATA (viewFor narrows 2568/2569 to the current
-    // year's active-month window, which would clip the comparison years).
-    const FULL = window.VDATA || D;
-    const src = metric === 'value' ? FULL.valueByYear : FULL.volumeByYear;
+    const FULL = window.VDATA || {};
+
+    // --- ตัวกรองเดือน: รองรับหลายเดือน (comma-separated) ---
+    const _isAllM = !filters || !filters.month || filters.month === 'all' || filters.month === '';
+    const _selIdx = _isAllM ? null : String(filters.month).split(',').map(Number).filter(x => !isNaN(x) && x >= 0 && x < 12).sort((a, b) => a - b);
+    const _labels = _selIdx ? _selIdx.map(i => (FULL.TH_MONTHS || [])[i] || '') : (FULL.TH_MONTHS || []);
+
+    // --- ข้อมูลดิบแยกตาม metric แล้ว apply month filter ทุกปี ---
+    const _rawByYear = metric === 'value' ? (FULL.valueByYear || {}) : (FULL.volumeByYear || {});
+    const src = {};
+    (FULL.YEARS || []).forEach(y => {
+      const arr = _rawByYear[y] || [];
+      src[y] = _selIdx ? _selIdx.map(i => (arr[i] != null ? arr[i] : null)) : arr;
+    });
+
     const unit = metric === 'value' ? 'บาท' : 'Kg';
-    const _vmul = 1;
     const _vfmt = metric === 'value' ? (n => fmt.dec1(n / 1e6)) : (n => fmt.dec1(n));
     const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
-    // count of actual (non-null, >0) months for a year
-    const monthsOf = y => src[y].filter(v => v != null && +v > 0).length;
-    // only years that actually have data for this metric
-    const years = D.YEARS.filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
+
+    // --- จำนวนเดือนที่มีข้อมูลจริงในปีนั้น (หลัง filter) ---
+    const monthsOf = y => (src[y] || []).filter(v => v != null && +v > 0).length;
+    const years = (FULL.YEARS || []).filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
-    // comparable window = min actual months across years with data (so YoY is apples-to-apples)
+    // cmp = จำนวนเดือนที่ใช้เทียบ (min ข้ามทุกปี เพื่อ apples-to-apples)
     const cmp = years.length ? Math.min(...years.map(monthsOf)) : 0;
-    const sumN = (y, n) => D.sum(src[y].slice(0, n).map(v => v || 0));
-    const sumFull = y => D.sum(src[y].map(v => v || 0));
+    const sumN = (y, n) => (src[y] || []).slice(0, n).reduce((s, v) => s + (+v || 0), 0);
+    const sumFull = y => (_rawByYear[y] || []).reduce((s, v) => s + (+v || 0), 0);
+    const nMFull = y => (_rawByYear[y] || []).filter(v => v != null && +v > 0).length;
+
     const tLatest = sumN(latest, cmp);
     const tPrev = prev ? sumN(prev, cmp) : 0;
     const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(2) : 0;
 
-    // palette: older years muted, latest highlighted
+    // --- กราฟ: แสดงเฉพาะเดือนที่เลือก ---
+    const chartLen = _selIdx ? _selIdx.length : cmp;
+    const chartLabels = _labels.slice(0, chartLen);
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
       name: 'ปี ' + y,
-      data: src[y].slice(0, 12).map(v => v == null ? null : (metric === 'value' ? Math.round(v) : v)),
+      data: (src[y] || []).slice(0, chartLen).map(v => v == null ? null : (metric === 'value' ? Math.round(v) : v)),
       color: yearColor(i),
       type: i === years.length - 1 ? 'area' : 'line'
     }));
 
-    // monthly comparison table — one column per year + YoY (latest vs prev)
-    const rows = D.TH_MONTHS.map((m, i) => {
-      const row = {
-        month: m
-      };
-      years.forEach(y => {
-        row['y' + y] = src[y][i];
-      });
-      row.yoy = (prev && src[prev][i] != null && +src[prev][i] > 0 && src[latest][i] != null && +src[latest][i] > 0)
+    // --- ตารางรายเดือน: วนเฉพาะเดือนที่เลือก ---
+    const tableLen = _selIdx ? _selIdx.length : cmp;
+    const rows = _labels.slice(0, tableLen).map((m, i) => {
+      const row = { month: m };
+      years.forEach(y => { row['y' + y] = (src[y] || [])[i]; });
+      row.yoy = (prev && (src[prev] || [])[i] != null && +src[prev][i] > 0 && (src[latest] || [])[i] != null && +src[latest][i] > 0)
         ? +((src[latest][i] / src[prev][i] - 1) * 100).toFixed(2) : null;
       return row;
     });
 
-    // annual summary — per year totals (comparable window + full year), with step YoY
+    // --- สรุปรายปี ---
     const annual = years.map((y, i) => {
-      const cmpT = sumN(y, cmp),
-        full = sumFull(y),
-        nM = monthsOf(y);
+      const cmpT = sumN(y, cmp), full = sumFull(y), nM = nMFull(y);
       const py = years[i - 1];
-      const stepYoY = py ? +((sumN(y, cmp) / sumN(py, cmp) - 1) * 100).toFixed(2) : null;
-      return {
-        year: y,
-        cmpT,
-        full,
-        nM,
-        stepYoY
-      };
+      const stepYoY = py ? +((cmpT / sumN(py, cmp) - 1) * 100).toFixed(2) : null;
+      return { year: y, cmpT, full, nM, stepYoY };
     });
+
+    // --- ป้ายแสดงเดือนที่เลือก ---
+    const _monLabel = _isAllM ? 'ทุกเดือน' : (_selIdx.length === 1 ? _labels[0] : `${_selIdx.length} เดือน (${_labels.join(', ')})`);
     // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
     const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
     const _latM = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
@@ -7916,11 +7917,11 @@ try { (() => {
     if (_valid.length) {
       if (prev) {
         const _diff = tLatest - tPrev;
-        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${cmp} เดือนแรกของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${_diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(_diff))})` });
+        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${_monLabel} ของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${_diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(_diff))})` });
       }
       const _sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
       const _rank = _sortedT.indexOf(tLatest) + 1;
-      insights.push({ tone: _rank === 1 ? 'positive' : 'info', icon: 'award', text: _rank === 1 ? `ปี ${latest} ทำยอด ${cmp} เดือนแรกสูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${_rank} จาก ${years.length} ปี ในช่วง ${cmp} เดือนแรก` });
+      insights.push({ tone: _rank === 1 ? 'positive' : 'info', icon: 'award', text: _rank === 1 ? `ปี ${latest} ทำยอด ${_monLabel} สูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${_rank} จาก ${years.length} ปี ในช่วง ${_monLabel}` });
       const _peak = _valid.reduce((a, b) => (b.v > a.v ? b : a));
       const _trough = _valid.reduce((a, b) => (b.v < a.v ? b : a));
       insights.push({ tone: 'info', icon: 'bar-chart-2', text: `เดือนที่ทำยอดสูงสุดคือ ${rows[_peak.i].month} (${fv(_peak.v)}) ส่วนต่ำสุดคือ ${rows[_trough.i].month} (${fv(_trough.v)})` });
@@ -7946,14 +7947,14 @@ try { (() => {
         marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement(KpiCard, {
-      label: `รวม ${cmp} เดือน ${latest}`,
+      label: `รวม ${latest} · ${_monLabel}`,
       value: _kfmt(tLatest),
       unit: unit,
       delta: yoy,
       deltaSuffix: " YoY",
       accent: true
     }), prev && /*#__PURE__*/React.createElement(KpiCard, {
-      label: `รวม ${cmp} เดือน ${prev}`,
+      label: `รวม ${prev} · ${_monLabel}`,
       value: _kfmt(tPrev),
       unit: unit
     }), /*#__PURE__*/React.createElement(KpiCard, {
@@ -7975,7 +7976,7 @@ try { (() => {
       })
     })), /*#__PURE__*/React.createElement(Card, {
       title: `เปรียบเทียบยอดขายรายปี (${years.join(' · ')})`,
-      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ปีปัจจุบันมีข้อมูล ${cmp} เดือน`,
+      subtitle: `${metric === 'value' ? 'มูลค่า (ลบ.)' : 'ปริมาณ (Kg)'} · รายเดือน · ${_monLabel}`,
       actions: /*#__PURE__*/React.createElement(SegmentedControl, {
         size: "sm",
         value: metric,
@@ -7990,7 +7991,7 @@ try { (() => {
       })
     }, /*#__PURE__*/React.createElement(LineChart, {
       height: 300,
-      labels: D.TH_MONTHS,
+      labels: chartLabels,
       yFormat: v => metric === 'value' ? fmt.dec1(v / 1e6) : fmt.int(v),
       showDots: true,
       series: series
@@ -8018,7 +8019,7 @@ try { (() => {
       }
     }, /*#__PURE__*/React.createElement(Card, {
       title: "\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35",
-      subtitle: `รวม ${cmp} เดือนเทียบกัน + ทั้งปี · หน่วย ${metric === 'value' ? 'ลบ.' : 'พัน Kg'}`,
+      subtitle: `รวม ${_monLabel} · หน่วย ${metric === 'value' ? 'ลบ.' : 'พัน Kg'}`,
       padding: "none"
     }, /*#__PURE__*/React.createElement(DataTable, {
       rows: annual,
