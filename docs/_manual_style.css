@@ -1,0 +1,63 @@
+@page {
+  size: A4;
+  margin: 20mm 16mm 18mm 16mm;
+  @bottom-center {
+    content: "BWP Vantage Sales Intelligence — หน้า " counter(page) " / " counter(pages);
+    font-family: "Sarabun"; font-size: 8pt; color: #94a3b8;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Sarabun", sans-serif;
+  font-size: 10.5pt; line-height: 1.55; color: #1e293b; margin: 0;
+}
+.cover {
+  page-break-after: always; text-align: center;
+  padding-top: 55mm;
+}
+.cover .badge {
+  display: inline-block; padding: 6px 18px; border-radius: 999px;
+  background: #1e3a8a; color: #fff; font-size: 11pt; letter-spacing: 1px;
+}
+.cover h1 { font-size: 30pt; margin: 22px 0 6px; color: #0f172a; }
+.cover .sub { font-size: 14pt; color: #475569; margin: 0; }
+.cover .role {
+  margin-top: 40px; font-size: 18pt; font-weight: bold; color: #1e3a8a;
+}
+.cover .meta { margin-top: 60px; font-size: 10pt; color: #64748b; }
+.cover .rule { width: 60mm; height: 3px; background: #1e3a8a; margin: 18px auto; border: 0; }
+h2 {
+  font-size: 15pt; color: #1e3a8a; margin: 22px 0 8px;
+  border-bottom: 2px solid #dbeafe; padding-bottom: 4px;
+}
+h3 { font-size: 12pt; color: #0f172a; margin: 16px 0 4px; }
+p { margin: 6px 0; }
+ul, ol { margin: 6px 0 6px 0; padding-left: 20px; }
+li { margin: 3px 0; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9.8pt; }
+th { background: #1e3a8a; color: #fff; text-align: left; padding: 6px 8px; }
+td { border: 1px solid #e2e8f0; padding: 5px 8px; vertical-align: top; }
+tr:nth-child(even) td { background: #f8fafc; }
+.note {
+  background: #eff6ff; border-left: 4px solid #3b82f6; padding: 8px 12px;
+  margin: 10px 0; border-radius: 4px; font-size: 9.8pt;
+}
+.warn {
+  background: #fef2f2; border-left: 4px solid #ef4444; padding: 8px 12px;
+  margin: 10px 0; border-radius: 4px; font-size: 9.8pt;
+}
+.ok {
+  background: #f0fdf4; border-left: 4px solid #22c55e; padding: 8px 12px;
+  margin: 10px 0; border-radius: 4px; font-size: 9.8pt;
+}
+code {
+  background: #f1f5f9; padding: 1px 5px; border-radius: 3px;
+  font-family: monospace; font-size: 9.5pt; color: #be123c;
+}
+.step { counter-reset: none; }
+.kicker { color: #1e3a8a; font-weight: bold; }
+.toc li { margin: 5px 0; }
+.pin {
+  display: inline-block; background: #0f172a; color: #fff; padding: 2px 10px;
+  border-radius: 5px; font-family: monospace; letter-spacing: 2px; font-size: 11pt;
+}

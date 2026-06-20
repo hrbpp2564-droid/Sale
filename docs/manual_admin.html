@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8">
+<link rel="stylesheet" href="_manual_style.css"></head><body>
+
+<div class="cover">
+  <span class="badge">BWP VANTAGE</span>
+  <h1>คู่มือการใช้งาน</h1>
+  <p class="sub">แดชบอร์ดวิเคราะห์ยอดขาย · บริษัท เบสท์เวิลด์ อินเตอร์พลาส จำกัด</p>
+  <hr class="rule">
+  <div class="role">สำหรับแอดมิน (ผู้ดูแลระบบ)</div>
+  <p class="meta">ข้อมูลปี 2569 เปรียบเทียบปี 2568 · ปรับปรุง 20 มิถุนายน 2569</p>
+</div>
+
+<h2>1. บทบาทของแอดมิน</h2>
+<p>แอดมินคือ <span class="kicker">ผู้ดูแลระบบ</span> ที่ <strong>เข้าดูข้อมูลได้ทุกหน้า และแก้ไข/อัปเดตข้อมูลได้</strong>
+รวมถึงจัดการข้อมูลลูกค้า ยอดขายรายเดือน และค่า KPI ต่าง ๆ
+คู่มือนี้ครอบคลุมทั้งการอ่านค่าและการจัดการข้อมูลทั้งหมด</p>
+
+<h2>2. การเข้าระบบ</h2>
+<p>ระบบมี 2 โหมด ที่หน้าเข้าระบบ:</p>
+<table>
+  <tr><th>โหมด</th><th>วิธีเข้า</th><th>สิทธิ์</th></tr>
+  <tr><td><strong>แอดมิน</strong></td><td>ชื่อผู้ใช้ + รหัสผ่าน</td><td>ดูได้ทุกหน้า + แก้ไขข้อมูล</td></tr>
+  <tr><td>ผู้บริหาร</td><td>PIN <span class="pin">bwp@2545</span></td><td>ดูได้ทุกหน้า (แก้ไขไม่ได้)</td></tr>
+</table>
+<ol>
+  <li>เปิด <code>https://sale-hrbpp2564-droids-projects.vercel.app/</code></li>
+  <li>เลือกปุ่ม <strong>“แอดมิน”</strong></li>
+  <li>กรอกชื่อผู้ใช้และรหัสผ่านของแอดมิน แล้วกด <strong>เข้าสู่ระบบ</strong></li>
+</ol>
+<div class="note">เมื่อเข้าด้วยโหมดแอดมิน จะเห็นปุ่ม <strong>“แก้ไขข้อมูล”</strong> และปุ่มจัดการลูกค้า
+ซึ่งจะไม่ปรากฏในโหมดผู้บริหาร</div>
+
+<h2>3. ส่วนประกอบหน้าจอและตัวกรอง</h2>
+<ul>
+  <li><strong>Sidebar</strong> — เมนูสลับ 9 หน้า · <strong>TopBar</strong> — ชื่อหน้า + Export · <strong>FilterBar</strong> — ตัวกรอง</li>
+</ul>
+<table>
+  <tr><th>ตัวกรอง</th><th>เลือกได้</th></tr>
+  <tr><td>ปี</td><td>2568 / 2569</td></tr>
+  <tr><td>เดือน</td><td>ทุกเดือน หรือเจาะรายเดือน</td></tr>
+  <tr><td>ลูกค้า</td><td>ทั้งหมด หรือเลือกราย Top</td></tr>
+  <tr><td>กลุ่มสินค้า</td><td>ฟิล์มใส / พิมพ์สี / PCR / สูตรพิเศษ</td></tr>
+  <tr><td>รายเดือน / รายปี</td><td>สลับมุมมองกราฟ</td></tr>
+</table>
+<div class="note">ชี้เมาส์ค้างที่กราฟเพื่อดูตัวเลขเต็ม: มูลค่าเป็น <strong>บาทเต็ม</strong> และปริมาณเป็น <strong>Kg เต็ม</strong></div>
+
+<h2>4. ทั้ง 9 หน้า โดยย่อ</h2>
+<table>
+  <tr><th>หน้า</th><th>ดูอะไร</th></tr>
+  <tr><td>ภาพรวมผู้บริหาร / Sales Overview</td><td>KPI หลัก 5 ตัว + กราฟแนวโน้ม + AI Insight</td></tr>
+  <tr><td>ตารางรายเดือน</td><td>ยอดครบ 12 เดือน เทียบ 2569 vs 2568 (มูลค่า/ปริมาณ/ราคา)</td></tr>
+  <tr><td>Product Analysis</td><td>ยอดตามกลุ่มสินค้า, การเติบโต MoM, จัดอันดับ</td></tr>
+  <tr><td>Customer Analysis</td><td>ลูกค้ารายตัว, Top 10, ส่วนแบ่ง %, การเติบโต</td></tr>
+  <tr><td>Customer Contribution</td><td>Pareto 80/20 — ความเสี่ยงการพึ่งพาลูกค้า</td></tr>
+  <tr><td>Product Mix</td><td>สัดส่วนมูลค่าตามกลุ่มสินค้า (Donut)</td></tr>
+  <tr><td>Price Analysis</td><td>แนวโน้มราคาเฉลี่ย บาท/Kg</td></tr>
+  <tr><td>Year Comparison</td><td>เทียบ 2568 vs 2569 เต็มปี</td></tr>
+  <tr><td>Forecast</td><td>คาดการณ์มูลค่าสิ้นปี (AI) + ความเชื่อมั่น</td></tr>
+</table>
+
+<h2>5. การอัปเดตข้อมูล (Data Editor)</h2>
+<p>เครื่องมือแก้ไขข้อมูล: <code>https://sale-hrbpp2564-droids-projects.vercel.app/bwp-data-editor</code></p>
+<p>แก้ตัวเลขแล้วเว็บจริงเปลี่ยนทันทีที่รีเฟรช <strong>โดยไม่ต้อง deploy ใหม่</strong></p>
+<h3>ขั้นตอน</h3>
+<ol>
+  <li>เปิดหน้า Data Editor</li>
+  <li>แก้ไขค่าในตาราง:
+    <ul>
+      <li><strong>KPI หลัก</strong> — label, ค่า, หน่วย ของการ์ดด้านบน</li>
+      <li><strong>ยอดขายรายเดือน 2569</strong> — เติมเดือนใหม่ในช่องว่าง (มูลค่า / ปริมาณ)</li>
+    </ul>
+  </li>
+  <li>กด <strong>💾 บันทึกเข้า Supabase</strong></li>
+  <li>กลับมาหน้าแดชบอร์ด กด <strong>↻ โหลดใหม่</strong> หรือรีเฟรช (Ctrl+Shift+R)</li>
+</ol>
+<div class="note">ปุ่ม “บันทึก” จะกดได้เมื่อมีการแก้ไขแล้วเท่านั้น · ข้อมูลเก็บที่ Supabase (cloud) ทุกคนเห็นค่าใหม่ทันที</div>
+<div class="warn"><strong>หน่วยข้อมูลสำคัญ:</strong> ช่องปริมาณกรอกเป็น <strong>พัน Kg</strong> (ระบบจะคูณ 1,000 ให้เองเวลาแสดงผลเต็มจำนวน)
+ช่องมูลค่ากรอกเป็น <strong>บาท</strong> — ตรวจหน่วยให้ถูกก่อนบันทึกทุกครั้ง</div>
+
+<h2>6. การจัดการ PIN ผู้บริหาร</h2>
+<p>PIN สำหรับโหมดผู้บริหารปัจจุบันคือ <span class="pin">bwp@2545</span> เก็บเป็นค่า hash ที่ปลอดภัยในฐานข้อมูล Supabase
+(ตาราง <code>app_secrets</code> คีย์ <code>dashboard_pass</code>)</p>
+<p>หากต้องการ<strong>เปลี่ยน PIN</strong> ให้แจ้งทีมพัฒนา หรืออัปเดตค่า hash ในตาราง <code>app_secrets</code>
+ผ่าน Supabase โดยตรง — ไม่ควรเก็บ PIN เป็นข้อความธรรมดาในไฟล์โค้ด</p>
+<div class="warn">อย่าเผยแพร่ PIN ผู้บริหารในที่สาธารณะ และเปลี่ยนเป็นระยะเพื่อความปลอดภัย</div>
+
+<h2>7. แหล่งข้อมูล &amp; การ Deploy</h2>
+<ul>
+  <li><strong>ข้อมูลสด:</strong> ดึงจาก Supabase ทุกครั้งที่เปิดเว็บ (ตาราง <code>dashboard_data</code>)</li>
+  <li><strong>ข้อมูลสำรอง:</strong> ถ้าต่อ Supabase ไม่ได้ ใช้ข้อมูลฝังในไฟล์ (<code>data.js</code>) อัตโนมัติ</li>
+  <li><strong>Deploy:</strong> push โค้ดขึ้น branch <code>main</code> → Vercel build + เผยแพร่อัตโนมัติ ~1 นาที</li>
+  <li>หากต้องล้าง cache ผู้ใช้ ปรับเลขเวอร์ชันใน <code>index.html</code> (พารามิเตอร์ <code>v=</code>)</li>
+</ul>
+
+<h2>8. แก้ปัญหาเบื้องต้น</h2>
+<table>
+  <tr><th>อาการ</th><th>วิธีแก้</th></tr>
+  <tr><td>เห็นข้อมูลเก่า</td><td>กด Ctrl+Shift+R ล้าง cache</td></tr>
+  <tr><td>แก้ข้อมูลแล้วไม่เปลี่ยน</td><td>ตรวจว่ากด “บันทึกเข้า Supabase” แล้ว → รีเฟรชแดชบอร์ด</td></tr>
+  <tr><td>ตัวเลขไม่ตรง</td><td>เปิด Data Editor ตรวจค่าที่บันทึกล่าสุด และตรวจหน่วย (พัน Kg / บาท)</td></tr>
+  <tr><td>ผู้บริหารเข้าไม่ได้</td><td>ยืนยัน PIN <span class="pin">bwp@2545</span> และตรวจสถานะตาราง app_secrets</td></tr>
+  <tr><td>หน้าจอว่าง/ดำ</td><td>กด F12 ดู Console แล้วแจ้งทีมพัฒนา</td></tr>
+</table>
+
+<div class="ok" style="margin-top:22px"><strong>สรุปสำหรับแอดมิน:</strong> เข้าด้วยชื่อผู้ใช้+รหัสผ่าน → ดู/วิเคราะห์ได้ทุกหน้า ·
+แก้ข้อมูลที่ <code>/bwp-data-editor</code> แล้วบันทึกเข้า Supabase · ดูแล PIN ผู้บริหารให้ปลอดภัย</div>
+
+</body></html>
