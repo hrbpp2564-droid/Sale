@@ -135,11 +135,11 @@
           <Icon name="filter" size={14} /> ตัวกรอง
         </span>
         <Select width={110} value={filters.year} onChange={set('year')} options={D.YEARS.map(String)} />
-        <Select width={120} value={filters.month} onChange={set('month')} options={[{value:'all',label:'ทุกเดือน'}, ...D.MONTHS_ACT.map((m,i)=>({value:String(i),label:m}))]} />
+        <Select width={120} value={filters.month} onChange={set('month')} options={[{value:'all',label:'ทุกเดือน'}, ...D.TH_MONTHS.map((m,i)=>({value:String(i),label:m}))]} />
         <Select width={170} value={filters.customerGroup} onChange={set('customerGroup')} options={[{value:'all',label:'ลูกค้าทั้งหมด'}, ...D.CUSTOMERS.slice(0,6).map(c=>({value:c.id,label:c.name.length>16?c.name.slice(0,16)+'…':c.name}))]} />
 <Select width={150} value={filters.product || 'all'} onChange={set('product')} options={[{value:'all',label:'ทุกสินค้า'}, ...(D.PRODUCTS||[]).map(p=>({value:p.id,label:p.name.length>14?p.name.slice(0,14)+'…':p.name}))]} />
         <div style={{ flex: 1 }} />
-        <Badge tone="accent" variant="soft" dot>ปี {filters.year} · 5 เดือน (ม.ค.–พ.ค.)</Badge>
+        <Badge tone="accent" variant="soft" dot>ปี {filters.year} · {D.NACT} เดือน ({D.MONTHS_ACT[0]}–{D.MONTHS_ACT[D.NACT-1]})</Badge>
         <SegmentedControl size="sm" value={filters.granularity} onChange={set('granularity')}
           options={[{value:'month',label:'รายเดือน'},{value:'year',label:'รายปี'}]} />
       </div>

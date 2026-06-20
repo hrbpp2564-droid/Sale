@@ -5094,7 +5094,7 @@ try { (() => {
       options: [{
         value: 'all',
         label: 'ทุกเดือน'
-      }, ...D.MONTHS_ACT.map((m, i) => ({
+      }, ...D.TH_MONTHS.map((m, i) => ({
         value: String(i),
         label: m
       }))]
@@ -5666,7 +5666,7 @@ try { (() => {
       options: [{
         value: 'all',
         label: 'ทุกเดือน'
-      }, ...D.MONTHS_ACT.map((m, i) => ({
+      }, ...D.TH_MONTHS.map((m, i) => ({
         value: String(i),
         label: m
       }))]
