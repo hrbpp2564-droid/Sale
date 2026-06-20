@@ -2279,9 +2279,11 @@ try { (() => {
       }
     }
     let n = 0; for (let i = 0; i < 12; i++) { if (vCur[i] != null && +vCur[i] > 0) n = i + 1; else break; }
-    const single = f.month != null && f.month !== 'all' && f.month !== '';
-    const mi = single ? +f.month : -1;
-    const idxs = single ? [mi] : Array.from({ length: n }, (_, i) => i);
+    const _isAllM = f.month == null || f.month === 'all' || f.month === '';
+    const _selIdx = _isAllM ? [] : String(f.month).split(',').map(Number).filter((i) => !isNaN(i) && i >= 0 && i < 12).sort((a, b) => a - b);
+    const single = _selIdx.length === 1;
+    const mi = single ? _selIdx[0] : -1;
+    const idxs = _isAllM ? Array.from({ length: n }, (_, i) => i) : _selIdx;
     const pick = (arr) => idxs.map((i) => arr[i]);
     const sumVal = sum(pick(vCur)), sumVol = sum(pick(kCur));
     const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
@@ -2493,8 +2495,9 @@ try { (() => {
     //  • _canMoM  = เทียบเดือนต่อเดือนได้ไหม → มุมมองหลายเดือนต้องมี ≥2 เดือน,
     //               ถ้าเลือกเดือนเดียวก็เทียบกับเดือนก่อนหน้าได้ (ตราบใดที่ไม่ใช่เดือนแรกสุด)
     //  • _canTrend = ดูแนวโน้ม/การเติบโตหลายเดือนได้ไหม → ต้องมีหลายจุดในมุมมอง (ไม่ใช่เดือนเดียว)
-    const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
-    const _mi = _single ? +filters.month : -1;
+    const _selMonArr = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? String(filters.month).split(',').map(Number).filter((x) => !isNaN(x)) : [];
+    const _single = _selMonArr.length === 1;
+    const _mi = _single ? _selMonArr[0] : -1;
     const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
     const _vArr = (D.valueByYear || {})[String((filters && filters.year) || '2569')] || [];
     const _momVal = _single
@@ -3608,7 +3611,7 @@ try { (() => {
     const D = viewFor(Object.assign({}, filters, { month: 'all' }));
     const NACT = D.NACT;
     const [sel, setSel] = React.useState(null);
-    const _gMon = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? +filters.month : null;
+    const _gMonArr = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? String(filters.month).split(',').map(Number).filter((x) => !isNaN(x)) : []; const _gMon = _gMonArr.length ? _gMonArr[_gMonArr.length - 1] : null;
     const [mon, setMon] = React.useState(_gMon != null ? _gMon : (NACT - 1)); // selected month index, synced with global filter
     React.useEffect(() => { setMon(_gMon != null ? _gMon : (NACT - 1)); }, [_gMon, NACT]);
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);
@@ -5043,6 +5046,52 @@ try { (() => {
       }, window.BWP_USER && window.BWP_USER.username || '')
     )));
   }
+  function MonthFilter({ value, onChange, D, width = 168 }) {
+    const [open, setOpen] = React.useState(false);
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+      function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+      document.addEventListener('mousedown', onDoc);
+      return () => document.removeEventListener('mousedown', onDoc);
+    }, []);
+    const months = D.TH_MONTHS || [];
+    const isAll = value == null || value === 'all' || value === '';
+    const sel = isAll ? [] : String(value).split(',').map(Number).filter((n) => !isNaN(n) && n >= 0 && n < 12);
+    const emit = (arr) => onChange(!arr || arr.length === 0 ? 'all' : arr.slice().sort((a, b) => a - b).join(','));
+    const toggle = (i) => emit(sel.includes(i) ? sel.filter((x) => x !== i) : sel.concat(i));
+    const sameSet = (a) => !isAll && sel.length === a.length && a.every((x) => sel.includes(x));
+    const labelText = isAll ? 'ทุกเดือน' : sel.length === 1 ? months[sel[0]] : sel.length <= 3 ? sel.slice().sort((a, b) => a - b).map((i) => months[i]).join(', ') : sel.length + ' เดือน';
+    const QUARTERS = [['Q1', [0, 1, 2]], ['Q2', [3, 4, 5]], ['Q3', [6, 7, 8]], ['Q4', [9, 10, 11]]];
+    const chip = (lbl, active, onClick) => React.createElement("button", {
+      key: lbl, onClick,
+      style: { padding: '4px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + (active ? 'var(--border-accent)' : 'var(--border-default)'), background: active ? 'var(--accent-subtle)' : 'transparent', color: active ? 'var(--accent-hover)' : 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', fontWeight: active ? 600 : 500, cursor: 'pointer' }
+    }, lbl);
+    return React.createElement("div", { ref, style: { position: 'relative', width } },
+      React.createElement("button", {
+        onClick: () => setOpen((o) => !o),
+        style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', height: 36, padding: '0 10px 0 12px', background: 'var(--surface-1)', border: '1px solid ' + (open ? 'var(--border-accent)' : 'var(--border-default)'), boxShadow: open ? '0 0 0 3px var(--accent-ring)' : 'none', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', cursor: 'pointer' }
+      },
+        React.createElement("span", { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, labelText),
+        React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", style: { flex: '0 0 auto', transform: open ? 'rotate(180deg)' : 'none', color: 'var(--text-tertiary)' } },
+          React.createElement("path", { d: "M6 9l6 6 6-6", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }))),
+      open && React.createElement("div", {
+        style: { position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 'var(--z-overlay)', width: 264, padding: 10, background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)' }
+      },
+        React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 } },
+          chip('ทุกเดือน', isAll, () => emit(null)),
+          ...QUARTERS.map((q) => chip(q[0], sameSet(q[1]), () => emit(q[1])))),
+        React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 } },
+          ...months.map((m, i) => {
+            const on = sel.includes(i);
+            return React.createElement("button", {
+              key: i, onClick: () => toggle(i),
+              style: { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', border: 'none', borderRadius: 'var(--radius-sm)', background: on ? 'var(--accent-subtle)' : 'transparent', color: on ? 'var(--accent-hover)' : 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: on ? 600 : 400, cursor: 'pointer', textAlign: 'left' }
+            },
+              React.createElement("span", { style: { width: 13, height: 13, flex: '0 0 auto', borderRadius: 3, border: '1.5px solid ' + (on ? 'var(--accent)' : 'var(--border-strong)'), background: on ? 'var(--accent)' : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' } },
+                on && React.createElement("svg", { width: "9", height: "9", viewBox: "0 0 24 24", fill: "none" }, React.createElement("path", { d: "M20 6L9 17l-5-5", stroke: "#fff", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }))),
+              m);
+          }))));
+  }
   function FilterBar({
     filters,
     setFilters,
@@ -5087,17 +5136,10 @@ try { (() => {
       value: filters.year,
       onChange: set('year'),
       options: D.YEARS.map(String)
-    }), /*#__PURE__*/React.createElement(Select, {
-      width: 120,
+    }), /*#__PURE__*/React.createElement(MonthFilter, {
       value: filters.month,
       onChange: set('month'),
-      options: [{
-        value: 'all',
-        label: 'ทุกเดือน'
-      }, ...D.TH_MONTHS.map((m, i) => ({
-        value: String(i),
-        label: m
-      }))]
+      D: D
     }), /*#__PURE__*/React.createElement(Select, {
       width: 170,
       value: filters.customerGroup,
@@ -5615,6 +5657,52 @@ try { (() => {
       }, window.BWP_USER && window.BWP_USER.username || '')
     )));
   }
+  function MonthFilter({ value, onChange, D, width = 168 }) {
+    const [open, setOpen] = React.useState(false);
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+      function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+      document.addEventListener('mousedown', onDoc);
+      return () => document.removeEventListener('mousedown', onDoc);
+    }, []);
+    const months = D.TH_MONTHS || [];
+    const isAll = value == null || value === 'all' || value === '';
+    const sel = isAll ? [] : String(value).split(',').map(Number).filter((n) => !isNaN(n) && n >= 0 && n < 12);
+    const emit = (arr) => onChange(!arr || arr.length === 0 ? 'all' : arr.slice().sort((a, b) => a - b).join(','));
+    const toggle = (i) => emit(sel.includes(i) ? sel.filter((x) => x !== i) : sel.concat(i));
+    const sameSet = (a) => !isAll && sel.length === a.length && a.every((x) => sel.includes(x));
+    const labelText = isAll ? 'ทุกเดือน' : sel.length === 1 ? months[sel[0]] : sel.length <= 3 ? sel.slice().sort((a, b) => a - b).map((i) => months[i]).join(', ') : sel.length + ' เดือน';
+    const QUARTERS = [['Q1', [0, 1, 2]], ['Q2', [3, 4, 5]], ['Q3', [6, 7, 8]], ['Q4', [9, 10, 11]]];
+    const chip = (lbl, active, onClick) => React.createElement("button", {
+      key: lbl, onClick,
+      style: { padding: '4px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + (active ? 'var(--border-accent)' : 'var(--border-default)'), background: active ? 'var(--accent-subtle)' : 'transparent', color: active ? 'var(--accent-hover)' : 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', fontWeight: active ? 600 : 500, cursor: 'pointer' }
+    }, lbl);
+    return React.createElement("div", { ref, style: { position: 'relative', width } },
+      React.createElement("button", {
+        onClick: () => setOpen((o) => !o),
+        style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', height: 36, padding: '0 10px 0 12px', background: 'var(--surface-1)', border: '1px solid ' + (open ? 'var(--border-accent)' : 'var(--border-default)'), boxShadow: open ? '0 0 0 3px var(--accent-ring)' : 'none', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', cursor: 'pointer' }
+      },
+        React.createElement("span", { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, labelText),
+        React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", style: { flex: '0 0 auto', transform: open ? 'rotate(180deg)' : 'none', color: 'var(--text-tertiary)' } },
+          React.createElement("path", { d: "M6 9l6 6 6-6", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }))),
+      open && React.createElement("div", {
+        style: { position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 'var(--z-overlay)', width: 264, padding: 10, background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)' }
+      },
+        React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 } },
+          chip('ทุกเดือน', isAll, () => emit(null)),
+          ...QUARTERS.map((q) => chip(q[0], sameSet(q[1]), () => emit(q[1])))),
+        React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 } },
+          ...months.map((m, i) => {
+            const on = sel.includes(i);
+            return React.createElement("button", {
+              key: i, onClick: () => toggle(i),
+              style: { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', border: 'none', borderRadius: 'var(--radius-sm)', background: on ? 'var(--accent-subtle)' : 'transparent', color: on ? 'var(--accent-hover)' : 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: on ? 600 : 400, cursor: 'pointer', textAlign: 'left' }
+            },
+              React.createElement("span", { style: { width: 13, height: 13, flex: '0 0 auto', borderRadius: 3, border: '1.5px solid ' + (on ? 'var(--accent)' : 'var(--border-strong)'), background: on ? 'var(--accent)' : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' } },
+                on && React.createElement("svg", { width: "9", height: "9", viewBox: "0 0 24 24", fill: "none" }, React.createElement("path", { d: "M20 6L9 17l-5-5", stroke: "#fff", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }))),
+              m);
+          }))));
+  }
   function FilterBar({
     filters,
     setFilters,
@@ -5659,17 +5747,10 @@ try { (() => {
       value: filters.year,
       onChange: set('year'),
       options: D.YEARS.map(String)
-    }), /*#__PURE__*/React.createElement(Select, {
-      width: 120,
+    }), /*#__PURE__*/React.createElement(MonthFilter, {
       value: filters.month,
       onChange: set('month'),
-      options: [{
-        value: 'all',
-        label: 'ทุกเดือน'
-      }, ...D.TH_MONTHS.map((m, i) => ({
-        value: String(i),
-        label: m
-      }))]
+      D: D
     }), /*#__PURE__*/React.createElement(Select, {
       width: 170,
       value: filters.customerGroup,
@@ -5763,9 +5844,11 @@ try { (() => {
       }
     }
     let n = 0; for (let i = 0; i < 12; i++) { if (vCur[i] != null && +vCur[i] > 0) n = i + 1; else break; }
-    const single = f.month != null && f.month !== 'all' && f.month !== '';
-    const mi = single ? +f.month : -1;
-    const idxs = single ? [mi] : Array.from({ length: n }, (_, i) => i);
+    const _isAllM = f.month == null || f.month === 'all' || f.month === '';
+    const _selIdx = _isAllM ? [] : String(f.month).split(',').map(Number).filter((i) => !isNaN(i) && i >= 0 && i < 12).sort((a, b) => a - b);
+    const single = _selIdx.length === 1;
+    const mi = single ? _selIdx[0] : -1;
+    const idxs = _isAllM ? Array.from({ length: n }, (_, i) => i) : _selIdx;
     const pick = (arr) => idxs.map((i) => arr[i]);
     const sumVal = sum(pick(vCur)), sumVol = sum(pick(kCur));
     const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
@@ -5977,8 +6060,9 @@ try { (() => {
     //  • _canMoM  = เทียบเดือนต่อเดือนได้ไหม → มุมมองหลายเดือนต้องมี ≥2 เดือน,
     //               ถ้าเลือกเดือนเดียวก็เทียบกับเดือนก่อนหน้าได้ (ตราบใดที่ไม่ใช่เดือนแรกสุด)
     //  • _canTrend = ดูแนวโน้ม/การเติบโตหลายเดือนได้ไหม → ต้องมีหลายจุดในมุมมอง (ไม่ใช่เดือนเดียว)
-    const _single = filters && filters.month != null && filters.month !== 'all' && filters.month !== '';
-    const _mi = _single ? +filters.month : -1;
+    const _selMonArr = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? String(filters.month).split(',').map(Number).filter((x) => !isNaN(x)) : [];
+    const _single = _selMonArr.length === 1;
+    const _mi = _single ? _selMonArr[0] : -1;
     const _mName = (_single && D.TH_MONTHS) ? D.TH_MONTHS[_mi] : '';
     const _vArr = (D.valueByYear || {})[String((filters && filters.year) || '2569')] || [];
     const _momVal = _single
@@ -6397,7 +6481,7 @@ try { (() => {
   function ProductScreen({ filters }) {
     const D = viewFor(filters);
     const _Dfull = viewFor(Object.assign({}, filters, { month: 'all' }));
-    const _gMon = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? +filters.month : null;
+    const _gMonArr = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? String(filters.month).split(',').map(Number).filter((x) => !isNaN(x)) : []; const _gMon = _gMonArr.length ? _gMonArr[_gMonArr.length - 1] : null;
     const NACT = D.NACT;
     const prodGrowth = (p) => {
       if (_gMon != null && _gMon >= 1) {
@@ -7113,7 +7197,7 @@ try { (() => {
     const D = viewFor(Object.assign({}, filters, { month: 'all' }));
     const NACT = D.NACT;
     const [sel, setSel] = React.useState(null);
-    const _gMon = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? +filters.month : null;
+    const _gMonArr = filters && filters.month != null && filters.month !== 'all' && filters.month !== '' ? String(filters.month).split(',').map(Number).filter((x) => !isNaN(x)) : []; const _gMon = _gMonArr.length ? _gMonArr[_gMonArr.length - 1] : null;
     const [mon, setMon] = React.useState(_gMon != null ? _gMon : (NACT - 1)); // selected month index, synced with global filter
     React.useEffect(() => { setMon(_gMon != null ? _gMon : (NACT - 1)); }, [_gMon, NACT]);
     const sorted = [...D.CUSTOMERS].sort((a, b) => b.kg - a.kg);

@@ -122,6 +122,56 @@
     );
   }
 
+  function MonthFilter({ value, onChange, D, width = 168 }) {
+    const [open, setOpen] = React.useState(false);
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+      function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+      document.addEventListener('mousedown', onDoc);
+      return () => document.removeEventListener('mousedown', onDoc);
+    }, []);
+    const months = D.TH_MONTHS || [];
+    const isAll = value == null || value === 'all' || value === '';
+    const sel = isAll ? [] : String(value).split(',').map(Number).filter((n) => !isNaN(n) && n >= 0 && n < 12);
+    const emit = (arr) => onChange(!arr || arr.length === 0 ? 'all' : arr.slice().sort((a, b) => a - b).join(','));
+    const toggle = (i) => emit(sel.includes(i) ? sel.filter((x) => x !== i) : sel.concat(i));
+    const sameSet = (a) => !isAll && sel.length === a.length && a.every((x) => sel.includes(x));
+    const labelText = isAll ? 'ทุกเดือน' : sel.length === 1 ? months[sel[0]] : sel.length <= 3 ? sel.slice().sort((a, b) => a - b).map((i) => months[i]).join(', ') : sel.length + ' เดือน';
+    const QUARTERS = [['Q1', [0, 1, 2]], ['Q2', [3, 4, 5]], ['Q3', [6, 7, 8]], ['Q4', [9, 10, 11]]];
+    const chip = (lbl, active, onClick) => (
+      <button key={lbl} onClick={onClick} style={{ padding: '4px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + (active ? 'var(--border-accent)' : 'var(--border-default)'), background: active ? 'var(--accent-subtle)' : 'transparent', color: active ? 'var(--accent-hover)' : 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', fontWeight: active ? 600 : 500, cursor: 'pointer' }}>{lbl}</button>
+    );
+    return (
+      <div ref={ref} style={{ position: 'relative', width }}>
+        <button onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', height: 36, padding: '0 10px 0 12px', background: 'var(--surface-1)', border: '1px solid ' + (open ? 'var(--border-accent)' : 'var(--border-default)'), boxShadow: open ? '0 0 0 3px var(--accent-ring)' : 'none', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{labelText}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flex: '0 0 auto', transform: open ? 'rotate(180deg)' : 'none', color: 'var(--text-tertiary)' }}><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        {open && (
+          <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 'var(--z-overlay)', width: 264, padding: 10, background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+              {chip('ทุกเดือน', isAll, () => emit(null))}
+              {QUARTERS.map((q) => chip(q[0], sameSet(q[1]), () => emit(q[1])))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+              {months.map((m, i) => {
+                const on = sel.includes(i);
+                return (
+                  <button key={i} onClick={() => toggle(i)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', border: 'none', borderRadius: 'var(--radius-sm)', background: on ? 'var(--accent-subtle)' : 'transparent', color: on ? 'var(--accent-hover)' : 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: on ? 600 : 400, cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ width: 13, height: 13, flex: '0 0 auto', borderRadius: 3, border: '1.5px solid ' + (on ? 'var(--accent)' : 'var(--border-strong)'), background: on ? 'var(--accent)' : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {on && <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                    </span>
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   function FilterBar({ filters, setFilters, onExport }) {
     const D = window.VDATA;
     const set = (k) => (v) => setFilters((f) => ({ ...f, [k]: v }));
@@ -135,7 +185,7 @@
           <Icon name="filter" size={14} /> ตัวกรอง
         </span>
         <Select width={110} value={filters.year} onChange={set('year')} options={D.YEARS.map(String)} />
-        <Select width={120} value={filters.month} onChange={set('month')} options={[{value:'all',label:'ทุกเดือน'}, ...D.TH_MONTHS.map((m,i)=>({value:String(i),label:m}))]} />
+        <MonthFilter value={filters.month} onChange={set('month')} D={D} />
         <Select width={170} value={filters.customerGroup} onChange={set('customerGroup')} options={[{value:'all',label:'ลูกค้าทั้งหมด'}, ...D.CUSTOMERS.slice(0,6).map(c=>({value:c.id,label:c.name.length>16?c.name.slice(0,16)+'…':c.name}))]} />
 <Select width={150} value={filters.product || 'all'} onChange={set('product')} options={[{value:'all',label:'ทุกสินค้า'}, ...(D.PRODUCTS||[]).map(p=>({value:p.id,label:p.name.length>14?p.name.slice(0,14)+'…':p.name}))]} />
         <div style={{ flex: 1 }} />

@@ -37,9 +37,11 @@
       }
     }
     let n = 0; for (let i = 0; i < 12; i++) { if (vCur[i] != null && +vCur[i] > 0) n = i + 1; else break; }
-    const single = f.month != null && f.month !== 'all' && f.month !== '';
-    const mi = single ? +f.month : -1;
-    const idxs = single ? [mi] : Array.from({ length: n }, (_, i) => i);
+    const _isAllM = f.month == null || f.month === 'all' || f.month === '';
+    const _selIdx = _isAllM ? [] : String(f.month).split(',').map(Number).filter((i) => !isNaN(i) && i >= 0 && i < 12).sort((a, b) => a - b);
+    const single = _selIdx.length === 1;
+    const mi = single ? _selIdx[0] : -1;
+    const idxs = _isAllM ? Array.from({ length: n }, (_, i) => i) : _selIdx;
     const pick = (arr) => idxs.map((i) => arr[i]);
     const sumVal = sum(pick(vCur)), sumVol = sum(pick(kCur));
     const sumValC = sum(pick(vCmp)), sumVolC = sum(pick(kCmp));
@@ -52,14 +54,14 @@
     let prods = D.PRODUCTS;
     if (pg && pg !== 'all') prods = prods.filter((p) => p.group === pg);
     if (prodId && prodId !== 'all') prods = prods.filter((p) => p.id === prodId);
-    if (single) prods = prods.map((p) => Object.assign({}, p, { val: rnd(p.monthly[mi] || 0, 1) }));
+    if (!_isAllM) prods = prods.map((p) => Object.assign({}, p, { val: rnd(sum(idxs.map((i) => p.monthly[i] || 0)), 1) }));
     const totP = sum(prods.map((p) => p.val));
     prods = prods.map((p) => Object.assign({}, p, { share: totP ? rnd(p.val / totP * 100, 1) : 0 }));
     let custs = D.CUSTOMERS;
     if (cg && cg !== 'all') custs = custs.filter((c) => c.id === cg);
-    if (single) custs = custs.map((c) => Object.assign({}, c, { kg: c.monthly[mi] || 0 }));
+    if (!_isAllM) custs = custs.map((c) => Object.assign({}, c, { kg: sum(idxs.map((i) => c.monthly[i] || 0)) }));
     const totC = sum(custs.map((c) => c.kg));
-    if (single) custs = custs.map((c) => Object.assign({}, c, { share: totC ? rnd(c.kg / totC * 100, 1) : 0 }));
+    if (!_isAllM) custs = custs.map((c) => Object.assign({}, c, { share: totC ? rnd(c.kg / totC * 100, 1) : 0 }));
     const patch = {
       value: { value: sumVal.toFixed(1), delta: momVal, yoy: yoy(sumVal, sumValC) },
       volume: { value: (sumVol / 1000).toFixed(2), delta: momVol, yoy: yoy(sumVol, sumVolC) },
