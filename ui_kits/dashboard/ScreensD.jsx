@@ -67,6 +67,56 @@
       return { year: y, cmpT, full, nM, stepYoY };
     });
 
+    // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
+    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
+    const latestMonthly = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
+    const valid = latestMonthly.map((v, i) => ({ v, i })).filter((o) => o.v != null);
+    const insights = [];
+    if (valid.length) {
+      if (prev) {
+        const diff = tLatest - tPrev;
+        insights.push({
+          tone: yoy >= 0 ? 'positive' : 'negative',
+          icon: yoy >= 0 ? 'trending-up' : 'trending-down',
+          text: `ยอดรวม ${cmp} เดือนแรกของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(diff))})`,
+        });
+      }
+      const sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
+      const rank = sortedT.indexOf(tLatest) + 1;
+      insights.push({
+        tone: rank === 1 ? 'positive' : 'info', icon: 'award',
+        text: rank === 1
+          ? `ปี ${latest} ทำยอด ${cmp} เดือนแรกสูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ`
+          : `ปี ${latest} อยู่อันดับ ${rank} จาก ${years.length} ปี ในช่วง ${cmp} เดือนแรก`,
+      });
+      const peak = valid.reduce((a, b) => (b.v > a.v ? b : a));
+      const trough = valid.reduce((a, b) => (b.v < a.v ? b : a));
+      insights.push({
+        tone: 'info', icon: 'bar-chart-2',
+        text: `เดือนที่ทำยอดสูงสุดคือ ${rows[peak.i].month} (${fv(peak.v)}) ส่วนต่ำสุดคือ ${rows[trough.i].month} (${fv(trough.v)})`,
+      });
+      if (prev) {
+        const yv = rows.filter((r) => r.yoy != null && isFinite(r.yoy));
+        if (yv.length) {
+          const best = yv.reduce((a, b) => (b.yoy > a.yoy ? b : a));
+          const worst = yv.reduce((a, b) => (b.yoy < a.yoy ? b : a));
+          insights.push({
+            tone: best.yoy >= 0 ? 'positive' : 'negative', icon: 'activity',
+            text: `เทียบรายเดือนกับปี ${prev}: ${best.month} โตเด่นสุด (${fmt.pct(best.yoy)}) ขณะที่ ${worst.month} อ่อนสุด (${fmt.pct(worst.yoy)})`,
+          });
+        }
+      }
+      if (valid.length >= 2) {
+        const first = valid[0], last = valid[valid.length - 1];
+        const mo = first.v ? +((last.v / first.v - 1) * 100).toFixed(1) : 0;
+        insights.push({
+          tone: mo >= 0 ? 'positive' : 'warning', icon: mo >= 0 ? 'trending-up' : 'trending-down',
+          text: `โมเมนตัมภายในปี ${latest}: เดือน ${rows[last.i].month} ${mo >= 0 ? 'สูงกว่า' : 'ต่ำกว่า'} ${rows[first.i].month} ${fmt.pct(mo)}`,
+        });
+      }
+    }
+    const toneColor = (t) => t === 'positive' ? 'var(--positive)' : t === 'negative' ? 'var(--negative)' : t === 'warning' ? 'var(--warning)' : 'var(--accent)';
+
     return (
       <div>
         <Grid min={160} gap={12} style={{ marginBottom: 16 }}>
@@ -80,6 +130,22 @@
           actions={<SegmentedControl size="sm" value={metric} onChange={setMetric} options={[{value:'value',label:'มูลค่า'},{value:'volume',label:'ปริมาณ'}]} />}>
           <LineChart height={300} labels={D.MONTHS_ACT.slice(0, cmp)} yFormat={(v) => metric === 'value' ? fmt.dec1(v/1e6) : fmt.int(v)} showDots series={series} />
         </Card>
+
+        {insights.length > 0 && (
+          <Card title="บทวิเคราะห์อัตโนมัติ" subtitle={`สรุปจากข้อมูลจริง · อัปเดตตาม${metric === 'value' ? 'มูลค่า' : 'ปริมาณ'}และตัวกรอง`} style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {insights.map((it, i) => {
+                const c = toneColor(it.tone);
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: 'var(--surface-1)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', borderLeft: `3px solid ${c}` }}>
+                    <span style={{ color: c, flex: '0 0 auto', marginTop: 1 }}><Icon name={it.icon} size={16} /></span>
+                    <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{it.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         <Grid cols={2} gap={16} style={{ marginTop: 16 }}>
           <Card title="สรุปรายปี" subtitle={`รวม ${cmp} เดือนเทียบกัน + ทั้งปี (เท่าที่มีข้อมูล)`} padding="none">

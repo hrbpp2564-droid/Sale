@@ -4271,6 +4271,37 @@ try { (() => {
         stepYoY
       };
     });
+    // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
+    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
+    const _latM = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
+    const _valid = _latM.map((v, i) => ({ v: v, i: i })).filter((o) => o.v != null && +o.v > 0);
+    const insights = [];
+    if (_valid.length) {
+      if (prev) {
+        const _diff = tLatest - tPrev;
+        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${cmp} เดือนแรกของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${_diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(_diff))})` });
+      }
+      const _sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
+      const _rank = _sortedT.indexOf(tLatest) + 1;
+      insights.push({ tone: _rank === 1 ? 'positive' : 'info', icon: 'award', text: _rank === 1 ? `ปี ${latest} ทำยอด ${cmp} เดือนแรกสูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${_rank} จาก ${years.length} ปี ในช่วง ${cmp} เดือนแรก` });
+      const _peak = _valid.reduce((a, b) => (b.v > a.v ? b : a));
+      const _trough = _valid.reduce((a, b) => (b.v < a.v ? b : a));
+      insights.push({ tone: 'info', icon: 'bar-chart-2', text: `เดือนที่ทำยอดสูงสุดคือ ${rows[_peak.i].month} (${fv(_peak.v)}) ส่วนต่ำสุดคือ ${rows[_trough.i].month} (${fv(_trough.v)})` });
+      if (prev) {
+        const _yv = rows.filter((r) => r.yoy != null && isFinite(r.yoy));
+        if (_yv.length) {
+          const _best = _yv.reduce((a, b) => (b.yoy > a.yoy ? b : a));
+          const _worst = _yv.reduce((a, b) => (b.yoy < a.yoy ? b : a));
+          insights.push({ tone: _best.yoy >= 0 ? 'positive' : 'negative', icon: 'activity', text: `เทียบรายเดือนกับปี ${prev}: ${_best.month} โตเด่นสุด (${fmt.pct(_best.yoy)}) ขณะที่ ${_worst.month} อ่อนสุด (${fmt.pct(_worst.yoy)})` });
+        }
+      }
+      if (_valid.length >= 2) {
+        const _f = _valid[0], _l = _valid[_valid.length - 1];
+        const _mo = _f.v ? +((_l.v / _f.v - 1) * 100).toFixed(1) : 0;
+        insights.push({ tone: _mo >= 0 ? 'positive' : 'warning', icon: _mo >= 0 ? 'trending-up' : 'trending-down', text: `โมเมนตัมภายในปี ${latest}: เดือน ${rows[_l.i].month} ${_mo >= 0 ? 'สูงกว่า' : 'ต่ำกว่า'} ${rows[_f.i].month} ${fmt.pct(_mo)}` });
+      }
+    }
+    const _toneColor = (t) => t === 'positive' ? 'var(--positive)' : t === 'negative' ? 'var(--negative)' : t === 'warning' ? 'var(--warning)' : 'var(--accent)';
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
       gap: 12,
@@ -4326,7 +4357,23 @@ try { (() => {
       yFormat: v => metric === 'value' ? fmt.dec1(v / 1e6) : fmt.int(v),
       showDots: true,
       series: series
-    })), /*#__PURE__*/React.createElement(Grid, {
+    })), insights.length > 0 && /*#__PURE__*/React.createElement(Card, {
+      title: "\u0E1A\u0E17\u0E27\u0E34\u0E40\u0E04\u0E23\u0E32\u0E30\u0E2B\u0E4C\u0E2D\u0E31\u0E15\u0E42\u0E19\u0E21\u0E31\u0E15\u0E34",
+      subtitle: `\u0E2A\u0E23\u0E38\u0E1B\u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07 \u00B7 \u0E2D\u0E31\u0E1B\u0E40\u0E14\u0E15\u0E15\u0E32\u0E21${metric === 'value' ? '\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32' : '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13'}\u0E41\u0E25\u0E30\u0E15\u0E31\u0E27\u0E01\u0E23\u0E2D\u0E07`,
+      style: { marginTop: 16 }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: { display: 'flex', flexDirection: 'column', gap: 10 }
+    }, insights.map((it, i) => {
+      const c = _toneColor(it.tone);
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: { display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: 'var(--surface-1)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid ' + c }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: { color: c, flex: '0 0 auto', marginTop: 1 }
+      }, /*#__PURE__*/React.createElement(Icon, { name: it.icon, size: 16 })), /*#__PURE__*/React.createElement("span", {
+        style: { fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }
+      }, it.text));
+    }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
       gap: 16,
       style: {
@@ -7859,6 +7906,37 @@ try { (() => {
         stepYoY
       };
     });
+    // ---------- บทวิเคราะห์อัตโนมัติ (อัปเดตตาม metric + ตัวกรอง) ----------
+    const fv = (n) => metric === 'value' ? fmt.dec1(n / 1e6) + ' ลบ.' : fmt.int(n) + ' ' + unit;
+    const _latM = rows.map((r) => (r['y' + latest] == null ? null : r['y' + latest]));
+    const _valid = _latM.map((v, i) => ({ v: v, i: i })).filter((o) => o.v != null && +o.v > 0);
+    const insights = [];
+    if (_valid.length) {
+      if (prev) {
+        const _diff = tLatest - tPrev;
+        insights.push({ tone: yoy >= 0 ? 'positive' : 'negative', icon: yoy >= 0 ? 'trending-up' : 'trending-down', text: `ยอดรวม ${cmp} เดือนแรกของปี ${latest} ${yoy >= 0 ? 'เติบโต' : 'ลดลง'} ${fmt.pct(yoy)} เทียบปี ${prev} — ${fv(tLatest)} เทียบ ${fv(tPrev)} (${_diff >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'} ${fv(Math.abs(_diff))})` });
+      }
+      const _sortedT = annual.map((a) => a.cmpT).slice().sort((x, y) => y - x);
+      const _rank = _sortedT.indexOf(tLatest) + 1;
+      insights.push({ tone: _rank === 1 ? 'positive' : 'info', icon: 'award', text: _rank === 1 ? `ปี ${latest} ทำยอด ${cmp} เดือนแรกสูงสุดในรอบ ${years.length} ปีที่นำมาเทียบ` : `ปี ${latest} อยู่อันดับ ${_rank} จาก ${years.length} ปี ในช่วง ${cmp} เดือนแรก` });
+      const _peak = _valid.reduce((a, b) => (b.v > a.v ? b : a));
+      const _trough = _valid.reduce((a, b) => (b.v < a.v ? b : a));
+      insights.push({ tone: 'info', icon: 'bar-chart-2', text: `เดือนที่ทำยอดสูงสุดคือ ${rows[_peak.i].month} (${fv(_peak.v)}) ส่วนต่ำสุดคือ ${rows[_trough.i].month} (${fv(_trough.v)})` });
+      if (prev) {
+        const _yv = rows.filter((r) => r.yoy != null && isFinite(r.yoy));
+        if (_yv.length) {
+          const _best = _yv.reduce((a, b) => (b.yoy > a.yoy ? b : a));
+          const _worst = _yv.reduce((a, b) => (b.yoy < a.yoy ? b : a));
+          insights.push({ tone: _best.yoy >= 0 ? 'positive' : 'negative', icon: 'activity', text: `เทียบรายเดือนกับปี ${prev}: ${_best.month} โตเด่นสุด (${fmt.pct(_best.yoy)}) ขณะที่ ${_worst.month} อ่อนสุด (${fmt.pct(_worst.yoy)})` });
+        }
+      }
+      if (_valid.length >= 2) {
+        const _f = _valid[0], _l = _valid[_valid.length - 1];
+        const _mo = _f.v ? +((_l.v / _f.v - 1) * 100).toFixed(1) : 0;
+        insights.push({ tone: _mo >= 0 ? 'positive' : 'warning', icon: _mo >= 0 ? 'trending-up' : 'trending-down', text: `โมเมนตัมภายในปี ${latest}: เดือน ${rows[_l.i].month} ${_mo >= 0 ? 'สูงกว่า' : 'ต่ำกว่า'} ${rows[_f.i].month} ${fmt.pct(_mo)}` });
+      }
+    }
+    const _toneColor = (t) => t === 'positive' ? 'var(--positive)' : t === 'negative' ? 'var(--negative)' : t === 'warning' ? 'var(--warning)' : 'var(--accent)';
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Grid, {
       min: 160,
       gap: 12,
@@ -7914,7 +7992,23 @@ try { (() => {
       yFormat: v => metric === 'value' ? fmt.dec1(v / 1e6) : fmt.int(v),
       showDots: true,
       series: series
-    })), /*#__PURE__*/React.createElement(Grid, {
+    })), insights.length > 0 && /*#__PURE__*/React.createElement(Card, {
+      title: "\u0E1A\u0E17\u0E27\u0E34\u0E40\u0E04\u0E23\u0E32\u0E30\u0E2B\u0E4C\u0E2D\u0E31\u0E15\u0E42\u0E19\u0E21\u0E31\u0E15\u0E34",
+      subtitle: `\u0E2A\u0E23\u0E38\u0E1B\u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07 \u00B7 \u0E2D\u0E31\u0E1B\u0E40\u0E14\u0E15\u0E15\u0E32\u0E21${metric === 'value' ? '\u0E21\u0E39\u0E25\u0E04\u0E48\u0E32' : '\u0E1B\u0E23\u0E34\u0E21\u0E32\u0E13'}\u0E41\u0E25\u0E30\u0E15\u0E31\u0E27\u0E01\u0E23\u0E2D\u0E07`,
+      style: { marginTop: 16 }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: { display: 'flex', flexDirection: 'column', gap: 10 }
+    }, insights.map((it, i) => {
+      const c = _toneColor(it.tone);
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: { display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: 'var(--surface-1)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid ' + c }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: { color: c, flex: '0 0 auto', marginTop: 1 }
+      }, /*#__PURE__*/React.createElement(Icon, { name: it.icon, size: 16 })), /*#__PURE__*/React.createElement("span", {
+        style: { fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }
+      }, it.text));
+    }))), /*#__PURE__*/React.createElement(Grid, {
       cols: 2,
       gap: 16,
       style: {
