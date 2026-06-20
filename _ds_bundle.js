@@ -4231,7 +4231,8 @@ try { (() => {
     const _kfmt = metric === 'value' ? (n => Math.round(n).toLocaleString('en-US')) : _vfmt;
 
     const monthsOf = y => (src[y] || []).filter(v => v != null && +v > 0).length;
-    const years = (FULL.YEARS || []).filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
+    const _selYear = filters && filters.year ? String(filters.year) : null;
+    const years = (FULL.YEARS || []).filter(y => Array.isArray(src[y]) && monthsOf(y) > 0 && (!_selYear || +y <= +_selYear));
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
@@ -4243,7 +4244,7 @@ try { (() => {
     const tPrev = prev ? sumN(prev, cmp) : 0;
     const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(2) : 0;
 
-    const chartLen = _selIdx ? _selIdx.length : cmp;
+    const chartLen = _selIdx ? _selIdx.length : 12;
     const chartLabels = _labels.slice(0, chartLen);
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
@@ -4253,7 +4254,7 @@ try { (() => {
       type: i === years.length - 1 ? 'area' : 'line'
     }));
 
-    const tableLen = _selIdx ? _selIdx.length : cmp;
+    const tableLen = _selIdx ? _selIdx.length : 12;
     const rows = _labels.slice(0, tableLen).map((m, i) => {
       const row = { month: m };
       years.forEach(y => { row['y' + y] = (src[y] || [])[i]; });
@@ -7864,7 +7865,8 @@ try { (() => {
 
     // --- จำนวนเดือนที่มีข้อมูลจริงในปีนั้น (หลัง filter) ---
     const monthsOf = y => (src[y] || []).filter(v => v != null && +v > 0).length;
-    const years = (FULL.YEARS || []).filter(y => Array.isArray(src[y]) && monthsOf(y) > 0);
+    const _selYear = filters && filters.year ? String(filters.year) : null;
+    const years = (FULL.YEARS || []).filter(y => Array.isArray(src[y]) && monthsOf(y) > 0 && (!_selYear || +y <= +_selYear));
     const latest = years[years.length - 1];
     const prev = years[years.length - 2];
 
@@ -7879,7 +7881,7 @@ try { (() => {
     const yoy = tPrev ? +((tLatest / tPrev - 1) * 100).toFixed(2) : 0;
 
     // --- กราฟ: แสดงเฉพาะเดือนที่เลือก ---
-    const chartLen = _selIdx ? _selIdx.length : cmp;
+    const chartLen = _selIdx ? _selIdx.length : 12;
     const chartLabels = _labels.slice(0, chartLen);
     const yearColor = i => i === years.length - 1 ? 'var(--viz-1)' : `var(--viz-${(years.length - 1 - i) % 6 + 2})`;
     const series = years.map((y, i) => ({
@@ -7890,7 +7892,7 @@ try { (() => {
     }));
 
     // --- ตารางรายเดือน: วนเฉพาะเดือนที่เลือก ---
-    const tableLen = _selIdx ? _selIdx.length : cmp;
+    const tableLen = _selIdx ? _selIdx.length : 12;
     const rows = _labels.slice(0, tableLen).map((m, i) => {
       const row = { month: m };
       years.forEach(y => { row['y' + y] = (src[y] || [])[i]; });
