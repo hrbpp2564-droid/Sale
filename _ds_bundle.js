@@ -2711,10 +2711,14 @@ try { (() => {
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
     let series;
     if (gran === 'year') {
-      // 5-month comparable totals per year
-      const v = D.YEARS.map(y => D.sum(D.valueByYear[y].slice(0, NACT)));
+      // แต่ละปีแสดงยอดรวมเต็มที่มี (ปีสมบูรณ์ = 12 เดือน, ปีปัจจุบัน = เดือนจริงที่มี)
+      const FULL = window.VDATA || {};
+      const v = D.YEARS.map(y => {
+        const arr = (FULL.valueByYear && (FULL.valueByYear[y] || FULL.valueByYear[+y])) || [];
+        return D.sum(arr.filter(x => x != null));
+      });
       series = [{
-        name: `มูลค่า ${NACT} เดือน (ลบ.)`,
+        name: `มูลค่ารวมรายปี (ลบ.)`,
         data: v.map(x => x == null ? null : Math.round(x)),
         color: 'var(--viz-1)',
         type: 'bar'
@@ -2771,7 +2775,7 @@ try { (() => {
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
-      subtitle: `${D.MONTHS_ACT[0]}\u2013${D.MONTHS_ACT[NACT-1]} (${NACT} \u0E40\u0E14\u0E37\u0E2D\u0E19\u0E17\u0E35\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07)`,
+      subtitle: gran === 'year' ? `รายปี · แต่ละปีแสดงยอดรวมเต็มที่มี (ปี ${D.YEARS[D.YEARS.length-1]} = ${NACT} เดือน)` : `${D.MONTHS_ACT[0]}\u2013${D.MONTHS_ACT[NACT-1]} (${NACT} \u0E40\u0E14\u0E37\u0E2D\u0E19\u0E17\u0E35\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07)`,
       actions: /*#__PURE__*/React.createElement("div", {
         style: {
           display: 'flex',
@@ -6273,10 +6277,14 @@ try { (() => {
     const labels = gran === 'year' ? D.YEARS.map(String) : D.MONTHS_ACT;
     let series;
     if (gran === 'year') {
-      // 5-month comparable totals per year
-      const v = D.YEARS.map(y => D.sum(D.valueByYear[y].slice(0, NACT)));
+      // แต่ละปีแสดงยอดรวมเต็มที่มี (ปีสมบูรณ์ = 12 เดือน, ปีปัจจุบัน = เดือนจริงที่มี)
+      const FULL = window.VDATA || {};
+      const v = D.YEARS.map(y => {
+        const arr = (FULL.valueByYear && (FULL.valueByYear[y] || FULL.valueByYear[+y])) || [];
+        return D.sum(arr.filter(x => x != null));
+      });
       series = [{
-        name: `มูลค่า ${NACT} เดือน (ลบ.)`,
+        name: `มูลค่ารวมรายปี (ลบ.)`,
         data: v.map(x => x == null ? null : Math.round(x)),
         color: 'var(--viz-1)',
         type: 'bar'
@@ -6333,7 +6341,7 @@ try { (() => {
       delta: D.totals.momVal
     })), /*#__PURE__*/React.createElement(Card, {
       title: "\u0E22\u0E2D\u0E14\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21 \u2014 \u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A 2568 vs 2569",
-      subtitle: `${D.MONTHS_ACT[0]}\u2013${D.MONTHS_ACT[NACT-1]} (${NACT} \u0E40\u0E14\u0E37\u0E2D\u0E19\u0E17\u0E35\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07)`,
+      subtitle: gran === 'year' ? `รายปี · แต่ละปีแสดงยอดรวมเต็มที่มี (ปี ${D.YEARS[D.YEARS.length-1]} = ${NACT} เดือน)` : `${D.MONTHS_ACT[0]}\u2013${D.MONTHS_ACT[NACT-1]} (${NACT} \u0E40\u0E14\u0E37\u0E2D\u0E19\u0E17\u0E35\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E08\u0E23\u0E34\u0E07)`,
       actions: /*#__PURE__*/React.createElement("div", {
         style: {
           display: 'flex',

@@ -191,9 +191,14 @@
 
     let series;
     if (gran === 'year') {
-      // 5-month comparable totals per year
-      const v = D.YEARS.map((y) => D.sum(D.valueByYear[y].slice(0, NACT)));
-      series = [{ name: `มูลค่า ${NACT} เดือน (ลบ.)`, data: v, color: 'var(--viz-1)', type: 'bar' }];
+      // แต่ละปีแสดงยอดรวมเต็มที่มี (ปีสมบูรณ์ = 12 เดือน, ปีปัจจุบัน = เดือนจริงที่มี)
+      const FULL = window.VDATA || {};
+      const v = D.YEARS.map((y) => {
+        const arr = (FULL.valueByYear && (FULL.valueByYear[y] || FULL.valueByYear[+y])) || [];
+        return D.sum(arr.filter((x) => x != null));
+      });
+      const curY = String(D.YEARS[D.YEARS.length - 1]);
+      series = [{ name: `มูลค่ารวมรายปี (ลบ.)`, data: v, color: 'var(--viz-1)', type: 'bar' }];
     } else if (type === 'combo') {
       series = [
         { name: 'มูลค่า (ลบ.)', data: D.valueByYear[2569].slice(0, NACT), color: 'var(--viz-1)', type: 'bar' },
@@ -216,7 +221,7 @@
           {(() => { const vals = D.valueByYear[2569].slice(0, NACT); const peakV = Math.max(...vals); const peakM = D.MONTHS_ACT[vals.indexOf(peakV)] || '—'; return <KpiCard label="เดือนสูงสุด" value={peakM} unit={fmt.dec1(peakV / 1e6) + ' ลบ.'} delta={D.totals.momVal} />; })()}
         </Grid>
 
-        <Card title="ยอดขายรวม — เปรียบเทียบ 2568 vs 2569" subtitle={`${D.MONTHS_ACT[0]}–${D.MONTHS_ACT[NACT-1]} (${NACT} เดือนที่มีข้อมูลจริง)`}
+        <Card title="ยอดขายรวม — เปรียบเทียบ 2568 vs 2569" subtitle={gran === 'year' ? `รายปี · แต่ละปีแสดงยอดรวมเต็มที่มี (ปี ${D.YEARS[D.YEARS.length-1]} = ${NACT} เดือน)` : `${D.MONTHS_ACT[0]}–${D.MONTHS_ACT[NACT-1]} (${NACT} เดือนที่มีข้อมูลจริง)`}
           actions={
             <div style={{ display: 'flex', gap: 8 }}>
               <SegmentedControl size="sm" value={type} onChange={setType} options={[{value:'multi',label:'Multi-Line'},{value:'combo',label:'Combo'},{value:'area',label:'Area'}]} />
