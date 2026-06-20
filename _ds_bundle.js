@@ -2846,14 +2846,18 @@ try { (() => {
     } = NS;
     const curY = String((filters && filters.year) || '2569');
     const cmpY = String(parseInt(curY) - 1);
-    const rows = D.MONTHS_ACT.map((m, i) => ({
-      month: m,
-      v_cur: (D.valueByYear[2569] || [])[i],
-      v_cmp: (D.valueByYear[2568] || [])[i],
-      kg69: (D.volumeByYear[2569] || [])[i],
-      price: (D.price69 || [])[i],
-      yoy: (() => { const a = (D.valueByYear[2569]||[])[i], b = (D.valueByYear[2568]||[])[i]; return (a != null && b) ? +((a/b - 1)*100).toFixed(2) : null; })()
-    }));
+    // แสดงครบ 12 เดือนจากข้อมูลเต็ม (เดือนที่ยังไม่มียอดปีปัจจุบันจะเป็น —)
+    const FULL = window.VDATA || {};
+    const TH = FULL.TH_MONTHS || D.TH_MONTHS || [];
+    const _curArr = (FULL.valueByYear && (FULL.valueByYear[curY] || FULL.valueByYear[+curY])) || [];
+    const _cmpArr = (FULL.valueByYear && (FULL.valueByYear[cmpY] || FULL.valueByYear[+cmpY])) || [];
+    const _kgArr = (FULL.volumeByYear && (FULL.volumeByYear[curY] || FULL.volumeByYear[+curY])) || [];
+    const rows = TH.map((m, i) => {
+      const v_cur = _curArr[i], v_cmp = _cmpArr[i], kg = _kgArr[i];
+      const price = (v_cur != null && kg != null && +kg > 0) ? v_cur / (kg * 1000) : null;
+      const yoy = (v_cur != null && v_cmp) ? +((v_cur / v_cmp - 1) * 100).toFixed(2) : null;
+      return { month: m, v_cur: v_cur, v_cmp: v_cmp, kg69: kg, price: price, yoy: yoy };
+    });
     return /*#__PURE__*/React.createElement(DataTable, {
       rows: rows,
       sortable: false,
@@ -6430,14 +6434,18 @@ try { (() => {
     } = NS;
     const curY = String((filters && filters.year) || '2569');
     const cmpY = String(parseInt(curY) - 1);
-    const rows = D.MONTHS_ACT.map((m, i) => ({
-      month: m,
-      v_cur: (D.valueByYear[2569] || [])[i],
-      v_cmp: (D.valueByYear[2568] || [])[i],
-      kg69: (D.volumeByYear[2569] || [])[i],
-      price: (D.price69 || [])[i],
-      yoy: (() => { const a = (D.valueByYear[2569]||[])[i], b = (D.valueByYear[2568]||[])[i]; return (a != null && b) ? +((a/b - 1)*100).toFixed(2) : null; })()
-    }));
+    // แสดงครบ 12 เดือนจากข้อมูลเต็ม (เดือนที่ยังไม่มียอดปีปัจจุบันจะเป็น —)
+    const FULL = window.VDATA || {};
+    const TH = FULL.TH_MONTHS || D.TH_MONTHS || [];
+    const _curArr = (FULL.valueByYear && (FULL.valueByYear[curY] || FULL.valueByYear[+curY])) || [];
+    const _cmpArr = (FULL.valueByYear && (FULL.valueByYear[cmpY] || FULL.valueByYear[+cmpY])) || [];
+    const _kgArr = (FULL.volumeByYear && (FULL.volumeByYear[curY] || FULL.volumeByYear[+curY])) || [];
+    const rows = TH.map((m, i) => {
+      const v_cur = _curArr[i], v_cmp = _cmpArr[i], kg = _kgArr[i];
+      const price = (v_cur != null && kg != null && +kg > 0) ? v_cur / (kg * 1000) : null;
+      const yoy = (v_cur != null && v_cmp) ? +((v_cur / v_cmp - 1) * 100).toFixed(2) : null;
+      return { month: m, v_cur: v_cur, v_cmp: v_cmp, kg69: kg, price: price, yoy: yoy };
+    });
     return /*#__PURE__*/React.createElement(DataTable, {
       rows: rows,
       sortable: false,

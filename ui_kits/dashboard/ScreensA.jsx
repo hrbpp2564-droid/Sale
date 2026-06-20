@@ -250,12 +250,18 @@
 
   function MonthTable({ D }) {
     const { DataTable } = NS;
-    const rows = D.MONTHS_ACT.map((m, i) => ({
-      month: m,
-      v69: D.valueByYear[2569][i], v68: D.valueByYear[2568][i],
-      kg69: D.volumeByYear[2569][i], price: D.price69[i],
-      yoy: +((D.valueByYear[2569][i] / D.valueByYear[2568][i] - 1) * 100).toFixed(1),
-    }));
+    // แสดงครบ 12 เดือนจากข้อมูลเต็ม (เดือนที่ยังไม่มียอดปีปัจจุบันจะเป็น —)
+    const FULL = window.VDATA || {};
+    const TH = FULL.TH_MONTHS || D.TH_MONTHS || [];
+    const curArr = (FULL.valueByYear && FULL.valueByYear[2569]) || [];
+    const cmpArr = (FULL.valueByYear && FULL.valueByYear[2568]) || [];
+    const kgArr = (FULL.volumeByYear && FULL.volumeByYear[2569]) || [];
+    const rows = TH.map((m, i) => {
+      const v69 = curArr[i], v68 = cmpArr[i], kg = kgArr[i];
+      const price = (v69 != null && kg != null && +kg > 0) ? v69 / (kg * 1000) : null;
+      const yoy = (v69 != null && v68) ? +((v69 / v68 - 1) * 100).toFixed(1) : null;
+      return { month: m, v69, v68, kg69: kg, price, yoy };
+    });
     return (
       <DataTable rows={rows} sortable={false} rowKey={(r) => r.month}
         columns={[
@@ -263,8 +269,8 @@
           { key: 'v68', header: 'มูลค่า 2568 (บาท)', numeric: true, render: (r) => r.v68 != null ? Math.round(r.v68).toLocaleString('en-US') : '—' },
           { key: 'v69', header: 'มูลค่า 2569 (บาท)', numeric: true, render: (r) => r.v69 != null ? Math.round(r.v69).toLocaleString('en-US') : '—' },
           { key: 'kg69', header: 'ปริมาณ (Kg)', numeric: true, render: (r) => r.kg69 != null ? fmt.int(r.kg69 * 1000) : '—' },
-          { key: 'price', header: 'ราคาเฉลี่ย (฿/Kg)', numeric: true, render: (r) => fmt.dec1(r.price) },
-          { key: 'yoy', header: '% YoY', numeric: true, render: (r) => <DeltaBadge value={r.yoy} size="sm" /> },
+          { key: 'price', header: 'ราคาเฉลี่ย (฿/Kg)', numeric: true, render: (r) => r.price != null ? fmt.dec1(r.price) : '—' },
+          { key: 'yoy', header: '% YoY', numeric: true, render: (r) => r.yoy != null ? <DeltaBadge value={r.yoy} size="sm" /> : <span style={{ color: 'var(--text-tertiary)' }}>—</span> },
         ]} />
     );
   }
