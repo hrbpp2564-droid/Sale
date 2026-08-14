@@ -28,7 +28,8 @@ begin
   select (hash = extensions.crypt(pass, hash)) into ok from public.app_secrets where key='dashboard_pass';
   if not coalesce(ok,false) then perform pg_sleep(0.4); raise exception 'unauthorized'; end if;
   if p_content_b64 is null or length(p_content_b64) = 0 then raise exception 'empty file'; end if;
-  if coalesce(p_size, 0) > 8388608 then raise exception 'file too large (max 8 MB)'; end if;
+  -- 8 MB จริง ≈ 11.2 MB เมื่อเข้ารหัส base64 — วัดจากของที่ส่งมาจริง ไม่ใช่ตัวเลขที่ client แจ้ง (ปลอมได้)
+  if length(p_content_b64) > 11534336 then raise exception 'file too large (max 8 MB)'; end if;
 
   insert into public.upload_files(filename, mime, size_bytes, content_b64, kind)
   values (p_filename, p_mime, p_size, p_content_b64, coalesce(p_kind, 'current'))

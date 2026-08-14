@@ -162,10 +162,20 @@
 
     // ---- KPIs (with MoM & YoY) ----
     function momPct(arr) { return NACT >= 2 && num(arr[NACT - 2]) ? r2((num(arr[NACT - 1]) / num(arr[NACT - 2]) - 1) * 100) : 0; }
-    var v68p = sum(BASE.value68.slice(0, NACT)), vol68p = sum(BASE.volume68.slice(0, NACT));
-    var yoyVal = v68p ? r2((totalValueBaht / (v68p * 1e6) - 1) * 100) : 0;
+    // YoY compares against whatever 2568 figures were actually entered; BASE is
+    // only a placeholder for a year nobody has keyed in yet. Year Comparison
+    // already prefers the entered data, so reading BASE here made the two
+    // screens disagree the moment real 2568 numbers were saved.
+    var _h68 = (raw.history && raw.history['2568']) || {};
+    var _entered = function (a) { return (a || []).some(function (v) { return v != null && num(v) > 0; }); };
+    var val68Baht = _entered(_h68.value) ? _h68.value.map(num)                              // บาท
+                                         : BASE.value68.map(function (v) { return num(v) * 1e6; });
+    var vol68KKg = _entered(_h68.volume) ? _h68.volume.map(num)                             // พัน Kg
+                                         : BASE.volume68.slice();
+    var v68p = sum(val68Baht.slice(0, NACT)), vol68p = sum(vol68KKg.slice(0, NACT));
+    var yoyVal = v68p ? r2((totalValueBaht / v68p - 1) * 100) : 0;
     var yoyKg = vol68p ? r2((totalVolKKg / vol68p - 1) * 100) : 0;
-    var price68avg = vol68p ? (v68p * 1e6) / (vol68p * 1000) : 0;
+    var price68avg = vol68p ? v68p / (vol68p * 1000) : 0;
     var yoyPrice = price68avg ? r2((avgPrice / price68avg - 1) * 100) : 0;
 
     var KPIS = [

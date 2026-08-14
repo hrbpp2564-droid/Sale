@@ -20,8 +20,12 @@
     return txt ? JSON.parse(txt) : null;
   }
   window.BWP_DB = {
-    // Single-password (legacy)
+    // Single-password (legacy) — this is the ADMIN secret: it also authorises
+    // save_dashboard / set_dashboard_pass. Never hand it to a read-only viewer.
     getDashboard: function (pass) { return call('get_dashboard', { pass: pass }); },
+    // Executive PIN — a separate secret that no write RPC accepts.
+    getDashboardRo: function (pass) { return call('get_dashboard_ro', { pass: pass }); },
+    setPassRo: function (adminPass, newRoPass) { return call('set_dashboard_pass_ro', { admin_pass: adminPass, new_ro_pass: newRoPass }); },
     saveDashboard: function (pass, payload) { return call('save_dashboard', { pass: pass, new_payload: payload }); },
     setPass: function (oldPass, newPass) { return call('set_dashboard_pass', { old_pass: oldPass, new_pass: newPass }); },
     // Multi-user

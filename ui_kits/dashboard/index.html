@@ -21,6 +21,10 @@
 <script src="../../_ds_bundle.js"></script>
 <script src="data.js"></script>
 <script src="supabase-config.js"></script>
+<!-- db.js + compute.js are what supabase-loader needs to reach Supabase and
+     rebuild the KPIs; without them this page hung on the login gate forever. -->
+<script src="db.js"></script>
+<script src="compute.js"></script>
 <script src="supabase-loader.js"></script>
 <script src="icons.jsx"></script>
 <style>

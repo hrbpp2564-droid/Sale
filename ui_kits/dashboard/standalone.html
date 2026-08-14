@@ -18,6 +18,12 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <script src="../../_ds_bundle.js"></script>
 <script src="data.js"></script>
+<!-- Gate this page too: without the loader it rendered the app shell to anyone
+     who knew the URL, with no password prompt at all. -->
+<script src="supabase-config.js"></script>
+<script src="db.js"></script>
+<script src="compute.js"></script>
+<script src="supabase-loader.js"></script>
 <script src="icons.jsx"></script>
 <style>
   html, body { margin: 0; height: 100%; }

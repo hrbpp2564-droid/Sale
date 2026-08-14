@@ -17,7 +17,11 @@
     if ((!cur.MONTHS_ACT || !cur.MONTHS_ACT.length) && cur.TH_MONTHS && cur.TH_MONTHS.length) {
       var nA = cur.NACT;
       if (!nA && cur.volumeByYear && cur.volumeByYear['2569']) {
-        nA = cur.volumeByYear['2569'].filter(function (v) { return v != null; }).length;
+        // last month carrying a figure — counting non-null entries undercounts
+        // whenever a month in the middle was left blank
+        var v69 = cur.volumeByYear['2569'];
+        nA = 0;
+        for (var i = 0; i < v69.length && i < 12; i++) { if (v69[i] != null && +v69[i] > 0) nA = i + 1; }
       }
       cur.MONTHS_ACT = cur.TH_MONTHS.slice(0, nA || 0);
       if (!cur.NACT) cur.NACT = cur.MONTHS_ACT.length;
@@ -153,21 +157,21 @@
       btnTxt.textContent = on ? 'กำลังตรวจสอบ…' : (mode === 'exec' ? 'เข้าดูข้อมูล' : 'เข้าสู่ระบบ');
     }
 
-    // Executive PIN flow — fetch dashboard with PIN only, read-only role
-    function tryPin(pin, fromStore) {
+    // Executive PIN flow — read-only RPC that no write path accepts.
+    // The PIN is never persisted: it lives only in this closure for the request.
+    function tryPin(pin) {
       setLoading(true);
       errEl.textContent = '';
-      window.BWP_DB.getDashboard(pin).then(function (payload) {
-        var creds = { username: 'ผู้บริหาร', role: 'executive', displayName: 'ผู้บริหาร', readOnly: true };
-        try { sessionStorage.setItem(CREDS_KEY, JSON.stringify(Object.assign({ mode: 'exec', pin: pin }, creds))); } catch (e) {}
-        window.BWP_USER = creds;
+      window.BWP_DB.getDashboardRo(pin).then(function (payload) {
+        window.BWP_USER = { username: 'ผู้บริหาร', role: 'executive', displayName: 'ผู้บริหาร', readOnly: true };
         applyPayload(payload);
         ov.parentNode && ov.parentNode.removeChild(ov);
       }).catch(function (e) {
-        if (fromStore) { try { sessionStorage.removeItem(CREDS_KEY); } catch (_) {} }
         setLoading(false);
         var msg = (e && e.message) || '';
-        if ((e && e.status === 400) || /unauthorized/i.test(msg)) {
+        if (/ro_not_configured/i.test(msg)) {
+          errEl.textContent = 'ยังไม่ได้ตั้ง PIN ผู้บริหาร — ให้แอดมินตั้งที่หน้าแก้ไขข้อมูล (ปุ่ม 🔑)';
+        } else if ((e && e.status === 400) || /unauthorized/i.test(msg)) {
           errEl.textContent = 'PIN ไม่ถูกต้อง';
         } else {
           errEl.textContent = 'เชื่อมต่อไม่สำเร็จ — ลองใหม่อีกครั้ง';
@@ -202,7 +206,8 @@
       if (mode === 'exec') {
         var pin = pinInput.value.trim();
         if (!pin) { errEl.textContent = 'กรุณากรอก PIN'; pinInput.focus(); return; }
-        tryPin(pin, false);
+        try { sessionStorage.setItem(CREDS_KEY, JSON.stringify({ mode: 'exec' })); } catch (e) {}
+        tryPin(pin);
         return;
       }
       var u = userInput.value.trim();
@@ -212,16 +217,14 @@
       tryLogin(u, p, false);
     }
 
-    // Auto-resume from session
+    // Resume: only the non-secret parts (username / last mode) are remembered.
+    // No password or PIN is ever written to storage, so a shared or stolen
+    // browser session cannot be replayed into the dashboard.
     var saved = null;
     try { saved = JSON.parse(sessionStorage.getItem(CREDS_KEY)); } catch (e) {}
-    if (saved && saved.mode === 'exec' && saved.pin) {
-      setMode('exec');
-      tryPin(saved.pin, true); // executives resume silently with stored PIN
-    } else if (saved && saved.username) {
-      userInput.value = saved.username;
-      // password is not stored for security; user must re-enter
-    }
+    if (saved && saved.pin) { try { sessionStorage.removeItem(CREDS_KEY); } catch (_) {} saved = null; }  // ล้างของเก่าที่เคยเก็บ PIN ไว้
+    if (saved && saved.mode === 'exec') setMode('exec');
+    else if (saved && saved.username) userInput.value = saved.username;
   }
 
   function fatal(msg) {
@@ -250,6 +253,54 @@
     setTimeout(start, 30);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+
+  // ---- ปุ่ม "ส่งออก" ----
+  // The button ships inside the compiled bundle with no handler, so it is wired
+  // here by delegation: that survives every remount without touching the bundle.
+  function csvEscape(cell) {
+    var s = cell == null ? '' : String(cell);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  window.BWP_EXPORT_CSV = function () {
+    var D = window.VDATA || {};
+    var M = D.MONTHS_ACT || [];
+    var v = (D.valueByYear && D.valueByYear['2569']) || [];
+    var k = (D.volumeByYear && D.volumeByYear['2569']) || [];
+    var rows = [];
+    rows.push(['BWP Vantage — สรุปยอดขาย 2569']);
+    rows.push(['ส่งออกเมื่อ', new Date().toLocaleString('th-TH')]);
+    rows.push([]);
+    rows.push(['สรุปรายเดือน']);
+    rows.push(['เดือน', 'มูลค่า (บาท)', 'ปริมาณ (Kg)', 'ราคาเฉลี่ย (฿/Kg)']);
+    for (var i = 0; i < M.length; i++) {
+      rows.push([M[i], v[i] == null ? '' : v[i], k[i] == null ? '' : k[i] * 1000, (D.price69 && D.price69[i]) || '']);
+    }
+    rows.push([]);
+    rows.push(['ยอดตามสินค้า']);
+    rows.push(['สินค้า', 'ปริมาณ (Kg)', 'มูลค่า (บาท)', 'ราคาเฉลี่ย (฿/Kg)', 'ส่วนแบ่ง (%)']);
+    (D.PRODUCTS || []).forEach(function (p) { rows.push([p.name, p.kg, p.val, p.avgPrice, p.share]); });
+    rows.push([]);
+    rows.push(['ยอดตามลูกค้า']);
+    rows.push(['อันดับ', 'ลูกค้า', 'ปริมาณ (Kg)', 'ส่วนแบ่ง (%)', 'MoM (%)']);
+    (D.allCustomers || []).forEach(function (c, i) { rows.push([i + 1, c.name, c.kg, c.share, c.mom]); });
+
+    var csv = rows.map(function (r) { return r.map(csvEscape).join(','); }).join('\r\n');
+    // BOM so Excel opens Thai text in UTF-8 instead of mojibake
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'BWP_dashboard_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  };
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest && e.target.closest('button');
+    if (!el || (el.textContent || '').trim() !== 'ส่งออก') return;
+    if (!window.BWP_AUTHED) return;
+    e.preventDefault();
+    window.BWP_EXPORT_CSV();
+  });
 
   window.BWP_LOGOUT = function () {
     try { sessionStorage.removeItem(CREDS_KEY); } catch (e) {}

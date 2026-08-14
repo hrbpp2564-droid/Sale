@@ -217,10 +217,19 @@
 <!-- กล่องเปลี่ยนรหัสผ่าน -->
 <div id="passModal" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);align-items:center;justify-content:center">
   <form id="passForm" style="background:var(--surface-1);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:22px 24px;width:min(420px,92vw);box-shadow:var(--shadow-lg,0 12px 32px rgba(0,0,0,.5))">
-    <h2 style="margin:0 0 4px;font-size:17px;font-weight:600">เปลี่ยนรหัสผ่าน</h2>
-    <p style="margin:0 0 16px;font-size:13px;color:var(--text-tertiary)">ใช้กับหน้านี้และโหมดผู้บริหารบนแดชบอร์ด</p>
+    <h2 style="margin:0 0 4px;font-size:17px;font-weight:600">ตั้งรหัสผ่าน</h2>
+    <p style="margin:0 0 14px;font-size:13px;color:var(--text-tertiary)">เลือกว่าจะเปลี่ยนรหัสไหน</p>
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <label style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
+        <input type="radio" name="passKind" value="admin" id="passKindAdmin" checked> รหัสแอดมิน
+      </label>
+      <label style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
+        <input type="radio" name="passKind" value="ro" id="passKindRo"> PIN ผู้บริหาร
+      </label>
+    </div>
+    <p id="passHint" style="margin:-8px 0 14px;font-size:12px;color:var(--text-tertiary);line-height:1.5"></p>
     <div class="fld" style="margin-bottom:10px">
-      <label>รหัสผ่านใหม่</label>
+      <label id="passNewLabel">รหัสผ่านใหม่</label>
       <input type="password" id="passNew" autocomplete="new-password" style="width:100%">
     </div>
     <div class="fld" style="margin-bottom:6px">
@@ -236,8 +245,8 @@
 </div>
 
 <script src="../ui_kits/dashboard/supabase-config.js?v=20260619e"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260814a"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260814a"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260814b"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260814b"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -751,28 +760,42 @@ $('custBody').addEventListener('change', (e) => {
 ['mValue','mVolume'].forEach(id => $(id) && $(id).addEventListener('input', renderPreview));
 
 $('logout').addEventListener('click', (e) => {
-  e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload();
+  // PASS อยู่ในหน่วยความจำอย่างเดียว — reload คือการล้างออกจริง ๆ
+  e.preventDefault(); PASS = null; pendingUpload = null; DIRTY = false; location.reload();
 });
 
 // ---------- เปลี่ยนรหัสผ่าน ----------
 function closePassModal() { $('passModal').style.display = 'none'; $('passNew').value = ''; $('passNew2').value = ''; $('passErr').textContent = ''; }
+function passKind() { return $('passKindRo').checked ? 'ro' : 'admin'; }
+function renderPassKind() {
+  const ro = passKind() === 'ro';
+  $('passNewLabel').textContent = ro ? 'PIN ผู้บริหารใหม่' : 'รหัสผ่านใหม่';
+  $('passHint').textContent = ro
+    ? 'PIN สำหรับดูแดชบอร์ดอย่างเดียว — แก้ไขหรือบันทึกข้อมูลไม่ได้ ต้องไม่ซ้ำกับรหัสแอดมิน (อย่างน้อย 6 ตัว)'
+    : 'รหัสสำหรับเข้าหน้านี้และหน้าจัดการลูกค้า — แก้ไขและบันทึกข้อมูลได้ (อย่างน้อย 8 ตัว)';
+  $('passErr').textContent = '';
+}
+document.querySelectorAll('input[name="passKind"]').forEach(r => r.addEventListener('change', renderPassKind));
 $('passBtn').addEventListener('click', () => {
   $('passModal').style.display = 'flex';
+  renderPassKind();
   setTimeout(() => $('passNew').focus(), 0);
 });
 $('passCancel').addEventListener('click', closePassModal);
 $('passModal').addEventListener('click', (e) => { if (e.target === $('passModal')) closePassModal(); });
 $('passForm').addEventListener('submit', (ev) => {
   ev.preventDefault();
-  const a = $('passNew').value, b = $('passNew2').value;
-  if (a.length < 8) { $('passErr').textContent = 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร'; return; }
-  if (a !== b) { $('passErr').textContent = 'รหัสผ่านทั้งสองช่องไม่ตรงกัน'; $('passNew2').select(); return; }
-  if (a === PASS) { $('passErr').textContent = 'รหัสใหม่ซ้ำกับรหัสเดิม'; return; }
+  const a = $('passNew').value, b = $('passNew2').value, ro = passKind() === 'ro';
+  const min = ro ? 6 : 8;
+  if (a.length < min) { $('passErr').textContent = `ต้องยาวอย่างน้อย ${min} ตัวอักษร`; return; }
+  if (a !== b) { $('passErr').textContent = 'ทั้งสองช่องไม่ตรงกัน'; $('passNew2').select(); return; }
+  if (a === PASS) { $('passErr').textContent = ro ? 'PIN ผู้บริหารต้องไม่ซ้ำกับรหัสแอดมิน' : 'รหัสใหม่ซ้ำกับรหัสเดิม'; return; }
   $('passGo').disabled = true; $('passGo').textContent = 'กำลังบันทึก…'; $('passErr').textContent = '';
-  window.BWP_DB.setPass(PASS, a).then(() => {
-    PASS = a;  // ใช้รหัสใหม่กับคำสั่งถัดไปทันที ไม่ต้องล็อกอินใหม่
+  const req = ro ? window.BWP_DB.setPassRo(PASS, a) : window.BWP_DB.setPass(PASS, a);
+  req.then(() => {
+    if (!ro) PASS = a;  // ใช้รหัสใหม่กับคำสั่งถัดไปทันที ไม่ต้องล็อกอินใหม่
     closePassModal();
-    toast('✓ เปลี่ยนรหัสผ่านแล้ว — ใช้รหัสใหม่ในการเข้าครั้งต่อไป', 'ok');
+    toast(ro ? '✓ ตั้ง PIN ผู้บริหารแล้ว — ใช้เข้าโหมดผู้บริหารบนแดชบอร์ด' : '✓ เปลี่ยนรหัสแอดมินแล้ว — ใช้รหัสใหม่ในการเข้าครั้งต่อไป', 'ok');
   }).catch((e) => {
     $('passErr').textContent = (e && e.status === 400) ? 'เปลี่ยนไม่สำเร็จ — เซสชันหมดอายุ ลองออกแล้วเข้าใหม่' : 'เปลี่ยนไม่สำเร็จ — ' + (e && e.message || '');
   }).finally(() => { $('passGo').disabled = false; $('passGo').textContent = 'บันทึกรหัสใหม่'; });

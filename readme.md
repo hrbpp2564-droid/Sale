@@ -139,14 +139,25 @@ viz, surfaces, themes), type (numeric, headings, body), spacing (scale, radii, s
 
 **`ui_kits/`** — full-screen product recreations
 - `dashboard/` — the BWP Executive Dashboard: 9 interactive screens (Executive Overview + 8
-  dashboards) sharing the app shell, global filter bar, and the component library. **Wired to real
-  company data** from `ยอดขาย 69.xlsx` (ม.ค.–พ.ค. 2569 เทียบ 2568), aggregated into `data.js`.
+  dashboards) sharing the app shell, global filter bar, and the component library.
 
-> **Live data note.** `ui_kits/dashboard/data.js` is generated from the user's uploaded workbook
-> (BWP — Best World Interplas, a plastic film/bag manufacturer; sales in **Kg + บาท**). 5 months of
-> 2569 actuals vs 2568. Per-customer figures are **volume (Kg)** only — the source has no
-> per-customer value — so customer screens rank by Kg while product/value screens use มูลค่า (ลบ.).
-> Forecast projects year-end from the last-3-month run rate. Regenerate `data.js` by re-running the
-> aggregation if the workbook is updated.
+> **Live data note.** No sales figures live in any file in this repo. `ui_kits/dashboard/data.js` is
+> an **empty skeleton** that only lets the app boot to the login screen; there is no offline
+> fallback, by design. The real numbers (BWP — Best World Interplas, a plastic film/bag
+> manufacturer; **Kg + บาท**) are stored in Supabase and released only by the password-checked
+> gateway RPCs — see `backend/security_gatekeeper.sql`. Figures are entered through
+> `bwp-data-editor/`, turned into the dashboard payload by `compute.js`, and the dashboard
+> recomputes from the stored `_raw` on every load, so formula changes take effect on refresh
+> without re-saving. Forecast projects year-end from the last-3-month run rate.
+>
+> **Two secrets, two capabilities.** `dashboard_pass` is the admin secret (read **and** write —
+> it also authorises `save_dashboard` and password rotation). `dashboard_pass_ro` is the executive
+> PIN, accepted only by `get_dashboard_ro` — see `backend/readonly_pin.sql`. Never hand the admin
+> password to a view-only user.
+
+> **What actually runs.** `index.html` loads the compiled `_ds_bundle.js`, **not** the `.jsx`
+> sources under `ui_kits/dashboard/`. Those sources are the input to the compiler and are served
+> (via Babel standalone) only at `ui_kits/dashboard/index.html`. Editing a `.jsx` file does not
+> change the deployed app until the bundle is regenerated.
 
 **`assets/`** — `vantage-mark.svg` (logo).

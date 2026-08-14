@@ -48,8 +48,8 @@
               <ScreenComp onDrill={nav} filters={filters} />
               <div style={{ height: 24 }} />
               <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 2px', borderTop: '1px solid var(--border-subtle)', fontSize: 'var(--text-xs)', color: 'var(--text-disabled)' }}>
-                <span>BWP · Best World Interplas — ข้อมูลจริง ม.ค.–พ.ค. 2569 (เทียบ 2568)</span>
-                <span>ที่มา: ยอดขาย 69.xlsx</span>
+                <span>BWP · Best World Interplas — ข้อมูล {(window.VDATA && window.VDATA.MONTHS_ACT || []).length ? `${window.VDATA.MONTHS_ACT[0]}–${window.VDATA.MONTHS_ACT[window.VDATA.MONTHS_ACT.length - 1]} 2569 (เทียบ 2568)` : '2569 (เทียบ 2568)'}</span>
+                <span>ที่มา: บันทึกผ่านหน้าแก้ไขข้อมูล</span>
               </footer>
             </div>
           </main>
