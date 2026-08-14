@@ -20,29 +20,22 @@
     return txt ? JSON.parse(txt) : null;
   }
   window.BWP_DB = {
-    // Single-password (legacy) — this is the ADMIN secret: it also authorises
-    // save_dashboard / set_dashboard_pass. Never hand it to a read-only viewer.
-    getDashboard: function (pass) { return call('get_dashboard', { pass: pass }); },
-    // Executive PIN — a separate secret that no write RPC accepts.
+    // Executive PIN — read-only by construction: no write RPC accepts this secret.
     getDashboardRo: function (pass) { return call('get_dashboard_ro', { pass: pass }); },
-    setPassRo: function (adminPass, newRoPass) { return call('set_dashboard_pass_ro', { admin_pass: adminPass, new_ro_pass: newRoPass }); },
-    saveDashboard: function (pass, payload) { return call('save_dashboard', { pass: pass, new_payload: payload }); },
-    setPass: function (oldPass, newPass) { return call('set_dashboard_pass', { old_pass: oldPass, new_pass: newPass }); },
-    // Multi-user
-    getDashboardUser: function (username, pass) { return call('get_dashboard_user', { p_username: username, p_pass: pass }); },
-    saveDashboardUser: function (username, pass, payload) { return call('save_dashboard_user', { p_username: username, p_pass: pass, new_payload: payload }); },
+
+    // The password-taking data RPCs (get_dashboard, save_dashboard,
+    // set_dashboard_pass, get_dashboard_user, save_dashboard_user, save_upload,
+    // list_uploads, get_upload) were removed from this client and revoked from
+    // anon in backend/retire_password_rpcs.sql. They bypassed the session and
+    // role checks entirely: anyone still holding the old shared password could
+    // overwrite the whole payload. Use the session-token calls below.
+
     addUser: function (adminUser, adminPass, newUsername, displayName, role, newPass) {
       return call('add_bwp_user', { p_admin_user: adminUser, p_admin_pass: adminPass, p_new_username: newUsername, p_display_name: displayName, p_role: role, p_new_pass: newPass });
     },
     deactivateUser: function (adminUser, adminPass, targetUsername) {
       return call('deactivate_bwp_user', { p_admin_user: adminUser, p_admin_pass: adminPass, p_target_username: targetUsername });
     },
-    // คลังไฟล์ Excel ต้นฉบับ (ต้องรัน backend/upload_archive.sql ก่อน)
-    saveUpload: function (pass, filename, mime, size, contentB64, kind) {
-      return call('save_upload', { pass: pass, p_filename: filename, p_mime: mime, p_size: size, p_content_b64: contentB64, p_kind: kind || 'current' });
-    },
-    listUploads: function (pass) { return call('list_uploads', { pass: pass }); },
-    getUpload: function (pass, id) { return call('get_upload', { pass: pass, p_id: id }); },
     changePassword: function (username, oldPass, newPass) {
       return call('change_bwp_password', { p_username: username, p_old_pass: oldPass, p_new_pass: newPass });
     },
