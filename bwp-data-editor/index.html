@@ -106,6 +106,7 @@
     <button class="btn ghost sm" id="uploadHistBtn" type="button">⬆ อัปโหลดปีเก่า</button>
     <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
     <input type="file" id="fileHistInput" accept=".xlsx,.xls" style="display:none">
+    <button class="btn ghost sm" id="passBtn" type="button">🔑 เปลี่ยนรหัสผ่าน</button>
     <button class="btn ghost" id="reloadBtn">↻ โหลดใหม่</button>
     <button class="btn primary" id="saveBtn" disabled>💾 บันทึก</button>
   </div>
@@ -212,6 +213,27 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- กล่องเปลี่ยนรหัสผ่าน -->
+<div id="passModal" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);align-items:center;justify-content:center">
+  <form id="passForm" style="background:var(--surface-1);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:22px 24px;width:min(420px,92vw);box-shadow:var(--shadow-lg,0 12px 32px rgba(0,0,0,.5))">
+    <h2 style="margin:0 0 4px;font-size:17px;font-weight:600">เปลี่ยนรหัสผ่าน</h2>
+    <p style="margin:0 0 16px;font-size:13px;color:var(--text-tertiary)">ใช้กับหน้านี้และโหมดผู้บริหารบนแดชบอร์ด</p>
+    <div class="fld" style="margin-bottom:10px">
+      <label>รหัสผ่านใหม่</label>
+      <input type="password" id="passNew" autocomplete="new-password" style="width:100%">
+    </div>
+    <div class="fld" style="margin-bottom:6px">
+      <label>ยืนยันรหัสผ่านใหม่</label>
+      <input type="password" id="passNew2" autocomplete="new-password" style="width:100%">
+    </div>
+    <div id="passErr" style="color:var(--negative);font-size:12px;min-height:17px;margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button type="button" class="btn ghost" id="passCancel">ยกเลิก</button>
+      <button type="submit" class="btn primary" id="passGo">บันทึกรหัสใหม่</button>
+    </div>
+  </form>
+</div>
 
 <script src="../ui_kits/dashboard/supabase-config.js?v=20260619e"></script>
 <script src="../ui_kits/dashboard/db.js?v=20260814a"></script>
@@ -732,6 +754,30 @@ $('logout').addEventListener('click', (e) => {
   e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload();
 });
 
+// ---------- เปลี่ยนรหัสผ่าน ----------
+function closePassModal() { $('passModal').style.display = 'none'; $('passNew').value = ''; $('passNew2').value = ''; $('passErr').textContent = ''; }
+$('passBtn').addEventListener('click', () => {
+  $('passModal').style.display = 'flex';
+  setTimeout(() => $('passNew').focus(), 0);
+});
+$('passCancel').addEventListener('click', closePassModal);
+$('passModal').addEventListener('click', (e) => { if (e.target === $('passModal')) closePassModal(); });
+$('passForm').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const a = $('passNew').value, b = $('passNew2').value;
+  if (a.length < 8) { $('passErr').textContent = 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร'; return; }
+  if (a !== b) { $('passErr').textContent = 'รหัสผ่านทั้งสองช่องไม่ตรงกัน'; $('passNew2').select(); return; }
+  if (a === PASS) { $('passErr').textContent = 'รหัสใหม่ซ้ำกับรหัสเดิม'; return; }
+  $('passGo').disabled = true; $('passGo').textContent = 'กำลังบันทึก…'; $('passErr').textContent = '';
+  window.BWP_DB.setPass(PASS, a).then(() => {
+    PASS = a;  // ใช้รหัสใหม่กับคำสั่งถัดไปทันที ไม่ต้องล็อกอินใหม่
+    closePassModal();
+    toast('✓ เปลี่ยนรหัสผ่านแล้ว — ใช้รหัสใหม่ในการเข้าครั้งต่อไป', 'ok');
+  }).catch((e) => {
+    $('passErr').textContent = (e && e.status === 400) ? 'เปลี่ยนไม่สำเร็จ — เซสชันหมดอายุ ลองออกแล้วเข้าใหม่' : 'เปลี่ยนไม่สำเร็จ — ' + (e && e.message || '');
+  }).finally(() => { $('passGo').disabled = false; $('passGo').textContent = 'บันทึกรหัสใหม่'; });
+});
+
 $('reloadBtn').addEventListener('click', () => {
   setStatus('กำลังโหลด…','var(--warning)');
   window.BWP_DB.getDashboard(PASS).then(boot).catch(e => {
@@ -739,8 +785,59 @@ $('reloadBtn').addEventListener('click', () => {
   });
 });
 
+// ---------- ตรวจความครบถ้วนก่อนบันทึก ----------
+// คืนรายการคำเตือน (ไม่ใช่ error) — ข้อมูลกรอกไม่ครบยังบันทึกได้ แต่ต้องรู้ตัวก่อน
+function validateBeforeSave() {
+  const warn = [];
+  const scan = (label, custArr) => {
+    const arr = custArr || [];
+    for (let m = 0; m < 12; m++) {
+      let kg = 0, val = 0, rows = 0;
+      arr.forEach(c => {
+        const mp = (c.monthlyProd || [])[m] || {};
+        const k = PRODUCTS_STD.reduce((s, std) => s + n(mp[std.key]), 0);
+        const v = n(mp.value);
+        if (k > 0 || v > 0) rows++;
+        kg += k; val += v;
+      });
+      if (kg > 0 && val === 0) warn.push(`${label} ${TH[m]} — มีปริมาณ ${Math.round(kg).toLocaleString()} Kg แต่ยังไม่กรอกมูลค่า (บาท)`);
+      else if (val > 0 && kg === 0) warn.push(`${label} ${TH[m]} — มีมูลค่า แต่ยังไม่กรอกปริมาณ (Kg)`);
+      if (rows > 0) {
+        arr.forEach(c => {
+          const mp = (c.monthlyProd || [])[m] || {};
+          const neg = PRODUCTS_STD.some(std => n(mp[std.key]) < 0) || n(mp.value) < 0;
+          if (neg) warn.push(`${label} ${TH[m]} — "${c.name || '(ไม่มีชื่อ)'}" มีค่าติดลบ`);
+        });
+      }
+    }
+    // ชื่อว่างทั้งที่มียอด · ชื่อซ้ำ
+    const seen = {};
+    arr.forEach(c => {
+      const hasVal = (c.monthlyProd || []).some(mp => PRODUCTS_STD.some(std => n(mp[std.key]) > 0) || n(mp.value) > 0);
+      const nm = (c.name || '').trim();
+      if (!nm && hasVal) warn.push(`${label} — มีแถวที่กรอกยอดไว้แต่ไม่ได้ใส่ชื่อลูกค้า`);
+      if (nm) { if (seen[nm]) warn.push(`${label} — ลูกค้า "${nm}" มีชื่อซ้ำกัน ${seen[nm] + 1} แถว`); seen[nm] = (seen[nm] || 0) + 1; }
+    });
+  };
+  scan(String(CUR_YEAR), raw.customers);
+  HIST_YEARS.forEach(y => {
+    const arr = (raw.histCustomers || {})[String(y)] || [];
+    if (arr.length) scan(String(y), arr);
+  });
+  return [...new Set(warn)];
+}
+
 $('saveBtn').addEventListener('click', () => {
   collectMonth();
+  const warnings = validateBeforeSave();
+  if (warnings.length) {
+    const shown = warnings.slice(0, 12).join('\n• ');
+    const more = warnings.length > 12 ? `\n… และอีก ${warnings.length - 12} รายการ` : '';
+    if (!confirm(`⚠ ตรวจพบข้อมูลที่อาจยังไม่ครบ ${warnings.length} รายการ\n\n• ${shown}${more}\n\nยืนยันบันทึกต่อหรือไม่?\n(กด "ยกเลิก" เพื่อกลับไปแก้ก่อน)`)) {
+      toast('ยกเลิกการบันทึก — กลับไปแก้ข้อมูลได้เลย', 'err');
+      return;
+    }
+  }
   // clean empty rows for current year
   raw.customers = raw.customers.filter(c => {
     if (!c.name || !c.name.trim()) {
