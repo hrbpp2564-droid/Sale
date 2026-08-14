@@ -99,6 +99,7 @@
     <label style="font-size:13px;color:var(--text-secondary)">เดือน:</label>
     <select id="monthSel"></select>
     <div style="flex:1"></div>
+    <button class="btn ghost sm" id="exportBtn" type="button">⬇ ดาวน์โหลดข้อมูลปัจจุบัน</button>
     <button class="btn ghost sm" id="tmplBtn" type="button">⬇ เทมเพลต Excel (2569)</button>
     <button class="btn ghost sm" id="tmplHistBtn" type="button">⬇ เทมเพลตปีเก่า</button>
     <button class="btn ghost sm" id="uploadBtn" type="button">⬆ อัปโหลด Excel</button>
@@ -199,6 +200,13 @@
         <div class="hint">ตัวเลขเหล่านี้คำนวณจากข้อมูลทุกเดือนที่กรอกไว้ และจะอัปเดตทันทีเมื่อบันทึก</div>
       </div>
 
+      <!-- [5] คลังไฟล์ Excel ต้นฉบับ -->
+      <div class="card" id="uploadsCard" style="display:none">
+        <h2>ไฟล์ Excel ที่เคยอัปโหลด <span class="tag">— เก็บไว้ 20 ไฟล์ล่าสุด</span></h2>
+        <div id="uploadsList"></div>
+        <div class="hint">ไฟล์ต้นฉบับถูกเก็บไว้ใน Supabase ตอนกดบันทึก · กดชื่อไฟล์เพื่อดาวน์โหลดกลับมา</div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -206,8 +214,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="../ui_kits/dashboard/supabase-config.js?v=20260619e"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260619e"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260619e"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260814a"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260814a"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -404,6 +412,8 @@ function boot(payload) {
   renderMonth();
   $('forms').style.display = 'block';
   $('saveBtn').disabled = false;
+  DIRTY = false;
+  refreshUploads();
   setStatus('เข้าสู่ระบบแล้ว · พร้อมบันทึก', 'var(--positive)');
 }
 
@@ -555,7 +565,60 @@ function renderPreview() {
   });
 }
 
-function markDirty() { $('saveBtn').disabled = false; }
+let DIRTY = false;
+function markDirty() { $('saveBtn').disabled = false; DIRTY = true; }
+window.addEventListener('beforeunload', (e) => {
+  if (!DIRTY) return;
+  e.preventDefault(); e.returnValue = '';  // เตือนก่อนปิด/รีเฟรชทั้งที่ยังไม่บันทึก
+});
+
+// ---------- คลังไฟล์ Excel ต้นฉบับ ----------
+let pendingUpload = null;  // ไฟล์ที่เพิ่งนำเข้า รอบันทึกพร้อมข้อมูล
+function ab2b64(buf) {
+  const bytes = new Uint8Array(buf); let bin = ''; const CH = 0x8000;
+  for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+  return btoa(bin);
+}
+function b64Download(b64, filename, mime) {
+  const bin = atob(b64); const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([arr], { type: mime || 'application/octet-stream' }));
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function fmtSize(b) { return !b ? '—' : b < 1024*1024 ? (b/1024).toFixed(0)+' KB' : (b/1024/1024).toFixed(1)+' MB'; }
+
+function renderUploads(list) {
+  const box = $('uploadsList');
+  if (!list || !list.length) { $('uploadsCard').style.display = 'none'; return; }
+  $('uploadsCard').style.display = 'block';
+  box.innerHTML = list.map(f =>
+    `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-subtle)">
+       <button class="btn ghost sm" data-dl="${f.id}" type="button">⬇</button>
+       <span style="flex:1;font-size:13px">${(f.filename||'').replace(/[<>&]/g,'')}</span>
+       <span style="font-size:12px;color:var(--text-tertiary)">${f.kind === 'history' ? 'ปีเก่า' : String(CUR_YEAR)}</span>
+       <span style="font-size:12px;color:var(--text-tertiary);font-family:var(--font-numeric)">${fmtSize(f.size_bytes)}</span>
+       <span style="font-size:12px;color:var(--text-tertiary);font-family:var(--font-numeric)">${new Date(f.uploaded_at).toLocaleString('th-TH')}</span>
+     </div>`).join('');
+  box.querySelectorAll('[data-dl]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = +btn.getAttribute('data-dl');
+      btn.disabled = true;
+      window.BWP_DB.getUpload(PASS, id)
+        .then(f => { b64Download(f.content_b64, f.filename, f.mime); toast('✓ ดาวน์โหลด ' + f.filename, 'ok'); })
+        .catch(e => toast('ดาวน์โหลดไม่สำเร็จ — ' + (e && e.message || ''), 'err'))
+        .finally(() => { btn.disabled = false; });
+    });
+  });
+}
+
+function refreshUploads() {
+  if (!window.BWP_DB.listUploads) return;
+  window.BWP_DB.listUploads(PASS).then(renderUploads).catch(() => {
+    // ยังไม่ได้รัน backend/upload_archive.sql — ซ่อนการ์ดไว้เฉย ๆ
+    $('uploadsCard').style.display = 'none';
+  });
+}
 
 function tgtMode() { return document.querySelector('input[name="tgtMode"]:checked') ? document.querySelector('input[name="tgtMode"]:checked').value : 'value'; }
 function tgtArray() { return tgtMode() === 'kg' ? raw.targetsKg : raw.targets; }
@@ -727,16 +790,30 @@ $('saveBtn').addEventListener('click', () => {
     customersDB: raw.customersDB || [],
     targets: pad12(raw.targets || Array(12).fill(null)),
     targetsKg: pad12(raw.targetsKg || Array(12).fill(null)),
-    targetMode: tgtMode()
+    targetMode: tgtMode(),
+    // ให้ payload อธิบายตัวเองได้ครบโดยไม่ต้องพึ่งค่าคงที่ในโค้ด
+    productsDef: PRODUCTS_STD.map(p => ({ key: p.key, name: p.name })),
+    curYear: CUR_YEAR,
+    histYears: HIST_YEARS.slice(),
+    schemaVersion: 2,
+    savedAt: new Date().toISOString()
   };
   const payload = window.BWP_compute(_computed);
   payload._raw = saveRaw;
   $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
   window.BWP_DB.saveDashboard(PASS, payload).then(() => {
+    DIRTY = false;
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
     const newCustMsg = newCustCount > 0 ? ` · เพิ่มลูกค้าใหม่ ${newCustCount} รายเข้าฐานข้อมูล` : '';
     toast('✓ บันทึกสำเร็จ!' + newCustMsg + ' เปิดหน้า Dashboard แล้วรีเฟรชเพื่อดูผล', 'ok');
     buildYearSelect(); buildMonthSelect(); renderMonth();
+    // เก็บไฟล์ Excel ต้นฉบับไว้ด้วย (ถ้ายังไม่ได้ติดตั้ง upload_archive.sql จะข้ามไปเงียบ ๆ)
+    if (pendingUpload && window.BWP_DB.saveUpload) {
+      const f = pendingUpload;
+      window.BWP_DB.saveUpload(PASS, f.filename, f.mime, f.size, f.b64, f.kind)
+        .then(() => { pendingUpload = null; refreshUploads(); })
+        .catch(() => {});
+    }
   }).catch((e) => {
     setStatus('บันทึกไม่สำเร็จ','var(--negative)');
     toast((e && e.status===400) ? 'รหัสผ่านหมดอายุ ลองออกแล้วเข้าใหม่' : 'บันทึกไม่สำเร็จ — '+(e&&e.message||''), 'err');
@@ -760,6 +837,61 @@ function buildSalesSheet(wb, sheetName, custList, months) {
   ws['!autofilter'] = { ref: 'A1:I1' };
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
 }
+
+// ---------- Excel: export ข้อมูลที่บันทึกไว้จริง (โหลดกลับมาแก้แล้วอัปได้) ----------
+// รูปแบบเหมือนเทมเพลตทุกประการ ต่างกันแค่ช่องตัวเลขถูกเติมด้วยข้อมูลปัจจุบัน
+function buildFilledSheet(wb, sheetName, custArr) {
+  const headers = ['เดือน','รหัสลูกค้า','ลูกค้า','ม้วนใส (กก.)','ม้วนพิมพ์ (กก.)','ถุงคลุม/ชีท (กก.)','ฟิล์มยืด (กก.)','ถุงหลอด (กก.)','มูลค่า (บาท)'];
+  const dataRows = [];
+  for (let m = 0; m < 12; m++) {
+    (custArr || []).forEach(c => {
+      if (!c || !c.name) return;
+      const mp = (c.monthlyProd || [])[m] || {};
+      const kg = PRODUCTS_STD.map(std => n(mp[std.key]));
+      const val = n(mp.value);
+      if (kg.reduce((s, x) => s + x, 0) === 0 && val === 0) return;  // ข้ามเดือน/ลูกค้าที่ไม่มียอด
+      dataRows.push([TH[m], CUSTOMERS_ID_MAP[c.name] || '', c.name].concat(kg, [val]));
+    });
+  }
+  if (!dataRows.length) return false;
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+  ws['!cols'] = [{wch:8},{wch:10},{wch:28},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14}];
+  ws['!autofilter'] = { ref: 'A1:I1' };
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  return true;
+}
+
+$('exportBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
+  if (!raw) { toast('ยังไม่ได้โหลดข้อมูล','err'); return; }
+  collectMonth();  // ดึงค่าที่กำลังแก้บนหน้าจอเข้า raw ก่อน
+  const wb = XLSX.utils.book_new();
+  let sheets = 0;
+  // ปีปัจจุบันต้องเป็นชีตแรก — ปุ่ม "อัปโหลด Excel" อ่านชีตที่ขึ้นต้นด้วย "ข้อมูล"
+  if (buildFilledSheet(wb, 'ข้อมูลการขาย ' + CUR_YEAR, raw.customers)) sheets++;
+  HIST_YEARS.forEach(y => {
+    if (buildFilledSheet(wb, 'ข้อมูลการขาย ' + y, (raw.histCustomers || {})[String(y)])) sheets++;
+  });
+  if (!sheets) { toast('ยังไม่มียอดขายให้ส่งออก','err'); return; }
+
+  // Sheet เป้าหมาย (อ้างอิง — ตอนอัปโหลดกลับระบบจะไม่อ่านชีตนี้)
+  const tgtRows = [['เดือน','เป้ามูลค่า (บาท)','เป้าปริมาณ (Kg)']];
+  for (let m = 0; m < 12; m++) {
+    const tv = (raw.targets || [])[m], tk = (raw.targetsKg || [])[m];
+    tgtRows.push([TH[m], tv == null ? '' : tv, tk == null ? '' : tk]);
+  }
+  const wsT = XLSX.utils.aoa_to_sheet(tgtRows);
+  wsT['!cols'] = [{wch:8},{wch:18},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsT, 'เป้าหมาย');
+
+  // Sheet รายชื่อลูกค้า
+  const wsC = XLSX.utils.aoa_to_sheet([['รหัสลูกค้า','ชื่อลูกค้า']].concat(CUSTOMERS_DB.map(c => [CUSTOMERS_ID_MAP[c] || '', c])));
+  wsC['!cols'] = [{wch:12},{wch:36}];
+  XLSX.utils.book_append_sheet(wb, wsC, 'รายชื่อลูกค้า');
+
+  XLSX.writeFile(wb, 'BWP_data_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  toast('✓ ดาวน์โหลดข้อมูลปัจจุบันแล้ว (' + sheets + ' ปี) · แก้ใน Excel แล้วอัปโหลดกลับได้เลย', 'ok');
+});
 
 $('tmplBtn').addEventListener('click', () => {
   if (typeof XLSX === 'undefined') { toast('ไลบรารี XLSX ยังโหลดไม่เสร็จ ลองใหม่','err'); return; }
@@ -810,6 +942,7 @@ $('fileHistInput').addEventListener('change', (e) => {
     try {
       const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
       importHistoryWorkbook(wb);
+      pendingUpload = { filename: file.name, mime: file.type, size: file.size, b64: ab2b64(ev.target.result), kind: 'history' };
     } catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
     $('fileHistInput').value = '';
   };
@@ -901,6 +1034,7 @@ $('fileInput').addEventListener('change', (e) => {
     try {
       const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
       importWorkbook(wb);
+      pendingUpload = { filename: file.name, mime: file.type, size: file.size, b64: ab2b64(ev.target.result), kind: 'current' };
     } catch (err) { toast('อ่านไฟล์ไม่สำเร็จ — ' + (err && err.message || ''), 'err'); }
     $('fileInput').value = '';
   };

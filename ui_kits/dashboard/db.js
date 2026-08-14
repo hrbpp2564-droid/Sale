@@ -33,6 +33,12 @@
     deactivateUser: function (adminUser, adminPass, targetUsername) {
       return call('deactivate_bwp_user', { p_admin_user: adminUser, p_admin_pass: adminPass, p_target_username: targetUsername });
     },
+    // คลังไฟล์ Excel ต้นฉบับ (ต้องรัน backend/upload_archive.sql ก่อน)
+    saveUpload: function (pass, filename, mime, size, contentB64, kind) {
+      return call('save_upload', { pass: pass, p_filename: filename, p_mime: mime, p_size: size, p_content_b64: contentB64, p_kind: kind || 'current' });
+    },
+    listUploads: function (pass) { return call('list_uploads', { pass: pass }); },
+    getUpload: function (pass, id) { return call('get_upload', { pass: pass, p_id: id }); },
     changePassword: function (username, oldPass, newPass) {
       return call('change_bwp_password', { p_username: username, p_old_pass: oldPass, p_new_pass: newPass });
     },

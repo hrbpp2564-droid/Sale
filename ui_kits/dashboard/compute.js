@@ -26,10 +26,12 @@
   function r2(x) { return Math.round(x * 100) / 100; }
   function sum(a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); }
 
-  // number of months actually entered (value present & > 0, contiguous from month 0)
+  // number of months actually entered = the LAST month carrying data (not the first gap).
+  // A month with Kg but no บาท still counts, so ปริมาณ/ลูกค้า/สินค้า show up before the
+  // value column is filled in.
   function activeMonths(mv) {
     var n = 0;
-    for (var i = 0; i < 12; i++) { if (mv[i] != null && mv[i] !== '' && num(mv[i]) > 0) n = i + 1; else break; }
+    for (var i = 0; i < 12; i++) { if (mv[i] != null && mv[i] !== '' && num(mv[i]) > 0) n = i + 1; }
     return n;
   }
 
@@ -40,8 +42,7 @@
     while (mVal.length < 12) mVal.push(null);
     while (mVol.length < 12) mVol.push(null);
 
-    var NACT = activeMonths(mVal) || 0;
-    if (NACT === 0) NACT = activeMonths(mVol);
+    var NACT = Math.max(activeMonths(mVal), activeMonths(mVol));
     var MONTHS_ACT = BASE.TH_MONTHS.slice(0, NACT);
 
     // ---- monthly arrays (ลบ. / พัน Kg) ----
