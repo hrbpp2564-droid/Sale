@@ -82,6 +82,7 @@
     <img src="/assets/bwp-logo.svg" width="56" height="56" alt="BWP" style="display:block;margin:0 auto 14px"/>
     <div class="t">บันทึกข้อมูลการขาย</div>
     <div class="s">BWP Vantage · สำหรับเจ้าหน้าที่</div>
+    <input id="loginUser" type="text" placeholder="ชื่อผู้ใช้" autocomplete="username" />
     <input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
     <div class="err" id="loginErr"></div>
     <button id="loginGo" type="submit">เข้าสู่ระบบ</button>
@@ -228,6 +229,10 @@
       </label>
     </div>
     <p id="passHint" style="margin:-8px 0 14px;font-size:12px;color:var(--text-tertiary);line-height:1.5"></p>
+    <div class="fld" style="margin-bottom:10px" id="passCurRow">
+      <label>รหัสผ่านปัจจุบัน</label>
+      <input type="password" id="passCur" autocomplete="current-password" style="width:100%">
+    </div>
     <div class="fld" style="margin-bottom:10px">
       <label id="passNewLabel">รหัสผ่านใหม่</label>
       <input type="password" id="passNew" autocomplete="new-password" style="width:100%">
@@ -245,8 +250,9 @@
 </div>
 
 <script src="../ui_kits/dashboard/supabase-config.js?v=20260619e"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260814b"></script>
-<script src="../ui_kits/dashboard/compute.js?v=20260814b"></script>
+<script src="../ui_kits/dashboard/session.js?v=20260814c"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260814c"></script>
+<script src="../ui_kits/dashboard/compute.js?v=20260814c"></script>
 <script>
 const TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -271,7 +277,7 @@ const CUR_YEAR   = 2569;
 const HIST_YEARS = [2564, 2565, 2566, 2567, 2568];
 const ALL_YEARS  = HIST_YEARS.concat([CUR_YEAR]);
 const $ = id => document.getElementById(id);
-let PASS = null, raw = null, curMonth = 0, curYear = CUR_YEAR;
+let raw = null, curMonth = 0, curYear = CUR_YEAR;
 
 const isCur = () => curYear === CUR_YEAR;
 function curArr() { return isCur() ? raw.monthly : (raw.history[String(curYear)] || { value: Array(12).fill(null), volume: Array(12).fill(null) }); }
@@ -286,20 +292,54 @@ function r2(x){ return Math.round((parseFloat(x) + Number.EPSILON) * 100) / 100;
 function fmt(x) { return (x == null ? 0 : x).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 // ---------- login ----------
-function doLogin(pass, fromStore) {
+// TOKEN แทนรหัสผ่าน: ล็อกอินที่แดชบอร์ดแล้วเข้าหน้านี้ได้เลย และกลับกัน
+const TOKEN = () => window.BWP_SESSION.token();
+
+function openApp(payload) {
+  $('login').style.display = 'none'; $('app').style.display = 'block';
+  boot(payload);
+}
+function sessionLost(msg) {
+  window.BWP_SESSION.clear();
+  $('app').style.display = 'none'; $('login').style.display = '';
+  $('loginErr').textContent = msg || 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบใหม่';
+  $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
+  setTimeout(() => $('loginUser').focus(), 0);
+}
+function doLogin(username, pass) {
   $('loginGo').disabled = true; $('loginGo').textContent = 'กำลังตรวจสอบ…'; $('loginErr').textContent = '';
-  window.BWP_DB.getDashboard(pass).then((payload) => {
-    PASS = pass;
-    $('login').style.display = 'none'; $('app').style.display = 'block';
-    boot(payload);
+  window.BWP_DB.loginSession(username, pass).then((result) => {
+    if (!result.canWrite) {
+      $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
+      $('loginErr').textContent = 'บัญชีนี้ดูข้อมูลได้เท่านั้น ไม่มีสิทธิ์แก้ไข';
+      return;
+    }
+    window.BWP_SESSION.save(result);
+    openApp(result.payload);
   }).catch((e) => {
-    if (fromStore) {}
     $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
-    $('loginErr').textContent = (e && e.status === 400) || /unauthorized/i.test(e&&e.message||'') ? 'รหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ';
+    $('loginErr').textContent = (e && e.status === 400) || /unauthorized/i.test(e && e.message || '')
+      ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ';
     $('loginPass').select();
   });
 }
-$('loginForm').addEventListener('submit', (ev) => { ev.preventDefault(); const p = $('loginPass').value.trim(); if (p) doLogin(p, false); });
+$('loginForm').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const u = $('loginUser').value.trim(), p = $('loginPass').value.trim();
+  if (!u) { $('loginErr').textContent = 'กรุณากรอกชื่อผู้ใช้'; $('loginUser').focus(); return; }
+  if (!p) { $('loginErr').textContent = 'กรุณากรอกรหัสผ่าน'; $('loginPass').focus(); return; }
+  doLogin(u, p);
+});
+
+// เข้ามาพร้อม session ที่ยังใช้ได้ → ข้ามหน้าล็อกอินไปเลย
+function resumeSession() {
+  const tok = TOKEN();
+  if (!tok) return false;
+  if (!window.BWP_SESSION.canWrite()) return false;
+  $('loginErr').textContent = 'กำลังเข้าสู่ระบบ…';
+  window.BWP_DB.getDashboardS(tok).then(openApp).catch(() => sessionLost());
+  return true;
+}
 
 function pad12(a){ a = (a||[]).slice(0,12).map(x => x===null||x==='' ? null : x); while (a.length<12) a.push(null); return a; }
 function padProd12(a){
@@ -635,7 +675,7 @@ function renderUploads(list) {
     btn.addEventListener('click', () => {
       const id = +btn.getAttribute('data-dl');
       btn.disabled = true;
-      window.BWP_DB.getUpload(PASS, id)
+      window.BWP_DB.getUploadS(TOKEN(), id)
         .then(f => { b64Download(f.content_b64, f.filename, f.mime); toast('✓ ดาวน์โหลด ' + f.filename, 'ok'); })
         .catch(e => toast('ดาวน์โหลดไม่สำเร็จ — ' + (e && e.message || ''), 'err'))
         .finally(() => { btn.disabled = false; });
@@ -644,8 +684,8 @@ function renderUploads(list) {
 }
 
 function refreshUploads() {
-  if (!window.BWP_DB.listUploads) return;
-  window.BWP_DB.listUploads(PASS).then(renderUploads).catch(() => {
+  if (!window.BWP_DB.listUploadsS) return;
+  window.BWP_DB.listUploadsS(TOKEN()).then(renderUploads).catch(() => {
     // ยังไม่ได้รัน backend/upload_archive.sql — ซ่อนการ์ดไว้เฉย ๆ
     $('uploadsCard').style.display = 'none';
   });
@@ -760,19 +800,24 @@ $('custBody').addEventListener('change', (e) => {
 ['mValue','mVolume'].forEach(id => $(id) && $(id).addEventListener('input', renderPreview));
 
 $('logout').addEventListener('click', (e) => {
-  // PASS อยู่ในหน่วยความจำอย่างเดียว — reload คือการล้างออกจริง ๆ
-  e.preventDefault(); PASS = null; pendingUpload = null; DIRTY = false; location.reload();
+  // เพิกถอน token ที่เซิร์ฟเวอร์ด้วย ไม่ใช่แค่ลบทิ้งฝั่งเบราว์เซอร์
+  e.preventDefault();
+  pendingUpload = null; DIRTY = false;
+  const tok = TOKEN();
+  const done = () => { window.BWP_SESSION.clear(); location.reload(); };
+  if (tok) window.BWP_DB.logoutSession(tok).then(done, done); else done();
 });
 
 // ---------- เปลี่ยนรหัสผ่าน ----------
-function closePassModal() { $('passModal').style.display = 'none'; $('passNew').value = ''; $('passNew2').value = ''; $('passErr').textContent = ''; }
+function closePassModal() { $('passModal').style.display = 'none'; $('passNew').value = ''; $('passNew2').value = ''; $('passCur').value = ''; $('passErr').textContent = ''; }
 function passKind() { return $('passKindRo').checked ? 'ro' : 'admin'; }
 function renderPassKind() {
   const ro = passKind() === 'ro';
   $('passNewLabel').textContent = ro ? 'PIN ผู้บริหารใหม่' : 'รหัสผ่านใหม่';
   $('passHint').textContent = ro
-    ? 'PIN สำหรับดูแดชบอร์ดอย่างเดียว — แก้ไขหรือบันทึกข้อมูลไม่ได้ ต้องไม่ซ้ำกับรหัสแอดมิน (อย่างน้อย 6 ตัว)'
-    : 'รหัสสำหรับเข้าหน้านี้และหน้าจัดการลูกค้า — แก้ไขและบันทึกข้อมูลได้ (อย่างน้อย 8 ตัว)';
+    ? 'PIN สำหรับดูแดชบอร์ดอย่างเดียว — แก้ไขหรือบันทึกข้อมูลไม่ได้ (อย่างน้อย 6 ตัว · ต้องเป็น admin เท่านั้นจึงตั้งได้)'
+    : 'รหัสผ่านของบัญชีคุณเอง — ใช้เข้าทั้งแดชบอร์ด หน้านี้ และหน้าจัดการลูกค้า (อย่างน้อย 8 ตัว)';
+  $('passCurRow').style.display = ro ? 'none' : '';   // ตั้ง PIN ไม่ต้องใช้รหัสเดิม แต่เปลี่ยนรหัสตัวเองต้องใช้
   $('passErr').textContent = '';
 }
 document.querySelectorAll('input[name="passKind"]').forEach(r => r.addEventListener('change', renderPassKind));
@@ -785,25 +830,38 @@ $('passCancel').addEventListener('click', closePassModal);
 $('passModal').addEventListener('click', (e) => { if (e.target === $('passModal')) closePassModal(); });
 $('passForm').addEventListener('submit', (ev) => {
   ev.preventDefault();
-  const a = $('passNew').value, b = $('passNew2').value, ro = passKind() === 'ro';
+  const a = $('passNew').value, b = $('passNew2').value, cur = $('passCur').value, ro = passKind() === 'ro';
   const min = ro ? 6 : 8;
   if (a.length < min) { $('passErr').textContent = `ต้องยาวอย่างน้อย ${min} ตัวอักษร`; return; }
   if (a !== b) { $('passErr').textContent = 'ทั้งสองช่องไม่ตรงกัน'; $('passNew2').select(); return; }
-  if (a === PASS) { $('passErr').textContent = ro ? 'PIN ผู้บริหารต้องไม่ซ้ำกับรหัสแอดมิน' : 'รหัสใหม่ซ้ำกับรหัสเดิม'; return; }
+  // เปลี่ยนรหัสของตัวเองต้องยืนยันรหัสเดิม (session เพียงอย่างเดียวไม่พอ
+  // เผื่อกรณีมีคนมาใช้เครื่องต่อจากที่เปิดค้างไว้)
+  if (!ro && !cur) { $('passErr').textContent = 'กรุณากรอกรหัสผ่านปัจจุบัน'; $('passCur').focus(); return; }
+  if (!ro && a === cur) { $('passErr').textContent = 'รหัสใหม่ซ้ำกับรหัสเดิม'; return; }
   $('passGo').disabled = true; $('passGo').textContent = 'กำลังบันทึก…'; $('passErr').textContent = '';
-  const req = ro ? window.BWP_DB.setPassRo(PASS, a) : window.BWP_DB.setPass(PASS, a);
+  const req = ro ? window.BWP_DB.setPassRoS(TOKEN(), a)
+                 : window.BWP_DB.changeOwnPasswordS(TOKEN(), cur, a);
   req.then(() => {
-    if (!ro) PASS = a;  // ใช้รหัสใหม่กับคำสั่งถัดไปทันที ไม่ต้องล็อกอินใหม่
     closePassModal();
-    toast(ro ? '✓ ตั้ง PIN ผู้บริหารแล้ว — ใช้เข้าโหมดผู้บริหารบนแดชบอร์ด' : '✓ เปลี่ยนรหัสแอดมินแล้ว — ใช้รหัสใหม่ในการเข้าครั้งต่อไป', 'ok');
+    if (ro) {
+      toast('✓ ตั้ง PIN ผู้บริหารแล้ว — ใช้เข้าโหมดผู้บริหารบนแดชบอร์ด', 'ok');
+    } else {
+      // เปลี่ยนรหัสแล้วเซิร์ฟเวอร์เตะทุก session ของบัญชีนี้ออก ต้องเข้าใหม่
+      toast('✓ เปลี่ยนรหัสแล้ว — ระบบจะให้เข้าสู่ระบบใหม่ด้วยรหัสใหม่', 'ok');
+      setTimeout(() => sessionLost('เปลี่ยนรหัสสำเร็จ — เข้าสู่ระบบด้วยรหัสใหม่'), 1200);
+    }
   }).catch((e) => {
-    $('passErr').textContent = (e && e.status === 400) ? 'เปลี่ยนไม่สำเร็จ — เซสชันหมดอายุ ลองออกแล้วเข้าใหม่' : 'เปลี่ยนไม่สำเร็จ — ' + (e && e.message || '');
+    const m = (e && e.message) || '';
+    $('passErr').textContent = window.BWP_SESSION.isExpired(e) ? 'เซสชันหมดอายุ — เข้าสู่ระบบใหม่'
+      : /unauthorized/i.test(m) ? 'รหัสผ่านปัจจุบันไม่ถูกต้อง'
+      : /forbidden/i.test(m) ? 'บัญชีนี้ไม่มีสิทธิ์ตั้ง PIN ผู้บริหาร (ต้องเป็น admin)'
+      : 'เปลี่ยนไม่สำเร็จ — ' + m;
   }).finally(() => { $('passGo').disabled = false; $('passGo').textContent = 'บันทึกรหัสใหม่'; });
 });
 
 $('reloadBtn').addEventListener('click', () => {
   setStatus('กำลังโหลด…','var(--warning)');
-  window.BWP_DB.getDashboard(PASS).then(boot).catch(e => {
+  window.BWP_DB.getDashboardS(TOKEN()).then(boot).catch(e => {
     setStatus('โหลดไม่สำเร็จ','var(--negative)'); toast('โหลดไม่สำเร็จ','err');
   });
 });
@@ -921,16 +979,16 @@ $('saveBtn').addEventListener('click', () => {
   const payload = window.BWP_compute(_computed);
   payload._raw = saveRaw;
   $('saveBtn').disabled = true; setStatus('กำลังบันทึก…','var(--warning)');
-  window.BWP_DB.saveDashboard(PASS, payload).then(() => {
+  window.BWP_DB.saveDashboardS(TOKEN(), payload).then(() => {
     DIRTY = false;
     setStatus('บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
     const newCustMsg = newCustCount > 0 ? ` · เพิ่มลูกค้าใหม่ ${newCustCount} รายเข้าฐานข้อมูล` : '';
     toast('✓ บันทึกสำเร็จ!' + newCustMsg + ' เปิดหน้า Dashboard แล้วรีเฟรชเพื่อดูผล', 'ok');
     buildYearSelect(); buildMonthSelect(); renderMonth();
     // เก็บไฟล์ Excel ต้นฉบับไว้ด้วย (ถ้ายังไม่ได้ติดตั้ง upload_archive.sql จะข้ามไปเงียบ ๆ)
-    if (pendingUpload && window.BWP_DB.saveUpload) {
+    if (pendingUpload && window.BWP_DB.saveUploadS) {
       const f = pendingUpload;
-      window.BWP_DB.saveUpload(PASS, f.filename, f.mime, f.size, f.b64, f.kind)
+      window.BWP_DB.saveUploadS(TOKEN(), f.filename, f.mime, f.size, f.b64, f.kind)
         .then(() => { pendingUpload = null; refreshUploads(); })
         .catch(() => {});
     }
@@ -1241,7 +1299,7 @@ function importWorkbook(wb) {
 }
 
 // auto-login removed — passwords must not be stored client-side
-(function(){ $('loginPass').focus(); })();
+(function(){ if (!resumeSession()) $('loginUser').focus(); })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </body>

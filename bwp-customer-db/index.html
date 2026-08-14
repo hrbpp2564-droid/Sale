@@ -77,6 +77,7 @@
     <img src="/assets/bwp-logo.svg" width="56" height="56" alt="BWP" style="display:block;margin:0 auto 14px"/>
     <div class="t">ฐานข้อมูลลูกค้า</div>
     <div class="s">BWP Vantage · สำหรับเจ้าหน้าที่</div>
+    <input id="loginUser" type="text" placeholder="ชื่อผู้ใช้" autocomplete="username" />
     <input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" />
     <div class="err" id="loginErr"></div>
     <button id="loginGo" type="submit">เข้าสู่ระบบ</button>
@@ -156,8 +157,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../ui_kits/dashboard/supabase-config.js?v=20260616b"></script>
-<script src="../ui_kits/dashboard/db.js?v=20260616b"></script>
+<script src="../ui_kits/dashboard/supabase-config.js?v=20260814c"></script>
+<script src="../ui_kits/dashboard/session.js?v=20260814c"></script>
+<script src="../ui_kits/dashboard/db.js?v=20260814c"></script>
 <script>
 const TYPE_COLORS = {
   'ลูกค้าอุตสาหกรรม': 'b1',
@@ -190,7 +192,7 @@ const DEFAULT_CUSTOMERS = [
 ];
 
 const $ = id => document.getElementById(id);
-let PASS = null, db = [], payload = null;
+let db = [], payload = null;
 let editingIdx = null;
 let searchQ = '', filterTypeQ = '';
 
@@ -199,21 +201,53 @@ function setStatus(text, color) { $('statusText').textContent = text; $('dot').s
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 // ---------- login ----------
-function doLogin(pass, fromStore) {
+// ใช้ session token ร่วมกับแดชบอร์ดและหน้าบันทึกข้อมูล — ล็อกอินหน้าไหนก็เข้าได้ทุกหน้า
+// (เดิมหน้านี้เก็บรหัสแอดมินไว้ใน sessionStorage ตรง ๆ ซึ่งเปิด DevTools ก็อ่านได้)
+const TOKEN = () => window.BWP_SESSION.token();
+
+function openApp(p) {
+  payload = p;
+  $('login').style.display = 'none'; $('app').style.display = 'block';
+  boot(p);
+}
+function sessionLost(msg) {
+  window.BWP_SESSION.clear();
+  $('app').style.display = 'none'; $('login').style.display = '';
+  $('loginErr').textContent = msg || 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบใหม่';
+  $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
+  setTimeout(() => $('loginUser').focus(), 0);
+}
+function doLogin(username, pass) {
   $('loginGo').disabled = true; $('loginGo').textContent = 'กำลังตรวจสอบ…'; $('loginErr').textContent = '';
-  window.BWP_DB.getDashboard(pass).then((p) => {
-    PASS = pass; payload = p;
-    try { sessionStorage.setItem('bwp_pass', pass); } catch(e){}
-    $('login').style.display = 'none'; $('app').style.display = 'block';
-    boot(p);
+  window.BWP_DB.loginSession(username, pass).then((result) => {
+    if (!result.canWrite) {
+      $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
+      $('loginErr').textContent = 'บัญชีนี้ดูข้อมูลได้เท่านั้น ไม่มีสิทธิ์แก้ไข';
+      return;
+    }
+    window.BWP_SESSION.save(result);
+    openApp(result.payload);
   }).catch((e) => {
-    if (fromStore) try { sessionStorage.removeItem('bwp_pass'); } catch(_){}
     $('loginGo').disabled = false; $('loginGo').textContent = 'เข้าสู่ระบบ';
-    $('loginErr').textContent = (e && e.status===400) || /unauthorized/i.test(e&&e.message||'') ? 'รหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ';
+    $('loginErr').textContent = (e && e.status===400) || /unauthorized/i.test(e&&e.message||'')
+      ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อไม่สำเร็จ';
     $('loginPass').select();
   });
 }
-$('loginForm').addEventListener('submit', ev => { ev.preventDefault(); const p=$('loginPass').value.trim(); if(p) doLogin(p,false); });
+$('loginForm').addEventListener('submit', ev => {
+  ev.preventDefault();
+  const u = $('loginUser').value.trim(), p = $('loginPass').value.trim();
+  if (!u) { $('loginErr').textContent = 'กรุณากรอกชื่อผู้ใช้'; $('loginUser').focus(); return; }
+  if (!p) { $('loginErr').textContent = 'กรุณากรอกรหัสผ่าน'; $('loginPass').focus(); return; }
+  doLogin(u, p);
+});
+function resumeSession() {
+  const tok = TOKEN();
+  if (!tok || !window.BWP_SESSION.canWrite()) return false;
+  $('loginErr').textContent = 'กำลังเข้าสู่ระบบ…';
+  window.BWP_DB.getDashboardS(tok).then(openApp).catch(() => sessionLost());
+  return true;
+}
 
 function boot(p) {
   payload = p;
@@ -345,7 +379,7 @@ $('saveBtn').addEventListener('click', () => {
   // attach customersDB to existing payload _raw
   if (!payload._raw) payload._raw = {};
   payload._raw.customersDB = db.map(c => ({ name: c.name, type: c.type||'', note: c.note||'', id: c.id||null }));
-  window.BWP_DB.saveDashboard(PASS, payload).then(() => {
+  window.BWP_DB.saveDashboardS(TOKEN(), payload).then(() => {
     setStatus('บันทึกแล้ว · ' + db.length + ' ราย · ' + new Date().toLocaleTimeString('th-TH'), 'var(--positive)');
     toast('✓ บันทึกฐานข้อมูลลูกค้าสำเร็จ', 'ok');
   }).catch(e => {
@@ -395,9 +429,14 @@ $('csvFile').addEventListener('change', e => {
   reader.readAsText(file, 'utf-8');
 });
 
-$('logout').addEventListener('click', e => { e.preventDefault(); try{sessionStorage.removeItem('bwp_pass');}catch(_){} location.reload(); });
+$('logout').addEventListener('click', e => {
+  e.preventDefault();
+  const tok = TOKEN();
+  const done = () => { window.BWP_SESSION.clear(); location.reload(); };
+  if (tok) window.BWP_DB.logoutSession(tok).then(done, done); else done();
+});
 
-(function(){ let saved=null; try{saved=sessionStorage.getItem('bwp_pass');}catch(e){} if(saved) doLogin(saved,true); else $('loginPass').focus(); })();
+(function(){ try{sessionStorage.removeItem('bwp_pass');}catch(e){} if (!resumeSession()) $('loginUser').focus(); })();
 </script>
 </body>
 </html>

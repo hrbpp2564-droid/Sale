@@ -180,17 +180,15 @@
       });
     }
 
-    function tryLogin(username, pass, fromStore) {
+    // Admin login issues a session token; the data editor and customer database
+    // then open without asking again. The password itself is never stored.
+    function tryLogin(username, pass) {
       setLoading(true);
       errEl.textContent = '';
-      window.BWP_DB.getDashboardUser(username, pass).then(function (result) {
-        var creds = { username: result.username || username, role: result.role || 'viewer', displayName: result.username || username };
-        try { sessionStorage.setItem(CREDS_KEY, JSON.stringify({ username: creds.username, role: creds.role, displayName: creds.displayName })); } catch (e) {}
-        window.BWP_USER = { username: creds.username, role: creds.role, displayName: creds.displayName };
-        applyPayload(result.payload);
-        ov.parentNode && ov.parentNode.removeChild(ov);
+      window.BWP_DB.loginSession(username, pass).then(function (result) {
+        window.BWP_SESSION.save(result);
+        enter(result);
       }).catch(function (e) {
-        if (fromStore) { try { sessionStorage.removeItem(CREDS_KEY); } catch (_) {} }
         setLoading(false);
         var msg = (e && e.message) || '';
         if ((e && e.status === 400) || /unauthorized/i.test(msg)) {
@@ -200,6 +198,34 @@
         }
         passInput.select();
       });
+    }
+
+    function enter(result) {
+      window.BWP_USER = {
+        username: result.username,
+        role: result.role || 'viewer',
+        displayName: result.username,
+        readOnly: !result.canWrite,
+      };
+      try { sessionStorage.setItem(CREDS_KEY, JSON.stringify({ mode: 'admin', username: result.username })); } catch (e) {}
+      applyPayload(result.payload);
+      ov.parentNode && ov.parentNode.removeChild(ov);
+    }
+
+    // Resume an existing session without a password prompt (e.g. coming back
+    // from the data editor). An invalid or expired token just leaves the gate up.
+    function tryResume() {
+      var tok = window.BWP_SESSION.token();
+      if (!tok) return false;
+      var stored = window.BWP_SESSION.get() || {};
+      setLoading(true);
+      window.BWP_DB.getDashboardS(tok).then(function (payload) {
+        enter({ username: stored.username, role: stored.role, canWrite: stored.canWrite, payload: payload });
+      }).catch(function () {
+        window.BWP_SESSION.clear();
+        setLoading(false);
+      });
+      return true;
     }
 
     function doLogin() {
@@ -214,7 +240,7 @@
       var p = passInput.value.trim();
       if (!u) { errEl.textContent = 'กรุณากรอกชื่อผู้ใช้'; userInput.focus(); return; }
       if (!p) { errEl.textContent = 'กรุณากรอกรหัสผ่าน'; passInput.focus(); return; }
-      tryLogin(u, p, false);
+      tryLogin(u, p);
     }
 
     // Resume: only the non-secret parts (username / last mode) are remembered.
@@ -225,6 +251,7 @@
     if (saved && saved.pin) { try { sessionStorage.removeItem(CREDS_KEY); } catch (_) {} saved = null; }  // ล้างของเก่าที่เคยเก็บ PIN ไว้
     if (saved && saved.mode === 'exec') setMode('exec');
     else if (saved && saved.username) userInput.value = saved.username;
+    tryResume();   // มี session อยู่แล้ว → เข้าเลย ไม่ต้องถามรหัสซ้ำ
   }
 
   function fatal(msg) {
@@ -303,8 +330,15 @@
   });
 
   window.BWP_LOGOUT = function () {
-    try { sessionStorage.removeItem(CREDS_KEY); } catch (e) {}
-    window.BWP_USER = null;
-    location.reload();
+    var tok = window.BWP_SESSION && window.BWP_SESSION.token();
+    var done = function () {
+      try { sessionStorage.removeItem(CREDS_KEY); } catch (e) {}
+      window.BWP_SESSION && window.BWP_SESSION.clear();
+      window.BWP_USER = null;
+      location.reload();
+    };
+    // revoke server-side too, so the token is dead even if a copy leaked
+    if (tok && window.BWP_DB.logoutSession) window.BWP_DB.logoutSession(tok).then(done, done);
+    else done();
   };
 })();

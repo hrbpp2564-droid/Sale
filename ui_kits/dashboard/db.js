@@ -46,5 +46,23 @@
     changePassword: function (username, oldPass, newPass) {
       return call('change_bwp_password', { p_username: username, p_old_pass: oldPass, p_new_pass: newPass });
     },
+
+    // ---- Session-token API (single sign-on across the three pages) ----
+    // login_session checks bwp_users and returns { token, role, canWrite, payload }.
+    // Every *_s call below carries the token instead of a password, so no secret
+    // ever has to be handed from one page to the next.
+    loginSession: function (username, pass) { return call('login_session', { p_username: username, p_pass: pass }); },
+    logoutSession: function (token) { return call('logout_session', { p_token: token }); },
+    getDashboardS: function (token) { return call('get_dashboard_s', { p_token: token }); },
+    saveDashboardS: function (token, payload) { return call('save_dashboard_s', { p_token: token, new_payload: payload }); },
+    saveUploadS: function (token, filename, mime, size, contentB64, kind) {
+      return call('save_upload_s', { p_token: token, p_filename: filename, p_mime: mime, p_size: size, p_content_b64: contentB64, p_kind: kind || 'current' });
+    },
+    listUploadsS: function (token) { return call('list_uploads_s', { p_token: token }); },
+    getUploadS: function (token, id) { return call('get_upload_s', { p_token: token, p_id: id }); },
+    setPassRoS: function (token, newRoPass) { return call('set_pass_ro_s', { p_token: token, new_ro_pass: newRoPass }); },
+    changeOwnPasswordS: function (token, oldPass, newPass) {
+      return call('change_own_password_s', { p_token: token, old_pass: oldPass, new_pass: newPass });
+    },
   };
 })();
