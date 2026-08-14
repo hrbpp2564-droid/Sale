@@ -46,61 +46,61 @@
     style.textContent = [
       '@keyframes bwpFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}',
       '@keyframes bwpSpin{to{transform:rotate(360deg)}}',
-      '#bwp-login input:focus{border-color:#3b82f6!important;outline:none}',
-      '#bwp-login .bwp-btn:hover:not(:disabled){background:#1d4ed8!important}',
+      '#bwp-login input:focus{border-color:var(--accent)!important;outline:none}',
+      '#bwp-login .bwp-btn:hover:not(:disabled){background:var(--accent-hover)!important}',
       '#bwp-login .bwp-btn:disabled{opacity:.6;cursor:not-allowed}',
     ].join('');
     document.head.appendChild(style);
 
     var ov = document.createElement('div');
     ov.id = 'bwp-login';
-    ov.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#07101f;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:16px');
+    ov.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg-app);font-family:var(--font-sans);padding:16px');
 
     ov.innerHTML = [
-      '<div style="width:400px;max-width:100%;background:linear-gradient(160deg,#141d2e,#0f1929);border:1px solid #1e3052;border-radius:20px;padding:40px 36px;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:bwpFadeIn .4s ease">',
+      '<div style="width:400px;max-width:100%;background:var(--surface-1);border:1px solid var(--border-default);border-radius:20px;padding:40px 36px;box-shadow:var(--shadow-xl);animation:bwpFadeIn .4s ease">',
         /* Logo */
         '<div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">',
           '<img src="/assets/bwp-logo.svg" width="44" height="44" alt="BWP" style="display:block"/>',
           '<div>',
-            '<div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em">BWP <span style="color:#6b7fa3;font-weight:500">Vantage</span></div>',
-            '<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#4a5d7a;margin-top:1px">Sales Intelligence</div>',
+            '<div style="font-size:22px;font-weight:700;color:var(--text-primary);letter-spacing:-.02em">BWP <span style="color:var(--text-tertiary);font-weight:500">Vantage</span></div>',
+            '<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-disabled);margin-top:1px">Sales Intelligence</div>',
           '</div>',
         '</div>',
         /* Mode toggle: แอดมิน (ล็อกอิน) | ผู้บริหาร (PIN ดูอย่างเดียว) */
-        '<div style="display:flex;gap:6px;background:#0a1525;border:1px solid #1e3052;border-radius:10px;padding:4px;margin-bottom:20px">',
-          '<button id="bwp-mode-admin" type="button" style="flex:1;border:none;border-radius:7px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;background:#2563eb;color:#fff;transition:background .2s">แอดมิน</button>',
-          '<button id="bwp-mode-exec" type="button" style="flex:1;border:none;border-radius:7px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#8fa4c0;transition:background .2s">ผู้บริหาร</button>',
+        '<div style="display:flex;gap:6px;background:var(--surface-inset);border:1px solid var(--border-default);border-radius:10px;padding:4px;margin-bottom:20px">',
+          '<button id="bwp-mode-admin" type="button" style="flex:1;border:none;border-radius:7px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-fg);transition:background .2s">แอดมิน</button>',
+          '<button id="bwp-mode-exec" type="button" style="flex:1;border:none;border-radius:7px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary);transition:background .2s">ผู้บริหาร</button>',
         '</div>',
         /* Title */
-        '<div id="bwp-subtitle" style="font-size:15px;color:#8fa4c0;margin-bottom:24px">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</div>',
+        '<div id="bwp-subtitle" style="font-size:15px;color:var(--text-secondary);margin-bottom:24px">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</div>',
         /* Admin block (username + password) */
         '<div id="bwp-admin-block">',
-          '<label style="display:block;font-size:12px;font-weight:600;color:#6b7fa3;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">ชื่อผู้ใช้</label>',
+          '<label style="display:block;font-size:12px;font-weight:600;color:var(--text-tertiary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">ชื่อผู้ใช้</label>',
           '<input id="bwp-user" type="text" placeholder="กรอกชื่อผู้ใช้" autocomplete="username" ',
-            'style="width:100%;box-sizing:border-box;background:#0a1525;border:1px solid #1e3052;border-radius:10px;color:#e2e8f0;font-size:14px;padding:11px 14px;margin-bottom:14px;transition:border .2s"/>',
-          '<label style="display:block;font-size:12px;font-weight:600;color:#6b7fa3;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">รหัสผ่าน</label>',
+            'style="width:100%;box-sizing:border-box;background:var(--surface-inset);border:1px solid var(--border-default);border-radius:10px;color:var(--text-primary);font-size:14px;padding:11px 14px;margin-bottom:14px;transition:border .2s"/>',
+          '<label style="display:block;font-size:12px;font-weight:600;color:var(--text-tertiary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">รหัสผ่าน</label>',
           '<div style="position:relative">',
             '<input id="bwp-pass" type="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" ',
-              'style="width:100%;box-sizing:border-box;background:#0a1525;border:1px solid #1e3052;border-radius:10px;color:#e2e8f0;font-size:14px;padding:11px 40px 11px 14px;transition:border .2s"/>',
-            '<button id="bwp-eye" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#4a5d7a;font-size:16px;padding:0;line-height:1" title="แสดง/ซ่อนรหัสผ่าน">👁</button>',
+              'style="width:100%;box-sizing:border-box;background:var(--surface-inset);border:1px solid var(--border-default);border-radius:10px;color:var(--text-primary);font-size:14px;padding:11px 40px 11px 14px;transition:border .2s"/>',
+            '<button id="bwp-eye" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0;line-height:1" title="แสดง/ซ่อนรหัสผ่าน">👁</button>',
           '</div>',
         '</div>',
         /* Executive block (PIN only, read-only access) */
         '<div id="bwp-exec-block" style="display:none">',
-          '<label style="display:block;font-size:12px;font-weight:600;color:#6b7fa3;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">รหัส PIN สำหรับผู้บริหาร</label>',
+          '<label style="display:block;font-size:12px;font-weight:600;color:var(--text-tertiary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">รหัส PIN สำหรับผู้บริหาร</label>',
           '<input id="bwp-pin" type="password" inputmode="numeric" placeholder="กรอก PIN" autocomplete="off" ',
-            'style="width:100%;box-sizing:border-box;background:#0a1525;border:1px solid #1e3052;border-radius:10px;color:#e2e8f0;font-size:18px;letter-spacing:.3em;text-align:center;padding:12px 14px;transition:border .2s"/>',
-          '<div style="font-size:11.5px;color:#4a5d7a;margin-top:10px;line-height:1.5">เข้าดูข้อมูลทั้งหมดได้แบบอ่านอย่างเดียว · ไม่สามารถแก้ไขข้อมูลได้</div>',
+            'style="width:100%;box-sizing:border-box;background:var(--surface-inset);border:1px solid var(--border-default);border-radius:10px;color:var(--text-primary);font-size:18px;letter-spacing:.3em;text-align:center;padding:12px 14px;transition:border .2s"/>',
+          '<div style="font-size:11.5px;color:var(--text-tertiary);margin-top:10px;line-height:1.5">เข้าดูข้อมูลทั้งหมดได้แบบอ่านอย่างเดียว · ไม่สามารถแก้ไขข้อมูลได้</div>',
         '</div>',
         /* Error */
-        '<div id="bwp-err" style="color:#f87171;font-size:12.5px;min-height:20px;margin:10px 2px 0"></div>',
+        '<div id="bwp-err" style="color:var(--negative);font-size:12.5px;min-height:20px;margin:10px 2px 0"></div>',
         /* Submit */
         '<button id="bwp-go" type="button" class="bwp-btn" ',
-          'style="width:100%;margin-top:10px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;padding:12px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:8px">',
+          'style="width:100%;margin-top:10px;background:var(--accent);border:none;border-radius:10px;color:var(--accent-fg);font-size:15px;font-weight:600;padding:12px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:8px">',
           '<span id="bwp-btn-txt">เข้าสู่ระบบ</span>',
         '</button>',
         /* Footer */
-        '<div style="margin-top:24px;text-align:center;font-size:11px;color:#2e4060">Best World Interplas Co., Ltd. · ข้อมูลภายในองค์กรเท่านั้น</div>',
+        '<div style="margin-top:24px;text-align:center;font-size:11px;color:var(--text-disabled)">Best World Interplas Co., Ltd. · ข้อมูลภายในองค์กรเท่านั้น</div>',
       '</div>',
     ].join('');
 
@@ -131,10 +131,10 @@
       execBlock.style.display = isExec ? '' : 'none';
       subtitle.textContent = isExec ? 'สำหรับผู้บริหาร — ดูข้อมูลอย่างเดียว' : 'กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ';
       btnTxt.textContent = isExec ? 'เข้าดูข้อมูล' : 'เข้าสู่ระบบ';
-      modeAdminBtn.style.background = isExec ? 'transparent' : '#2563eb';
-      modeAdminBtn.style.color = isExec ? '#8fa4c0' : '#fff';
-      modeExecBtn.style.background = isExec ? '#2563eb' : 'transparent';
-      modeExecBtn.style.color = isExec ? '#fff' : '#8fa4c0';
+      modeAdminBtn.style.background = isExec ? 'transparent' : 'var(--accent)';
+      modeAdminBtn.style.color = isExec ? 'var(--text-secondary)' : 'var(--accent-fg)';
+      modeExecBtn.style.background = isExec ? 'var(--accent)' : 'transparent';
+      modeExecBtn.style.color = isExec ? 'var(--accent-fg)' : 'var(--text-secondary)';
       setTimeout(function () { (isExec ? pinInput : userInput).focus(); }, 0);
     }
     modeAdminBtn.addEventListener('click', function () { setMode('admin'); });
@@ -256,16 +256,16 @@
 
   function fatal(msg) {
     var d = document.createElement('div');
-    d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#07101f;color:#cbd5e1;font-family:system-ui,sans-serif;text-align:center;padding:24px');
+    d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg-app);color:var(--text-secondary);font-family:var(--font-sans);text-align:center;padding:24px');
     var wrap = document.createElement('div');
     var title = document.createElement('div');
-    title.setAttribute('style', 'font-size:16px;font-weight:600;color:#fff');
+    title.setAttribute('style', 'font-size:16px;font-weight:600;color:var(--text-primary)');
     title.textContent = 'โหลดไม่สำเร็จ';
     var detail = document.createElement('div');
-    detail.setAttribute('style', 'font-size:13px;margin-top:8px;color:#94a3b8');
+    detail.setAttribute('style', 'font-size:13px;margin-top:8px;color:var(--text-tertiary)');
     detail.textContent = msg;
     var btn = document.createElement('button');
-    btn.setAttribute('style', 'margin-top:16px;background:#2563eb;border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:10px 18px;cursor:pointer');
+    btn.setAttribute('style', 'margin-top:16px;background:var(--accent);border:none;border-radius:10px;color:var(--accent-fg);font-size:14px;font-weight:600;padding:10px 18px;cursor:pointer');
     btn.textContent = 'ลองใหม่';
     btn.onclick = function () { location.reload(); };
     wrap.appendChild(title); wrap.appendChild(detail); wrap.appendChild(btn);

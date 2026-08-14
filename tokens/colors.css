@@ -101,14 +101,18 @@
   --chart-grid:   rgba(255,255,255,0.06);
   --chart-axis:   var(--slate-400);
   --chart-bg:     transparent;
+
+  /* Table zebra striping — faint enough to guide the eye without banding */
+  --row-stripe: rgba(255,255,255,0.025);
 }
 
 /* =========================================================
    LIGHT THEME
    ========================================================= */
 [data-theme="light"] {
-  --bg-app:        #eef1f5;
-  --bg-base:       #f4f6f9;
+  --bg-app:        #f3f4f6;
+  --bg-base:       #f8f9fa;
+  --row-stripe:    rgba(30,41,59,0.03);
   --surface-1:     #ffffff;
   --surface-2:     #ffffff;
   --surface-3:     #f1f4f8;
@@ -120,10 +124,13 @@
   --border-strong:  rgba(16,22,30,0.20);
   --border-accent:  var(--blue-600);
 
-  --text-primary:   #11161f;
-  --text-secondary: #4a5764;
-  --text-tertiary:  #6b7785;
-  --text-disabled:  #9aa6b2;
+  /* Slate rather than near-black: #11161f against #f8f9fa is a harsher contrast
+     than long reading sessions want, and the hierarchy reads just as clearly a
+     few steps lighter. */
+  --text-primary:   #1e293b;
+  --text-secondary: #475569;
+  --text-tertiary:  #64748b;
+  --text-disabled:  #94a3b8;
   --text-inverse:   #ffffff;
   --text-on-accent: #ffffff;
   --text-link:      var(--blue-700);

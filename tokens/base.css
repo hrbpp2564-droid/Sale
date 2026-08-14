@@ -123,3 +123,48 @@
   background: rgba(0,0,0,0.5);
 }
 #bwp-sidebar-backdrop.visible { display: block; }
+
+/* ─── Data tables ─────────────────────────────────────
+   Applies to every table in the product, including the ones compiled into
+   _ds_bundle.js, because it hooks the elements rather than the components. */
+
+/* Zebra striping: enough to track a row across many numeric columns, faint
+   enough that the figures stay the loudest thing on the card. */
+.vantage tbody tr:nth-child(even) { background: var(--row-stripe); }
+.vantage tbody tr { transition: background var(--duration-fast, 120ms) var(--ease-standard, cubic-bezier(0.4,0,0.2,1)); }
+.vantage tbody tr:hover { background: var(--accent-subtle); }
+
+/* Header stays visible while scrolling a long customer list */
+.vantage thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-1);
+}
+
+/* ─── Status badges ───────────────────────────────────
+   Standard colour coding, wired to the semantic tokens so both themes and any
+   future accent change carry through. */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.badge-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.badge-status.is-success { color: var(--positive); background: var(--positive-subtle); }
+.badge-status.is-pending { color: var(--warning);  background: var(--warning-subtle); }
+.badge-status.is-danger  { color: var(--negative); background: var(--negative-subtle); }
+.badge-status.is-info    { color: var(--info);     background: var(--info-subtle); }

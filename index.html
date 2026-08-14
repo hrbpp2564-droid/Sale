@@ -1,28 +1,40 @@
 <!DOCTYPE html>
-<html lang="th" data-theme="dark">
+<html lang="th" data-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BWP Vantage — Sales Intelligence</title>
 <link rel="icon" type="image/svg+xml" href="/assets/bwp-logo.svg" />
-<link rel="stylesheet" href="styles.css?v=20260620k" />
+<link rel="stylesheet" href="styles.css?v=20260814e" />
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="ui_kits/dashboard/data.js?v=20260620k"></script>
 <script src="ui_kits/dashboard/icons.jsx?v=20260620k"></script>
+<script>
+  // Light is the default now. The bundle reads localStorage('vantage.theme')
+  // and falls back to 'dark', and it is compiled, so seed the value here
+  // instead — before it runs, and only when the visitor has no saved choice,
+  // so anyone who picked dark keeps dark.
+  try {
+    if (!localStorage.getItem('vantage.theme')) localStorage.setItem('vantage.theme', 'light');
+    var _t = localStorage.getItem('vantage.theme');
+    document.documentElement.setAttribute('data-theme', _t);
+    document.addEventListener('DOMContentLoaded', function () { document.body.setAttribute('data-theme', _t); });
+  } catch (e) {}
+</script>
 <script src="_ds_bundle.js?v=20260620k"></script>
 <script src="ui_kits/dashboard/supabase-config.js?v=20260620k"></script>
 <script src="ui_kits/dashboard/session.js?v=20260814d"></script>
 <script src="ui_kits/dashboard/db.js?v=20260814d"></script>
 <script src="ui_kits/dashboard/compute.js?v=20260814c"></script>
-<script src="ui_kits/dashboard/supabase-loader.js?v=20260814c"></script>
+<script src="ui_kits/dashboard/supabase-loader.js?v=20260814e"></script>
 <style>
   html, body { margin: 0; height: 100%; }
   body { background: var(--bg-app); }
   #root { min-height: 100vh; }
 </style>
 </head>
-<body class="vantage" data-theme="dark">
+<body class="vantage" data-theme="light">
 <div id="root"></div>
 </body>
 </html>
